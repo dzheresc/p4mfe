@@ -70,7 +70,7 @@ pytest python
 | 1       | [Calculus review. Options. Put-Call parity](#chapter-1) | ✓ | ✓ | [1-30 ✓](cpp/ch01_calculus_options/exercises/README.md) |
 | 2       | [Numerical integration. Interest rates. Bonds](#chapter-2) | ✓ | ✓ | [1-19 ✓](cpp/ch02_integration_bonds/exercises/README.md) |
 | 3       | [Probability concepts. Black-Scholes formula. Greeks and hedging](#chapter-3) | ✓ | ✓ | [1-29 ✓](cpp/ch03_probability_black_scholes/exercises/README.md) |
-| 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | — |
+| 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | [1-15 ✓](cpp/ch04_lognormal_risk_neutral/exercises/README.md) |
 | 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | — |
 | 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | — |
 | 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | — |
@@ -215,6 +215,19 @@ Run the examples (`./build/cpp/ch04_lognormal_risk_neutral/ch04_lognormal_risk_n
 `risk_neutral_pricing` (closed form vs. integral vs. Monte Carlo, digital
 decomposition) and `price_ranges` (95%/99% ranges for S_T, in-the-money
 probabilities under mu and r).
+
+### Chapter 4 exercises
+
+Exercises 1-15 of section 4.9 are in `cpp/ch04_lognormal_risk_neutral/exercises`
+(namespace `p4mfe::ch04::ex`, target `p4mfe::ch04_exercises`) and
+`python/src/p4mfe/ch04_lognormal_risk_neutral/exercises`, grouped into files
+such as `ex03_06_binomial_calibration` and `ex11_put_integration`. Each exercise
+has the problem statement and the derivation, and the code computes the answer
+with the chapter 4 library (`asset_model`, `in_the_money`, `independent`),
+the chapter 2 integration rules and the chapter 3 Black-Scholes code. See the
+[exercise index](cpp/ch04_lognormal_risk_neutral/exercises/README.md) for
+every answer at a glance. `./build/cpp/ch04_lognormal_risk_neutral/exercises/ch04_exercises_solutions`
+and `python -m p4mfe.ch04_lognormal_risk_neutral.exercises` print all answers.
 
 ## Chapter 5
 
