@@ -68,6 +68,7 @@ pytest python
 | 3       | [Probability concepts. Black-Scholes formula. Greeks and hedging](#chapter-3) | ✓ | ✓ | — |
 | 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | — |
 | 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | — |
+| 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | — |
 
 Chapters will be added following the book's table of contents.
 
@@ -203,3 +204,41 @@ Run the examples (`./build/cpp/ch05_newton_bootstrapping/ch05_newton_bootstrappi
 `newton_nd_system` (exact vs. finite-difference Jacobians, and how the
 starting point picks the root) and `bootstrap_curve` (yields, implied vol, and
 a zero curve from 0.5, 1, 3 and 5 year bonds, repriced exactly).
+
+## Chapter 6
+
+`cpp/ch06_taylor_bonds_atm` (namespace `p4mfe::ch06`) and
+`python/src/p4mfe/ch06_taylor_bonds_atm`. Reuses chapter 1's finite
+differences (derivatives, gradient, Hessian), chapter 2's bond pricing,
+duration, convexity, `dollar_duration` and `dv01`, and chapter 3's
+Black-Scholes prices, `Greeks` and `portfolio_change_approx`. Bond
+sensitivities are with respect to a continuously compounded yield or a
+parallel shift of the zero curve; dollar risk is carried in `DollarRisk`
+(value, D$ = −dV/dy, C$ = d²V/dy²).
+
+| Section | C++ header / Python module | What is there |
+|---------|----------------------------|---------------|
+| 6.1 Taylor's formula, one variable | `taylor` | `taylor_polynomial` (from f(a), f'(a), ...), `taylor_linear`, `taylor_quadratic`, `taylor_remainder_bound` (Lagrange), `taylor_remainder_integral` (integral form, Simpson) |
+| 6.2 Multivariable functions | `taylor` | `taylor_linear_nd`, `taylor_quadratic_nd` (gradient and Hessian, given or by finite differences) |
+| 6.2.1 Two variables | `taylor` | `Partials2D`, `partials_2d`, `taylor_linear_2d`, `taylor_quadratic_2d` |
+| 6.3 Taylor series expansions | `taylor_series` | partial sums; tests show convergence and the interval of convergence |
+| 6.3.1 Examples | `taylor_series` | `exp_series`, `log1p_series`, `geometric_series`, `binomial_series`, `sin_series`, `cos_series`, `norm_cdf_series` (N(x) from the series of e^(−t²/2)) |
+| 6.4 Percentage and log returns | `returns` | `percentage_return`, `log_return` (optional dividend), `log_from_percentage`, `percentage_from_log`, `log_return_taylor` (R − R²/2 + ...), `percentage_returns`, `log_returns`, `compound_percentage_returns`, `sum_log_returns` |
+| 6.4.1 Asset and portfolio returns | `returns` | `portfolio_weights`, `portfolio_percentage_return` (exact), `portfolio_log_return` (exact), `portfolio_log_return_approx` (Σ wᵢ rᵢ) |
+| 6.5 Parallel shifts in the yield curve | `yield_curve_shifts` | `shifted_curve_price`, `curve_shift_metrics` (D, C w.r.t. the shift), `shifted_curve_price_approx`, `yield_change_from_shift` |
+| 6.6 Duration and convexity | `duration_convexity` | `duration_derivative` (dD/dy = D² − C), `cash_flow_dispersion` (C − D² ≥ 0), `convexity_discrete`, `portfolio_duration`, `portfolio_convexity` |
+| 6.7 Dollar duration and dollar convexity | `dollar_duration` | `DollarRisk`, `bond_dollar_risk`, `dollar_convexity`, `scale`, `portfolio_dollar_risk` (additive, works for zero-value portfolios), `value_change_approx[_convexity]`, `duration_from_dollar`, `convexity_from_dollar` |
+| 6.7.1 DV01 | `dollar_duration` | `DollarRisk::dv01`, `dv01_reprice`, `dv01_central` |
+| 6.7.2 Bond portfolio immunization | `dollar_duration` | `immunize` (two bonds + cash: zero value, D$ and C$), `duration_hedge_units` |
+| 6.8.1 ATM approximation formulas | `bs_atm` | `atm_price_approx` (σS√(T/2π) ≈ 0.4σS√T), `atm_call_approx`, `atm_put_approx` (with r, q), `atm_implied_vol_approx`, `atm_greeks_approx` |
+| 6.8.2 Deriving the ATM formulas | `bs_atm` | `norm_cdf_linear` (N(x) ≈ 1/2 + x/√(2π)), `atm_call_linearized` |
+| 6.8.3 Precision of the ATM approximation | `bs_atm` | `atm_price_exact`, `atm_relative_error`, `atm_relative_error_bound` (σ²T/24; the approximation always overestimates) |
+| 6.9 Greeks and Taylor's formula | `greeks_taylor` | `option_change_delta`, `option_change_delta_gamma`, `option_change_taylor` (Δ, Γ, Θ, vega, ρ), `theta_from_pde`, `delta_neutral_change` (r Π dt + ½ Γ (dS² − σ²S² dt)) |
+
+Run the examples (`./build/cpp/ch06_taylor_bonds_atm/ch06_taylor_bonds_atm_<name>`):
+`taylor_approximations` (Taylor polynomials of e^x vs. their bounds, the
+series of N(x), r vs. R − R²/2), `immunization` (a 10-year bond under
+parallel curve shifts; immunizing 7-year bonds with 2- and 20-year bonds, P&L
+unhedged vs. duration-hedged vs. immunized) and `atm_approximation` (relative
+error vs. σ²T/24, ATM formulas with rates, an option's value change from its
+Greeks).
