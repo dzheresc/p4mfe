@@ -65,6 +65,7 @@ pytest python
 | —       | Shared helpers (normal distribution) | ✓ | ✓ | — |
 | 1       | [Calculus review. Options. Put-Call parity](#chapter-1) | ✓ | ✓ | — |
 | 2       | [Numerical integration. Interest rates. Bonds](#chapter-2) | ✓ | ✓ | — |
+| 3       | [Probability concepts. Black-Scholes formula. Greeks and hedging](#chapter-3) | ✓ | ✓ | — |
 
 Chapters will be added following the book's table of contents.
 
@@ -115,3 +116,28 @@ unless a name says `discrete`; bonds are `CashFlows` (times and amounts).
 
 Run the examples: `./build/cpp/ch02_integration_bonds/ch02_integration_bonds_simpson_convergence`
 and `./build/cpp/ch02_integration_bonds/ch02_integration_bonds_bond_yield`.
+
+## Chapter 3
+
+`cpp/ch03_probability_black_scholes` (namespace `p4mfe::ch03`) and
+`python/src/p4mfe/ch03_probability_black_scholes`. Black-Scholes arguments
+follow the book's order `(S, K, T, sigma, r, q)` with continuous dividend
+yield `q`; `OptionType` is the one from chapter 1. Theta is dV/dt per year;
+vega and rho are per unit change, not per 1%.
+
+| Section | C++ header / Python module | What is there |
+|---------|----------------------------|---------------|
+| 3.1 Discrete probability concepts | `probability` | `DiscreteDistribution`, `expected_value`, `mean`, `variance` |
+| 3.2 Continuous probability concepts | `probability` | `ContinuousDistribution` (density on [a, b], ends may be infinite), `expected_value`, `mean`, `variance`, `cdf`, `exponential_distribution` |
+| 3.2.1 Variance, covariance, correlation | `probability` | `JointOutcome`, `covariance`, `correlation`, `variance_of_sum`, `sample_mean`, `sample_variance`, `sample_covariance`, `sample_correlation` |
+| 3.3 The standard normal variable | `normal_rv` (+ shared `normal`) | `norm_pdf`, `norm_cdf`, `std_normal_mgf` |
+| 3.4 Normal random variables | `normal_rv` | `NormalParams`, `normal_pdf`, `normal_cdf`, `linear_combination`, `lognormal_{pdf,cdf,mean,variance}`, `log_price_distribution`, `prob_price_above` |
+| 3.5 The Black-Scholes formula | `black_scholes` | `bs_d1_d2`, `bs_price`, `bs_call`, `bs_put` |
+| 3.6 The Greeks of European options | `black_scholes` | `Greeks`, `bs_greeks` (delta, gamma, vega, theta, rho for calls and puts) |
+| 3.6.1 Explaining the Greeks computations | `black_scholes` | `bs_phi_identity_gap` (S e^(−qT) φ(d1) = K e^(−rT) φ(d2)), `bs_pde_residual`; tests check every Greek against finite differences |
+| 3.7 Implied volatility | `implied_vol` | `implied_vol_initial_guess`, `implied_vol_newton`, `implied_vol_bisection` |
+| 3.8 The concept of hedging. Delta and Gamma hedging | `hedging` | `portfolio_change_approx`, `delta_hedge_shares`, `delta_hedge` (`HedgedPosition`), `delta_gamma_hedge` |
+| 3.9 Implementation of the Black-Scholes formula | `cdf_approx` | `norm_cdf_poly` (Abramowitz & Stegun, error < 7.5e-8), `norm_cdf_simpson` (Simpson's rule to a tolerance) |
+
+Run the examples (`./build/cpp/ch03_probability_black_scholes/ch03_probability_black_scholes_<name>`):
+`black_scholes_greeks`, `implied_vol`, `delta_gamma_hedge`, `cdf_accuracy`.
