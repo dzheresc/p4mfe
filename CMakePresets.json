@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "cmakeMinimumRequired": { "major": 3, "minor": 20, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "bench",
+      "displayName": "Benchmarks (Release)",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/bench-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "P4MFE_BUILD_BENCHMARKS": "ON",
+        "P4MFE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "bench-profile",
+      "displayName": "Benchmarks for profiling (RelWithDebInfo, frame pointers)",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/bench-profile",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_CXX_FLAGS": "-fno-omit-frame-pointer",
+        "P4MFE_BUILD_BENCHMARKS": "ON",
+        "P4MFE_BUILD_TESTS": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "bench", "configurePreset": "bench" },
+    { "name": "bench-profile", "configurePreset": "bench-profile" }
+  ]
+}

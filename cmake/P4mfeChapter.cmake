@@ -5,9 +5,11 @@
 #   <dir>/src/*.cpp           optional sources (header-only if absent)
 #   <dir>/tests/*.cpp         GoogleTest unit tests
 #   <dir>/examples/*.cpp      optional small programs, one executable each
+#   <dir>/bench/*.cpp         optional Google Benchmark programs
 #
 # Creates the library target p4mfe_<name> (alias p4mfe::<name>), the test
-# executable p4mfe_<name>_tests, and one executable per example.
+# executable p4mfe_<name>_tests, one executable per example, and, with
+# P4MFE_BUILD_BENCHMARKS, the benchmark executable p4mfe_<name>_bench.
 function(p4mfe_add_module name)
   cmake_parse_arguments(ARG "" "" "DEPS" ${ARGN})
   set(target p4mfe_${name})
@@ -37,6 +39,15 @@ function(p4mfe_add_module name)
       add_executable(${target}_tests ${tests})
       target_link_libraries(${target}_tests PRIVATE ${target} GTest::gtest_main)
       gtest_discover_tests(${target}_tests)
+    endif()
+  endif()
+
+  if(P4MFE_BUILD_BENCHMARKS)
+    file(GLOB benches CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bench/*.cpp)
+    if(benches)
+      add_executable(${target}_bench ${benches})
+      target_link_libraries(${target}_bench PRIVATE ${target} p4mfe::bench_support)
+      set_property(GLOBAL APPEND PROPERTY P4MFE_BENCH_TARGETS ${target}_bench)
     endif()
   endif()
 endfunction()

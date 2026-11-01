@@ -63,6 +63,28 @@ pip install -e "python[dev]"
 pytest python
 ```
 
+## Benchmarks (C++)
+
+Performance benchmarks use Google Benchmark and are off by default. The plan,
+workloads and data sizes are in
+[docs/performance-testing-plan.md](docs/performance-testing-plan.md).
+
+```sh
+cmake --preset bench                     # Release, P4MFE_BUILD_BENCHMARKS=ON
+cmake --build --preset bench -j
+P4MFE_BENCH_TIER=smoke cmake --build --preset bench --target bench   # JSON in build/bench-release/bench/
+```
+
+`P4MFE_BENCH_TIER` is `smoke`, `standard` (default) or `large`. Each chapter's
+`bench/*.cpp` builds into `p4mfe_<chapter>_bench`, which accepts the usual
+Google Benchmark flags (`--benchmark_filter`, `--benchmark_repetitions`, ...).
+Besides timings, every benchmark reports heap allocations, bytes allocated and
+peak bytes in use (from a counting `operator new`, in the JSON output), and
+each run prints the process's peak RSS. The heap numbers include a fixed
+overhead of a few hundred bytes from Google Benchmark itself, spread over the
+16 iterations of its memory run, so a kernel that never allocates shows about
+0.06 allocations per iteration.
+
 ## Pseudocode from the book
 
 The book gives pseudocode for 16 algorithms. Each chapter that has them

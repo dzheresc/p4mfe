@@ -16,6 +16,27 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
+  bench-smoke:
+    # Builds every benchmark and runs the smoke tier, so benchmarks keep
+    # compiling and their built-in correctness checks keep passing. Timings
+    # from this job are not meaningful and are not compared.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake --preset bench
+      - name: Build
+        run: cmake --build --preset bench -j
+      - name: Run smoke tier
+        env:
+          P4MFE_BENCH_TIER: smoke
+          BENCHMARK_MIN_TIME: 0.01s
+        run: cmake --build --preset bench --target bench
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bench-smoke-json
+          path: build/bench-release/bench/*.json
+
   python:
     runs-on: ubuntu-latest
     steps:
