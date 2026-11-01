@@ -89,10 +89,10 @@ from the book.
 | 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | [1-18 ✓](cpp/ch06_taylor_bonds_atm/exercises/README.md) |
 | 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | [1-14 ✓](cpp/ch07_finite_differences_bs_pde/exercises/README.md) |
 | 8       | [Multivariable calculus. Box-Muller. Heat equation. Barrier options. Early exercise](#chapter-8) | ✓ | ✓ | [1-21 ✓](cpp/ch08_multivariable_barriers/exercises/README.md) |
-| 9       | [Lagrange multipliers. Optimal investment portfolios](#chapter-9) | ✓ | ✓ | — |
+| 9       | [Lagrange multipliers. Optimal investment portfolios](#chapter-9) | ✓ | ✓ | [1-3 ✓](cpp/ch09_lagrange_portfolios/exercises/README.md) |
 | 10      | [Mathematical appendix](#chapter-10) | ✓ | ✓ | — |
 
-All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter; chapters 1-8 are done.
+All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter; chapters 1-9 are done.
 
 ## Chapter 1
 
@@ -459,6 +459,18 @@ Run the examples (`./build/cpp/ch09_lagrange_portfolios/ch09_lagrange_portfolios
 `lagrange_examples` (the section 9.1.1 problems with multipliers and
 classification) and `efficient_frontier` (frontier with and without cash,
 tangency portfolio, maximum mean for a given risk).
+
+### Chapter 9 exercises
+
+Exercises 1-3 of section 9.6 are in `cpp/ch09_lagrange_portfolios/exercises`
+(namespace `p4mfe::ch09::ex`, target `p4mfe::ch09_exercises`) and
+`python/src/p4mfe/ch09_lagrange_portfolios/exercises`, one file per exercise:
+`ex01_constrained_extrema`, `ex02_am_gm_hm` and `ex03_five_asset_portfolio`.
+Each header has the problem statement and the derivation or proof, and the
+code solves or checks it with the chapter 9 Lagrange solver and portfolio
+formulas. See the [exercise index](cpp/ch09_lagrange_portfolios/exercises/README.md)
+for every answer at a glance. `./build/cpp/ch09_lagrange_portfolios/exercises/ch09_exercises_solutions`
+and `python -m p4mfe.ch09_lagrange_portfolios.exercises` print all answers.
 
 ## Chapter 10
 
