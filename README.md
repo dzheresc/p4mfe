@@ -90,9 +90,9 @@ from the book.
 | 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | [1-14 ✓](cpp/ch07_finite_differences_bs_pde/exercises/README.md) |
 | 8       | [Multivariable calculus. Box-Muller. Heat equation. Barrier options. Early exercise](#chapter-8) | ✓ | ✓ | [1-21 ✓](cpp/ch08_multivariable_barriers/exercises/README.md) |
 | 9       | [Lagrange multipliers. Optimal investment portfolios](#chapter-9) | ✓ | ✓ | [1-3 ✓](cpp/ch09_lagrange_portfolios/exercises/README.md) |
-| 10      | [Mathematical appendix](#chapter-10) | ✓ | ✓ | — |
+| 10      | [Mathematical appendix](#chapter-10) | ✓ | ✓ | [1-17 ✓](cpp/ch10_math_appendix/exercises/README.md) |
 
-All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter; chapters 1-9 are done.
+All chapters' main concepts are in place, and the exercise solutions for all ten chapters are done.
 
 ## Chapter 1
 
@@ -499,3 +499,19 @@ a coupon bond's price, duration and convexity from the k^j x^k sums) and
 `recursions_and_asymptotics` (Fibonacci closed form, a mortgage payment,
 observed orders, Stirling's relative error vs. 1/(12n), Taylor terms needed
 for eˣ, the flat function).
+
+### Chapter 10 exercises
+
+Exercises 1-17 of section 10.10 are in `cpp/ch10_math_appendix/exercises`
+(namespace `p4mfe::ch10::ex`, target `p4mfe::ch10_exercises`) and
+`python/src/p4mfe/ch10_math_appendix/exercises`, one file per exercise or
+group of related exercises, such as `ex02_lhopital_sums` and
+`ex15_17_nested_limits`. Each has the problem statement and the derivation
+or proof; the proofs are checked numerically (exact integer identities,
+recursions against their closed forms, bounded ratios, partial sums between
+their bounds, iterations against their limits) with the chapter 10 sums,
+recursion, interpolation, Big O and power series code and chapter 5's
+`solve_linear`. See the
+[exercise index](cpp/ch10_math_appendix/exercises/README.md) for every answer
+at a glance. `./build/cpp/ch10_math_appendix/exercises/ch10_exercises_solutions`
+and `python -m p4mfe.ch10_math_appendix.exercises` print all answers.
