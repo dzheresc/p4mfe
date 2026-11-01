@@ -280,7 +280,6 @@ performance change is merged before it exists.
 - Stored at `bench/baselines/<date>-<machine>/`:
   - `cpp.json` (Google Benchmark JSON, includes the memory manager fields),
   - `rss.json` (peak RSS per workload),
-  - `python.json` (pytest-benchmark JSON, see below),
   - `ENVIRONMENT.md`: CPU model, core count, RAM, OS and kernel, compiler and
     version, standard library, CMake build type and full flags, Google
     Benchmark version, git commit, CPU governor and
