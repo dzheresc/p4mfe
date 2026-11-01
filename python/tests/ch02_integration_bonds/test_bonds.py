@@ -5,6 +5,7 @@ import pytest
 
 from p4mfe.ch02_integration_bonds.bonds import (
     BondQuote,
+    CashFlows,
     bond_cash_flows,
     bond_convexity,
     bond_duration,
@@ -48,6 +49,13 @@ def test_price_from_curves():
     r_inst = lambda t: 0.0525 + np.log1p(2 * t) / 200
     r_zero = lambda t: 0.0525 + ((1 + 2 * t) * math.log1p(2 * t) - 2 * t) / (400 * t)
     assert bond_price_from_inst_rate(cf, r_inst) == pytest.approx(bond_price_from_zero_rate(cf, r_zero), abs=1e-10)
+
+
+@pytest.mark.parametrize("times", [[1.0, 0.5], [-0.5, 1.0]])
+def test_price_from_inst_rate_rejects_unsorted_times(times):
+    cf = CashFlows(np.array(times), np.array([3.0, 103.0]))
+    with pytest.raises(ValueError):
+        bond_price_from_inst_rate(cf, lambda t: 0.05 + 0 * t)
 
 
 def test_duration_and_convexity_are_yield_derivatives():

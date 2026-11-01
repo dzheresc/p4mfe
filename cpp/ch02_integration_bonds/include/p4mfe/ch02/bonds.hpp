@@ -83,7 +83,8 @@ template <std::invocable<double> Z>
 }
 
 // B = sum_i c_i exp(-integral_0^{t_i} r(s) ds) for an instantaneous rate
-// curve r(s) (2.10). Integrates each [t_{i-1}, t_i] once and accumulates.
+// curve r(s) (2.10). Integrates each [t_{i-1}, t_i] once and accumulates, so
+// the cash flow times must be non-negative and non-decreasing.
 template <std::invocable<double> R>
 [[nodiscard]] double bond_price_from_inst_rate(const CashFlows& cf, R&& r, double tol = 1e-12) {
     detail::check(cf);
@@ -91,6 +92,8 @@ template <std::invocable<double> R>
     double integral = 0.0;
     double t_prev = 0.0;
     for (std::size_t i = 0; i < cf.times.size(); ++i) {
+        if (cf.times[i] < t_prev)
+            throw std::invalid_argument("bond_price_from_inst_rate: cash flow times must be non-negative and increasing");
         if (cf.times[i] > t_prev) integral += integrate_to_tolerance(r, t_prev, cf.times[i], tol).value;
         t_prev = cf.times[i];
         B += cf.amounts[i] * std::exp(-integral);

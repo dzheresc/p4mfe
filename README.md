@@ -22,6 +22,7 @@ cpp/
     tests/                 GoogleTest unit tests
     exercises/             solutions to the chapter's exercises, same layout
       include/p4mfe/chNN/exercises/   (namespace p4mfe::chNN::ex)
+    pseudocode/README.md   the book's pseudocode tables (chapters 2, 3, 5)
 python/
   src/p4mfe/
     normal.py              shared helpers
@@ -61,6 +62,19 @@ python -m venv .venv && . .venv/bin/activate
 pip install -e "python[dev]"
 pytest python
 ```
+
+## Pseudocode from the book
+
+The book gives pseudocode for 16 algorithms. Each chapter that has them
+carries a `pseudocode/README.md` with every table transcribed as printed,
+the C++ and Python function that implements it, and how the code differs
+from the book.
+
+| Chapter | Tables |
+|---------|--------|
+| [2](cpp/ch02_integration_bonds/pseudocode/README.md) | 2.1 Midpoint rule, 2.2 Trapezoidal rule, 2.3 Simpson's rule, 2.4 Integral with given tolerance, 2.5 Bond price from the zero rate curve, 2.6 Bond price from the instantaneous rate curve, 2.7 Price, duration and convexity from the yield |
+| [3](cpp/ch03_probability_black_scholes/pseudocode/README.md) | 3.1 Cumulative normal N(t), 3.2 Black-Scholes formula |
+| [5](cpp/ch05_newton_bootstrapping/pseudocode/README.md) | 5.1 Bisection, 5.2 Newton's method, 5.3 Secant method, 5.4 N-dimensional Newton, 5.5 N-dimensional approximate Newton, 5.6 Bond yield, 5.7 Implied volatility |
 
 ## Status
 
@@ -138,6 +152,9 @@ unless a name says `discrete`; bonds are `CashFlows` (times and amounts).
 | 2.9 Zero coupon bonds | `bonds` | `zero_coupon_bond_price`, `zero_rate_from_zero_coupon_price`, `bootstrap_zero_rates` |
 | 2.10 Numerical bond math | `bonds` | `bond_yield` (Newton's method), `bond_price_from_inst_rate` |
 
+The book's pseudocode for this chapter, with links to the code above, is in
+[`cpp/ch02_integration_bonds/pseudocode`](cpp/ch02_integration_bonds/pseudocode/README.md).
+
 Run the examples: `./build/cpp/ch02_integration_bonds/ch02_integration_bonds_simpson_convergence`
 and `./build/cpp/ch02_integration_bonds/ch02_integration_bonds_bond_yield`.
 
@@ -174,6 +191,9 @@ vega and rho are per unit change, not per 1%.
 | 3.7 Implied volatility | `implied_vol` | `implied_vol_initial_guess`, `implied_vol_newton`, `implied_vol_bisection` |
 | 3.8 The concept of hedging. Delta and Gamma hedging | `hedging` | `portfolio_change_approx`, `delta_hedge_shares`, `delta_hedge` (`HedgedPosition`), `delta_gamma_hedge` |
 | 3.9 Implementation of the Black-Scholes formula | `cdf_approx` | `norm_cdf_poly` (Abramowitz & Stegun, error < 7.5e-8), `norm_cdf_simpson` (Simpson's rule to a tolerance) |
+
+The book's pseudocode for this chapter, with links to the code above, is in
+[`cpp/ch03_probability_black_scholes/pseudocode`](cpp/ch03_probability_black_scholes/pseudocode/README.md).
 
 Run the examples (`./build/cpp/ch03_probability_black_scholes/ch03_probability_black_scholes_<name>`):
 `black_scholes_greeks`, `implied_vol`, `delta_gamma_hedge`, `cdf_accuracy`.
@@ -256,6 +276,9 @@ generic versions agree with them.
 | 5.3 Computing bond yields | `bond_yield` | `bond_yield_newton` (y₀ = 0.1), `bond_yield_secant`, `bond_yield_bisection` |
 | 5.4 Implied volatility | `implied_vol` | `implied_vol_newton` (from the inflection point), `implied_vol_secant`, `implied_vol_bisection` |
 | 5.5 Bootstrapping for finding zero rate curves | `bootstrapping` | `zero_rate_linear`, `bootstrap_next_rate` (Newton for r(0, T) with linear interpolation from the last known point), `bootstrap_zero_curve` (optionally seeded with e.g. the overnight rate) |
+
+The book's pseudocode for this chapter, with links to the code above, is in
+[`cpp/ch05_newton_bootstrapping/pseudocode`](cpp/ch05_newton_bootstrapping/pseudocode/README.md).
 
 Run the examples (`./build/cpp/ch05_newton_bootstrapping/ch05_newton_bootstrapping_<name>`):
 `root_finding` (iterates and observed order for the three methods),

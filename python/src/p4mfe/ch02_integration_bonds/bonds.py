@@ -55,9 +55,14 @@ def bond_price_from_zero_rate(cf: CashFlows, zero: Callable[[float], float]) -> 
 
 
 def bond_price_from_inst_rate(cf: CashFlows, r: Callable, tol: float = 1e-12) -> float:
-    """sum_i c_i exp(-int_0^{t_i} r(s) ds), integrating each [t_{i-1}, t_i] once."""
+    """sum_i c_i exp(-int_0^{t_i} r(s) ds), integrating each [t_{i-1}, t_i] once.
+
+    The cash flow times must be non-negative and non-decreasing.
+    """
     B, integral, t_prev = 0.0, 0.0, 0.0
     for t, c in zip(cf.times, cf.amounts):
+        if t < t_prev:
+            raise ValueError("cash flow times must be non-negative and increasing")
         if t > t_prev:
             integral += integrate_to_tolerance(r, t_prev, float(t), tol).value
         t_prev = t
