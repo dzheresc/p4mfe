@@ -71,6 +71,7 @@ pytest python
 | 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | — |
 | 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | — |
 | 8       | [Multivariable calculus. Box-Muller. Heat equation. Barrier options. Early exercise](#chapter-8) | ✓ | ✓ | — |
+| 9       | [Lagrange multipliers. Optimal investment portfolios](#chapter-9) | ✓ | ✓ | — |
 
 Chapters will be added following the book's table of contents.
 
@@ -302,3 +303,26 @@ Box-Muller samples), `heat_equation_pricing` (Black-Scholes vs. heat kernel
 vs. explicit finite differences, and the α = ½ stability limit) and
 `barrier_early_exercise` (knock-out/knock-in prices, early exercise premia
 with and without dividends).
+
+## Chapter 9
+
+`cpp/ch09_lagrange_portfolios` (namespace `p4mfe::ch09`) and
+`python/src/p4mfe/ch09_lagrange_portfolios`. The Lagrange system is solved by
+chapter 5's `newton_nd` with gradients and Hessians from chapter 1, and
+classified with chapter 8's `classify_hessian`; portfolio formulas use
+chapter 5's `solve_linear` (Σ is never inverted). The Lagrangian is
+L = f + λ·g. Newton's method needs a starting point near the extremum you
+want; the default starting multipliers are the least-squares fit at x₀.
+
+| Section | C++ header / Python module | What is there |
+|---------|----------------------------|---------------|
+| 9.1 Lagrange multipliers | `lagrange` | `lagrange_stationary_point` (Newton on ∇f + Σλⱼ∇gⱼ = 0, g = 0 with the bordered Jacobian), `lagrangian_gradient`, `lagrangian_hessian`, `least_squares_multipliers`, `classify_constrained` (Zᵀ H_L Z on the constraints' tangent space) |
+| 9.1.1 Examples | tests, example `lagrange_examples` | x + 2y on a circle, closest point on a line (two constraints), box of maximum volume, a constrained saddle |
+| 9.2 Optimal investment portfolios | `portfolio` | `covariance_matrix`, `portfolio_mean`, `portfolio_variance`, `portfolio_std_dev`, `frontier_constants` (A, B, C, D) |
+| 9.3 Minimum variance portfolios | `portfolio` | `global_min_variance_portfolio`, `min_variance_portfolio` (target mean), `frontier_variance`, `min_variance_portfolio_with_cash`, `tangency_portfolio`, `sharpe_ratio`; tests check the closed forms against the general Lagrange solver and two-fund separation |
+| 9.4 Maximum return portfolios | `portfolio` | `max_return_for_std_dev` (upper branch of the frontier), `max_return_portfolio`, `max_return_with_cash` (capital market line), `max_return_portfolio_with_cash` |
+
+Run the examples (`./build/cpp/ch09_lagrange_portfolios/ch09_lagrange_portfolios_<name>`):
+`lagrange_examples` (the section 9.1.1 problems with multipliers and
+classification) and `efficient_frontier` (frontier with and without cash,
+tangency portfolio, maximum mean for a given risk).
