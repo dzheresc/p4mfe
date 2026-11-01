@@ -68,7 +68,7 @@ pytest python
 |---------|-------|-----|--------|-----------|
 | —       | Shared helpers (normal pdf, cdf, inverse cdf) | ✓ | ✓ | — |
 | 1       | [Calculus review. Options. Put-Call parity](#chapter-1) | ✓ | ✓ | [1-30 ✓](cpp/ch01_calculus_options/exercises/README.md) |
-| 2       | [Numerical integration. Interest rates. Bonds](#chapter-2) | ✓ | ✓ | — |
+| 2       | [Numerical integration. Interest rates. Bonds](#chapter-2) | ✓ | ✓ | [1-19 ✓](cpp/ch02_integration_bonds/exercises/README.md) |
 | 3       | [Probability concepts. Black-Scholes formula. Greeks and hedging](#chapter-3) | ✓ | ✓ | — |
 | 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | — |
 | 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | — |
@@ -78,7 +78,7 @@ pytest python
 | 9       | [Lagrange multipliers. Optimal investment portfolios](#chapter-9) | ✓ | ✓ | — |
 | 10      | [Mathematical appendix](#chapter-10) | ✓ | ✓ | — |
 
-All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter, starting with chapter 1.
+All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter; chapters 1 and 2 are done.
 
 ## Chapter 1
 
@@ -140,6 +140,18 @@ unless a name says `discrete`; bonds are `CashFlows` (times and amounts).
 
 Run the examples: `./build/cpp/ch02_integration_bonds/ch02_integration_bonds_simpson_convergence`
 and `./build/cpp/ch02_integration_bonds/ch02_integration_bonds_bond_yield`.
+
+### Chapter 2 exercises
+
+Exercises 1-19 of section 2.12 are in `cpp/ch02_integration_bonds/exercises`
+(namespace `p4mfe::ch02::ex`, target `p4mfe::ch02_exercises`) and
+`python/src/p4mfe/ch02_integration_bonds/exercises`, grouped into files such
+as `ex03_04_quadrature` and `ex14_19_duration_convexity`. Each header holds
+the problem statement and the derivation, and the code computes the answer
+with the chapter 2 library. See the
+[exercise index](cpp/ch02_integration_bonds/exercises/README.md) for every
+answer at a glance. `./build/cpp/ch02_integration_bonds/exercises/ch02_exercises_solutions`
+and `python -m p4mfe.ch02_integration_bonds.exercises` print all answers.
 
 ## Chapter 3
 
