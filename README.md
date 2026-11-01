@@ -70,6 +70,7 @@ pytest python
 | 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | — |
 | 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | — |
 | 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | — |
+| 8       | [Multivariable calculus. Box-Muller. Heat equation. Barrier options. Early exercise](#chapter-8) | ✓ | ✓ | — |
 
 Chapters will be added following the book's table of contents.
 
@@ -271,3 +272,33 @@ and Gamma as h shrinks, closed-form vs. finite difference Greeks),
 `ode_solutions` (convergence and stability of the three schemes, a boundary
 value problem) and `bs_pde_hedging` (PDE residuals of solutions and
 non-solutions, Delta-hedging P&L vs. rebalancing frequency and drift).
+
+## Chapter 8
+
+`cpp/ch08_multivariable_barriers` (namespace `p4mfe::ch08`) and
+`python/src/p4mfe/ch08_multivariable_barriers`. Reuses chapter 1's gradient
+and Hessian, chapter 2's integration rules and `improper_integral_derivative`,
+chapter 3's Black-Scholes prices and `ContinuousDistribution`, chapter 4's
+`price_from_normal` and `cash_or_nothing`, chapter 5's Jacobians and Newton's
+method, and chapter 7's `bs_pde_residual_fd` in the tests.
+
+| Section | C++ header / Python module | What is there |
+|---------|----------------------------|---------------|
+| 8.1 Multivariable chain rule | `chain_rule` | `curve_derivative`, `chain_rule_derivative` (d/dt f(g(t))), `chain_rule_gradient` (J_Gᵀ ∇f), `chain_rule_jacobian` (J_F J_G) |
+| 8.2 Double integrals | `double_integrals` | `double_integral` (rectangle, iterated Simpson), `double_integral_region` (y between y_lo(x) and y_hi(x)) |
+| 8.3 Change of variables | `double_integrals` | `jacobian_determinant`, `change_of_variables_integral` |
+| 8.3.1 Polar coordinates | `double_integrals` | `from_polar`, `polar_integral` |
+| 8.4 Relative extrema | `extrema` | `find_critical_point` (Newton on ∇f = 0), `classify_hessian` / `classify_critical_point` (Sylvester's criterion), `leading_principal_minors`, `determinant` |
+| 8.5 Theta of a derivative | `theta` | `theta_from_maturity` (Θ = −∂V/∂τ), `theta_by_integral` (any payoff, differentiating under the risk-neutral integral) |
+| 8.6 Integrating the density of Z | `double_integrals` | `gaussian_disk_integral` (2π(1 − e^(−R²/2))), `gaussian_square_integral`; disk ⊂ square ⊂ larger disk → √(2π) |
+| 8.7 Box-Muller | `box_muller` | `box_muller`, `box_muller_inverse`, `BoxMullerNormal` (C++ generator), `box_muller_samples`; tests check \|det J\| = φ(z₁)φ(z₂) |
+| 8.8 Black-Scholes PDE and heat equation | `heat_equation` | `heat_transform` (a, b), `to_heat_variables`, `bs_from_heat`, `heat_from_bs`, `heat_solution` (heat kernel), `bs_price_via_heat`, `solve_heat_explicit` (α ≤ ½), `bs_heat_fd`, `european_heat_fd` |
+| 8.9 Barrier options | `barrier` | `barrier_image` ((B/S)^(k₁−1) V(B²/S)), `down_and_out_call`, `down_and_in_call`, `up_and_out_put`, `up_and_in_put` (any B vs. K); tests check in-out parity, the PDE, and the heat-equation finite difference solution with the barrier as boundary |
+| 8.10 Optimality of early exercise | `early_exercise` | `binomial_price` (CRR, European or American), `early_exercise_premium` (0 for calls with q = 0), `call_exercise_loss`, `call_exercise_loss_bound` (K(1 − e^(−rτ))) |
+
+Run the examples (`./build/cpp/ch08_multivariable_barriers/ch08_multivariable_barriers_<name>`):
+`normal_integral_box_muller` (the polar-coordinates squeeze to 2π, moments of
+Box-Muller samples), `heat_equation_pricing` (Black-Scholes vs. heat kernel
+vs. explicit finite differences, and the α = ½ stability limit) and
+`barrier_early_exercise` (knock-out/knock-in prices, early exercise premia
+with and without dividends).
