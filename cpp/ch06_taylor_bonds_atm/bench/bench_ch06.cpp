@@ -84,7 +84,7 @@ void BM_portfolio_risk(benchmark::State& state) {
     const auto h2 = ch06::bond_dollar_risk(p4mfe::ch02::bond_cash_flows(10.0, 0.045, 2), 0.05);
     for (auto _ : state) {
         const auto p = ch06::portfolio_dollar_risk(units, risks);
-        const auto imm = ch06::immunize(p, h1, h2);
+        auto imm = ch06::immunize(p, h1, h2);
         benchmark::DoNotOptimize(imm);
         benchmark::DoNotOptimize(ch06::portfolio_duration(values, durations));
         benchmark::DoNotOptimize(ch06::value_change_approx_convexity(p, 0.001));

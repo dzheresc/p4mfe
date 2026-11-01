@@ -88,7 +88,7 @@ void BM_power_series(benchmark::State& state) {
         const auto l = ch10::log1p_power_series(n);
         const auto p = ch10::cauchy_product(e, l);
         const auto d = ch10::derivative(p);
-        const auto a = ch10::antiderivative(d);
+        auto a = ch10::antiderivative(d);
         benchmark::DoNotOptimize(a);
         benchmark::DoNotOptimize(ch10::radius_ratio_estimate(l.a));
         benchmark::DoNotOptimize(ch10::radius_root_estimate(l.a));

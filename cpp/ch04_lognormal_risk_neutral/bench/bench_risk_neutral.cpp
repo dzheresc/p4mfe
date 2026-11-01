@@ -64,7 +64,7 @@ void BM_closed_forms(benchmark::State& state) {
             sum += ch04::rn_expected_payoff(OptionType::Call, S0, k, T, sigma, r, q);
             sum += ch04::cash_or_nothing(OptionType::Put, S0, k, T, sigma, r, q);
             sum += ch04::asset_or_nothing(OptionType::Call, S0, k, T, sigma, r, q);
-            const auto p = ch04::exercise_probabilities(S0, k, T, sigma, r, q);
+            auto p = ch04::exercise_probabilities(S0, k, T, sigma, r, q);
             benchmark::DoNotOptimize(p);
         }
         benchmark::DoNotOptimize(sum);

@@ -27,7 +27,7 @@ void BM_frontier(benchmark::State& state) {
     for (const double w : gmv) sum_w += w;
     if (!check(state, std::abs(sum_w - 1.0) < 1e-9, "minimum variance weights do not sum to 1")) return;
     for (auto _ : state) {
-        const auto c = ch09::frontier_constants(u.mu, u.Sigma);
+        auto c = ch09::frontier_constants(u.mu, u.Sigma);
         benchmark::DoNotOptimize(c);
         benchmark::DoNotOptimize(ch09::global_min_variance_portfolio(u.Sigma));
         benchmark::DoNotOptimize(ch09::tangency_portfolio(u.mu, u.Sigma, 0.03));
