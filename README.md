@@ -67,6 +67,7 @@ pytest python
 | 2       | [Numerical integration. Interest rates. Bonds](#chapter-2) | ✓ | ✓ | — |
 | 3       | [Probability concepts. Black-Scholes formula. Greeks and hedging](#chapter-3) | ✓ | ✓ | — |
 | 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | — |
+| 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | — |
 
 Chapters will be added following the book's table of contents.
 
@@ -168,3 +169,37 @@ Run the examples (`./build/cpp/ch04_lognormal_risk_neutral/ch04_lognormal_risk_n
 `risk_neutral_pricing` (closed form vs. integral vs. Monte Carlo, digital
 decomposition) and `price_ranges` (95%/99% ranges for S_T, in-the-money
 probabilities under mu and r).
+
+## Chapter 5
+
+`cpp/ch05_newton_bootstrapping` (namespace `p4mfe::ch05`) and
+`python/src/p4mfe/ch05_newton_bootstrapping`. This is the generic solver
+library: bisection, Newton and secant take any callable `f` (C++ templates
+constrained by concepts), and sections 5.3-5.5 plug chapter 2's bond pricing
+and chapter 3's Black-Scholes price, vega and initial guess into them rather
+than redefining anything. Every solver stops when both book criteria hold,
+`|f(x)| <= tol.approx` and `|x_k - x_{k-1}| <= tol.consec`, and returns the
+root, the iteration count and all iterates (for convergence studies).
+
+Chapters 2 and 3 keep their own hand-written Newton/bisection loops
+(`bond_yield`, `implied_vol_newton`, `implied_vol_bisection`) so that earlier
+chapters never depend on later ones; the chapter 5 tests check that the
+generic versions agree with them.
+
+| Section | C++ header / Python module | What is there |
+|---------|----------------------------|---------------|
+| 5.1 Numerical methods for nonlinear problems | `solvers` | `Tolerances` (tol_approx, tol_consec, max_iter), `RootResult`, `convergence_order` |
+| 5.1.1 Bisection method | `solvers` | `bisection(f, a, b)` (bracket with a sign change; linear) |
+| 5.1.2 Newton's method | `solvers` | `newton(f, df, x0)` (quadratic) |
+| 5.1.3 Secant method | `solvers` | `secant(f, x_prev, x0)` (order 1.618, no derivative) |
+| 5.2.1 N-dimensional Newton's method | `newton_nd` | `Vector`, `Matrix`, `solve_linear` (Gaussian elimination, partial pivoting), `newton_nd(F, J, x0)` |
+| 5.2.2 Approximate Newton's method | `newton_nd` | `finite_difference_jacobian` (forward or central), `approximate_newton_nd(F, x0, tol, h)` |
+| 5.3 Computing bond yields | `bond_yield` | `bond_yield_newton` (y₀ = 0.1), `bond_yield_secant`, `bond_yield_bisection` |
+| 5.4 Implied volatility | `implied_vol` | `implied_vol_newton` (from the inflection point), `implied_vol_secant`, `implied_vol_bisection` |
+| 5.5 Bootstrapping for finding zero rate curves | `bootstrapping` | `zero_rate_linear`, `bootstrap_next_rate` (Newton for r(0, T) with linear interpolation from the last known point), `bootstrap_zero_curve` (optionally seeded with e.g. the overnight rate) |
+
+Run the examples (`./build/cpp/ch05_newton_bootstrapping/ch05_newton_bootstrapping_<name>`):
+`root_finding` (iterates and observed order for the three methods),
+`newton_nd_system` (exact vs. finite-difference Jacobians, and how the
+starting point picks the root) and `bootstrap_curve` (yields, implied vol, and
+a zero curve from 0.5, 1, 3 and 5 year bonds, repriced exactly).
