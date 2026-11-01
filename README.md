@@ -69,6 +69,7 @@ pytest python
 | 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | — |
 | 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | — |
 | 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | — |
+| 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | — |
 
 Chapters will be added following the book's table of contents.
 
@@ -242,3 +243,31 @@ parallel curve shifts; immunizing 7-year bonds with 2- and 20-year bonds, P&L
 unhedged vs. duration-hedged vs. immunized) and `atm_approximation` (relative
 error vs. σ²T/24, ATM formulas with rates, an option's value change from its
 Greeks).
+
+## Chapter 7
+
+`cpp/ch07_finite_differences_bs_pde` (namespace `p4mfe::ch07`) and
+`python/src/p4mfe/ch07_finite_differences_bs_pde`. Reuses chapter 1's central
+differences (`derivative`, `second_derivative`), chapter 3's Black-Scholes
+prices and `Greeks`, chapter 4's `price_from_normal` for simulated paths,
+chapter 5's Newton's method for the implicit Euler step, and chapter 6's
+`theta_from_pde`. Pricers handed to `fd_greeks` are any callable
+`V(S, T, sigma, r)`; functions checked against the PDE are any `V(S, t)` in
+calendar time.
+
+| Section | C++ header / Python module | What is there |
+|---------|----------------------------|---------------|
+| 7.1 Forward, backward, central differences | `finite_differences` | `FdScheme`, `forward_difference`, `backward_difference`, `central_difference`, `second_central_difference`, `first_difference`, `truncation_order`, `fd_observed_order` (≈1, 1, 2) |
+| 7.2 Finite difference solutions of ODEs | `ode` | `euler_forward`, `euler_backward` (implicit, Newton per step), `leapfrog` (central, O(h²) but unstable for decay), `solve_ivp`, `solve_tridiagonal` (Thomas), `solve_bvp` (y'' + p y' + q y = r with Dirichlet ends), `max_error` |
+| 7.3 Finite difference approximations of Greeks | `fd_greeks` | `FdSteps`, `fd_greeks` (all five Greeks of any pricer, central or one-sided), `bs_fd_greeks` |
+| 7.3.1 Numerical accuracy | `finite_differences` | `optimal_step` (√ε, ε^(1/3), ε^(1/4)), `fd_error_table` (error vs. h: truncation, then round-off) |
+| 7.4 The Black-Scholes PDE | `bs_pde` | `bs_pde_residual_fd` (PDE residual of any V(S, t) by finite differences), `power_solution` (S^a e^(ct)), `forward_contract_value` |
+| 7.4.1 Financial interpretation | `bs_pde` | `gbm_path`, `delta_hedge_pnl` (short option, Delta shares, cash at r), `delta_hedge_stats` (mean ≈ 0, std ∝ 1/√n for any drift μ) |
+| 7.4.2 The PDE and the Greeks | `bs_pde` | `pde_residual` (Θ + ½σ²S²Γ + (r−q)SΔ − rV), `combine_greeks` (the PDE is linear: it holds for portfolios); tests check Θ = rV − ½σ²S²Γ when Delta-neutral |
+
+Run the examples (`./build/cpp/ch07_finite_differences_bs_pde/ch07_finite_differences_bs_pde_<name>`):
+`fd_accuracy` (error tables for the three schemes and for Black-Scholes Delta
+and Gamma as h shrinks, closed-form vs. finite difference Greeks),
+`ode_solutions` (convergence and stability of the three schemes, a boundary
+value problem) and `bs_pde_hedging` (PDE residuals of solutions and
+non-solutions, Delta-hedging P&L vs. rebalancing frequency and drift).
