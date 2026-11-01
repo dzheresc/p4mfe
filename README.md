@@ -88,11 +88,11 @@ from the book.
 | 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | [1-9 ✓](cpp/ch05_newton_bootstrapping/exercises/README.md) |
 | 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | [1-18 ✓](cpp/ch06_taylor_bonds_atm/exercises/README.md) |
 | 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | [1-14 ✓](cpp/ch07_finite_differences_bs_pde/exercises/README.md) |
-| 8       | [Multivariable calculus. Box-Muller. Heat equation. Barrier options. Early exercise](#chapter-8) | ✓ | ✓ | — |
+| 8       | [Multivariable calculus. Box-Muller. Heat equation. Barrier options. Early exercise](#chapter-8) | ✓ | ✓ | [1-21 ✓](cpp/ch08_multivariable_barriers/exercises/README.md) |
 | 9       | [Lagrange multipliers. Optimal investment portfolios](#chapter-9) | ✓ | ✓ | [1-3 ✓](cpp/ch09_lagrange_portfolios/exercises/README.md) |
 | 10      | [Mathematical appendix](#chapter-10) | ✓ | ✓ | — |
 
-All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter; chapters 1-7 and 9 are done.
+All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter; chapters 1-9 are done.
 
 ## Chapter 1
 
@@ -421,6 +421,21 @@ Box-Muller samples), `heat_equation_pricing` (Black-Scholes vs. heat kernel
 vs. explicit finite differences, and the α = ½ stability limit) and
 `barrier_early_exercise` (knock-out/knock-in prices, early exercise premia
 with and without dividends).
+
+Exercises 1-21 of section 8.12 are in `cpp/ch08_multivariable_barriers/exercises`
+(namespace `p4mfe::ch08::ex`, target `p4mfe::ch08_exercises`) and
+`python/src/p4mfe/ch08_multivariable_barriers/exercises`, one file per
+exercise or pair of exercises, such as `ex09_10_heat_change_of_variables` and
+`ex18_doc_greeks`. Each has the problem statement and the derivation or
+proof; the proofs are checked numerically (monotonicity on grids, double
+integrals, PDE residuals, the heat equation with a rebate boundary,
+binomial American prices, Greeks against finite differences) with the
+chapter 8 integration, heat equation and barrier code (formula 8.46), the
+chapter 3 Black-Scholes and implied volatility code, and chapter 5's
+bisection. See the
+[exercise index](cpp/ch08_multivariable_barriers/exercises/README.md) for
+every answer at a glance. `./build/cpp/ch08_multivariable_barriers/exercises/ch08_exercises_solutions`
+and `python -m p4mfe.ch08_multivariable_barriers.exercises` print all answers.
 
 ## Chapter 9
 
