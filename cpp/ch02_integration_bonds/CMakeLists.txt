@@ -1,1 +1,2 @@
 p4mfe_add_module(ch02_integration_bonds)
+add_subdirectory(exercises)
