@@ -10,6 +10,8 @@ target_link_libraries(p4mfe_bench_support PUBLIC
   benchmark::benchmark
   p4mfe_common
   p4mfe_ch01_calculus_options
-  p4mfe_ch03_probability_black_scholes)
+  p4mfe_ch02_integration_bonds
+  p4mfe_ch03_probability_black_scholes
+  p4mfe_ch05_newton_bootstrapping)
 target_compile_definitions(p4mfe_bench_support PRIVATE P4MFE_BUILD_TYPE="$<CONFIG>")
 add_library(p4mfe::bench_support ALIAS p4mfe_bench_support)

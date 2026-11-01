@@ -1,8 +1,8 @@
 # Performance testing plan
 
-Status: phase 1 under way. The harness (CMake option, presets, counting
-allocator, size tiers, CI smoke job) and workload W1 are built; the rest is
-proposal.
+Status: phases 1 and 2 built. The harness (CMake option, presets, counting
+allocator, size tiers, CI smoke job) and workloads W1 to W8 exist under
+`cpp/*/bench/`; the coverage check and the baseline are next.
 
 ## Goals
 
@@ -61,6 +61,38 @@ yet, which is the point of the baseline):
 
 These are hypotheses for the baseline to confirm or refute, not changes to
 make now.
+
+## First observations (not the baseline)
+
+From one standard-tier run on a 4-vCPU cloud container (gcc 13.3, Release),
+while building phase 2. These are indicative only; the baseline will be
+recorded properly (repetitions, quiet machine, environment notes). They
+already confirm most of the hypotheses above:
+
+| Hypothesis | Observed |
+|---|---|
+| `ch02::bootstrap_zero_rates` is super-linear | Complexity fit N^3: 20 bonds 8.9 us, 60 bonds 63 us, 120 bonds 356 us; about 2,000 allocations per 120-bond curve |
+| `bond_price_from_inst_rate` is quadrature-bound | about 13k bonds/s, versus about 1.4M bonds/s off a zero-rate curve |
+| American binomial pays for `std::pow` in the inner loop | n = 2,000: 0.86 ms European versus 35 ms American |
+| `heat_fd` grows as nx^3 | 400 to 800 points: 0.30 ms to 2.1 ms |
+| ch05 solvers allocate per call (`RootResult::iterates`) | implied vol: about 4.4 allocations per quote; bond yield: about 4.2 per bond |
+| `delta_hedge_stats` allocates a path per path | about 1.3 allocations per path, 81 MB allocated in total for 10k daily paths |
+| `newton_nd` allocates per F evaluation | N = 100: 20 allocations per solve; the approximate (FD Jacobian) variant 450 |
+
+New ones:
+
+- European binomial jumps from 0.86 ms at n = 2,000 to 222 ms at n = 10,000,
+  far more than the n^2 factor of 25; subnormal values deep in the tree are
+  the likely cause (not yet confirmed).
+- Divided differences on Chebyshev nodes in natural order lose accuracy fast:
+  the Newton form is 1.8e-3 away from the Lagrange form at 50 nodes and
+  unusable at 200, so its benchmark stops at 50.
+- `gamma_function(1.5)` takes 15 ms (singular integrand at 0, as its comment
+  warns) versus 15 us for x = 5. `risk_neutral_price` of a call takes 12 ms
+  because of the payoff kink; a digital takes 1.5 ms.
+
+Whole suite: smoke tier 3.5 s; standard tier 3 min 45 s; peak RSS per
+benchmark executable 4 to 90 MB.
 
 ## Workloads and data sizes
 
