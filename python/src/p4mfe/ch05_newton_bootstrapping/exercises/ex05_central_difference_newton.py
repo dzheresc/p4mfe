@@ -1,8 +1,8 @@
 """Exercise 5: approximate Newton with central difference Jacobians (h = 1e-6) vs forward differences.
 
 From (1, 2, 3): (-1.690551, 1.983107, -0.884558) in 9 iterations with either scheme.
-From (2, 2, 2): the exact root (-1, 3, 1) with either scheme, after a long chaotic excursion; the number of
-steps depends on the scheme and on rounding (here 127 central, 81 forward, 40 with the exact Jacobian).
+From (2, 2, 2): a long chaotic excursion, usually ending at the exact root (-1, 3, 1) (here 127 central,
+81 forward, 40 with the exact Jacobian); the step count and even the root depend on the scheme and on rounding.
 
 Full derivation: cpp/ch05_newton_bootstrapping/exercises/include/p4mfe/ch05/exercises/ex05_central_difference_newton.hpp
 """

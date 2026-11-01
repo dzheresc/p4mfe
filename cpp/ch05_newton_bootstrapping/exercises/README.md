@@ -35,7 +35,7 @@ python -m p4mfe.ch05_newton_bootstrapping.exercises
 | 2 | `ex02_zero_curve_bond` | B = 104.173911, y = 5.6792%, D = 1.890108 (the modified duration for a continuous yield), C = 3.689501. With a semiannual yield 5.7606% the modified duration is 1.837191 |
 | 3 | `ex03_implied_vol_limits` | (i) d1 → ∞, d2 → −∞, f → Se^(−qT) − C. (ii) d1, d2 → −∞ / 0 / ∞ as F < / = / > K; f → −C (F ≤ K) or Se^(−qT) − Ke^(−rT) − C (F > K). (iii) f′ = vega > 0. (iv) a root exists iff max(Se^(−qT) − Ke^(−rT), 0) < C < Se^(−qT): the no-arbitrage range (3.99) without its end points |
 | 4 | `ex04_implied_vol_methods` | (i) σ_imp = 0.397049: bisection 30 steps, secant (0.49, 0.5) 3 steps, Newton (0.5) 3 steps. (ii) σ_approx = 0.396672, relative error 9.49·10⁻⁴ |
-| 5 | `ex05_central_difference_newton` | from (1, 2, 3): (−1.690551, 1.983107, −0.884558) in 9 steps; from (2, 2, 2): the exact root (−1, 3, 1) after a long chaotic excursion. Central and forward differences reach the same roots (details below) |
+| 5 | `ex05_central_difference_newton` | from (1, 2, 3): (−1.690551, 1.983107, −0.884558) in 9 steps; from (2, 2, 2): a long chaotic excursion, usually ending at the exact root (−1, 3, 1), but the root reached depends on rounding (details below) |
 | 6 | `ex06_atm_delta_dividend` | Δ(q) = e^(−qT)N(d1) strictly decreasing, Δ(0) > ½ > Δ(r + σ²/2) ⇒ unique q* = 6.6906% (Newton from 0, 4 steps) < r + σ²/2 = 8.5% |
 | 7 | `ex07_treasury_bootstrap` | (i) continuous curve below. (ii) same discount factors, r₂ = 2(e^(r/2) − 1) > r: the semiannual curve is higher, by about r²/4 (5.4-6.9 bp) |
 | 8 | `ex08_bootstrap_overnight` | r(0, t) at 0, ½, 1, 5/3, 10/3, 5: 5%, 5.0636%, 4.9370%, 5.2983%, 4.5326%, 3.2119% |
@@ -54,13 +54,15 @@ Exercise 5, iterations with h = 10⁻⁶, tol_consec = 10⁻⁶, tol_approx = 10
 | x₀ | root | central | forward | exact Jacobian |
 |---|---|---|---|---|
 | (1, 2, 3) | (−1.690551, 1.983107, −0.884558) | 9 | 9 | 9 |
-| (2, 2, 2) | (−1, 3, 1) | 41 (C++) / 127 (NumPy) | 166 / 81 | 40 / 40 |
+| (2, 2, 2) | (−1, 3, 1) here; see below | 41 (C++) / 127 (NumPy) | 166 / 81 | 40 / 40 |
 
 From (2, 2, 2) the first Newton step lands at (−0.45, −5.35, 16.47) and the
 iterates wander as far as |x| ≈ 400 before converging. In that chaotic phase
 the O(h) vs O(h²) Jacobian error, and even the rounding differences between
-the C++ and NumPy builds, change the path, so the iteration counts are not
-reproducible; the root found is. Near a root both schemes converge
+the C++ and NumPy builds, change the path, so neither the iteration counts
+nor the root found are reproducible: on the GitHub CI runner one of the
+difference schemes ends at (−1.690551, 1.983107, −0.884558) instead. The
+tests accept either root from (2, 2, 2). Near a root both schemes converge
 quadratically in the same number of steps, so the central scheme, at twice
 the cost per Jacobian, buys nothing here.
 

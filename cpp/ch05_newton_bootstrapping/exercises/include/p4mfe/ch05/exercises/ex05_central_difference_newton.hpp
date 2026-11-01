@@ -22,21 +22,23 @@ namespace p4mfe::ch05::ex {
 //   x0 = (1, 2, 3): x = (-1.690551, 1.983107, -0.884558) in 9 iterations,
 //                   with central differences, forward differences and the
 //                   exact Jacobian alike;
-//   x0 = (2, 2, 2): x = (-1, 3, 1) (an exact root: substitute it) with all
-//                   three, but only after a long excursion. The first step
-//                   already jumps to (-0.45, -5.35, 16.47) and the iterates
-//                   wander as far as |x| ~ 400 before (-1, 3, 1) catches
-//                   them. The number of steps is not reproducible: with
-//                   a g++ Release build, central differences take 41 steps, forward 166,
-//                   the exact Jacobian 40; the NumPy version takes 127, 81
-//                   and 40.
+//   x0 = (2, 2, 2): a long chaotic excursion. The first step already jumps
+//                   to (-0.45, -5.35, 16.47) and the iterates wander as far
+//                   as |x| ~ 400 before a root catches them. Usually that is
+//                   the exact root (-1, 3, 1) (substitute it): on one g++
+//                   Release build central differences take 41 steps,
+//                   forward 166, the exact Jacobian 40; with NumPy 127, 81
+//                   and 40. On the GitHub CI runner, though, one of the
+//                   difference schemes lands on (-1.690551, 1.983107,
+//                   -0.884558) instead. Neither the step count nor the root
+//                   reached from (2, 2, 2) is reproducible across machines.
 // (ii) Close to a root the two schemes behave the same: the Jacobian error
 // (O(h) forward, O(h^2) central, plus rounding of order eps/h) is far too
 // small to slow quadratic convergence, so from (1, 2, 3) both take the same
 // steps and reach the same root. Far from a root the method is chaotic and
 // the tiny Jacobian differences (and even rounding: compare C++ and NumPy)
-// send the iterates on different paths, so the iteration count from
-// (2, 2, 2) depends on the scheme while the root reached does not. Central
+// send the iterates on different paths, so from (2, 2, 2) the iteration
+// count, and even which root is found, depend on the scheme and the machine. Central
 // differences cost 2N = 6 evaluations of F per Jacobian against N = 3 for
 // forward ones, which buys nothing here. The Jacobian is
 // non-singular at both roots (det = 1918.8 and -2332).
