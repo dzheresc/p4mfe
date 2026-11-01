@@ -20,17 +20,21 @@ cpp/
     src/                   optional .cpp sources (header-only otherwise)
     examples/              small programs reproducing the book's examples
     tests/                 GoogleTest unit tests
+    exercises/             solutions to the chapter's exercises, same layout
+      include/p4mfe/chNN/exercises/   (namespace p4mfe::chNN::ex)
 python/
   src/p4mfe/
     normal.py              shared helpers
     chNN_<topic>/          one subpackage per chapter
+      exercises/           exercise solutions
   tests/
     chNN_<topic>/          pytest tests per chapter
+      exercises/
 cmake/                     build helpers
 ```
 
 Chapter folders use the same `chNN_<topic>` name in both trees. Exercise
-solutions will go in an `exercises/` subfolder of each chapter.
+solutions are in an `exercises/` subfolder of each chapter.
 
 ## C++
 
@@ -63,7 +67,7 @@ pytest python
 | Chapter | Topic | C++ | Python | Exercises |
 |---------|-------|-----|--------|-----------|
 | —       | Shared helpers (normal pdf, cdf, inverse cdf) | ✓ | ✓ | — |
-| 1       | [Calculus review. Options. Put-Call parity](#chapter-1) | ✓ | ✓ | — |
+| 1       | [Calculus review. Options. Put-Call parity](#chapter-1) | ✓ | ✓ | [1-30 ✓](cpp/ch01_calculus_options/exercises/README.md) |
 | 2       | [Numerical integration. Interest rates. Bonds](#chapter-2) | ✓ | ✓ | — |
 | 3       | [Probability concepts. Black-Scholes formula. Greeks and hedging](#chapter-3) | ✓ | ✓ | — |
 | 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | — |
@@ -74,7 +78,7 @@ pytest python
 | 9       | [Lagrange multipliers. Optimal investment portfolios](#chapter-9) | ✓ | ✓ | — |
 | 10      | [Mathematical appendix](#chapter-10) | ✓ | ✓ | — |
 
-All chapters' main concepts are in place; exercise solutions come next.
+All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter, starting with chapter 1.
 
 ## Chapter 1
 
@@ -97,6 +101,19 @@ All chapters' main concepts are in place; exercise solutions come next.
 | 1.10.1 Forwards and Put-Call parity | `forwards` | `synthetic_forward_value` |
 
 Run the example: `./build/cpp/ch01_calculus_options/ch01_calculus_options_put_call_parity`.
+
+### Chapter 1 exercises
+
+Exercises 1-30 of section 1.12 are in `cpp/ch01_calculus_options/exercises`
+(namespace `p4mfe::ch01::ex`, target `p4mfe::ch01_exercises`) and
+`python/src/p4mfe/ch01_calculus_options/exercises`. They are grouped into
+files such as `ex01_06_antiderivatives` and `ex28_29_call_convexity`. Each
+header holds the problem statement and the derivation, and the code verifies
+the answer numerically. See the
+[exercise index](cpp/ch01_calculus_options/exercises/README.md) for every answer
+at a glance. `./build/cpp/ch01_calculus_options/exercises/ch01_exercises_solutions`
+and `python -m p4mfe.ch01_calculus_options.exercises [--plot]` print all
+answers and draw the payoff diagrams.
 
 ## Chapter 2
 
