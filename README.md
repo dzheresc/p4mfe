@@ -72,8 +72,9 @@ pytest python
 | 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | — |
 | 8       | [Multivariable calculus. Box-Muller. Heat equation. Barrier options. Early exercise](#chapter-8) | ✓ | ✓ | — |
 | 9       | [Lagrange multipliers. Optimal investment portfolios](#chapter-9) | ✓ | ✓ | — |
+| 10      | [Mathematical appendix](#chapter-10) | ✓ | ✓ | — |
 
-Chapters will be added following the book's table of contents.
+All chapters' main concepts are in place; exercise solutions come next.
 
 ## Chapter 1
 
@@ -326,3 +327,31 @@ Run the examples (`./build/cpp/ch09_lagrange_portfolios/ch09_lagrange_portfolios
 `lagrange_examples` (the section 9.1.1 problems with multipliers and
 classification) and `efficient_frontier` (frontier with and without cash,
 tangency portfolio, maximum mean for a given risk).
+
+## Chapter 10
+
+`cpp/ch10_math_appendix` (namespace `p4mfe::ch10`) and
+`python/src/p4mfe/ch10_math_appendix`. Reuses chapter 2's quadrature for
+symmetric integrals and the Simpson O(h⁴) check, chapter 5's `solve_linear`
+for the Vandermonde system, chapter 6's Lagrange remainder bound and Taylor
+partial sums, and the shared normal pdf/cdf. The C++ integer sums are exact
+while they fit in 64 bits; the Python ones are exact for any n.
+
+| Section | C++ header / Python module | What is there |
+|---------|----------------------------|---------------|
+| 10.1 Even and odd functions | `parity` | `is_even`, `is_odd`, `parity`, `even_part`, `odd_part`, `symmetric_integral` (2∫₀ᵃ f_e, the odd part drops out); tests check N(−x) = 1 − N(x) and the product/derivative sign rules |
+| 10.2 Polynomial interpolation | `interpolation` | `lagrange_basis`, `lagrange_interpolate`, `divided_differences`, `newton_interpolate`, `interpolating_polynomial` (monomial, Vandermonde), `polynomial_value` (Horner), `interpolation_error_bound` |
+| 10.3.1 Sums of k^i | `sums` | `sum_of_powers`, `sum_k`, `sum_k2`, `sum_k3`, `sums_of_powers_recursive` (telescoping (n+1)^(i+1) − 1 = Σ C(i+1, j) S_j), `sum_of_powers_polynomial` (S_i as a polynomial in n, by interpolation) |
+| 10.3.2 Sums of k^j x^k | `sums` | `sum_kj_xk`, `geometric_sum`, `sum_k_xk`, `sum_k2_xk` (closed forms), `kj_xk_numerator`, `sum_kj_xk_infinite` (P_j(x)/(1−x)^(j+1)); tests compute a perpetuity's duration |
+| 10.4 Linear recursions | `linear_recursions` | `recursion_terms` (any order), `solve_second_order` (distinct, double or complex characteristic roots), `first_order_affine`, `loan_payment` |
+| 10.5 Big O and little o | `big_o` | `observed_power` (h → 0), `observed_power_at_infinity` (n → ∞), `order_ratios` (\|f/g\| bounded or → 0) |
+| 10.6 Power series | `power_series` | `PowerSeries` (coefficients and center), `derivative`, `antiderivative`, `cauchy_product`, `radius_ratio_estimate`, `radius_root_estimate`, `exp_power_series`, `geometric_power_series`, `log1p_power_series` |
+| 10.7 Stirling's formula | `stirling` | `stirling`, `log_stirling` (with up to 5 series corrections), `log_factorial`, `stirling_bounds` (Robbins), `central_binomial`, `central_binomial_stirling` (4ⁿ/√(πn)) |
+| 10.8 Convergence of Taylor expansions | `taylor_convergence` | `taylor_bound_geometric` (\|f^(k)\| ≤ C Mᵏ ⇒ R_n → 0), `taylor_terms_needed`, `flat_function` (e^(−1/x²), not analytic at 0), `taylor_series` (from derivatives), `derivatives_at_center` |
+
+Run the examples (`./build/cpp/ch10_math_appendix/ch10_math_appendix_<name>`):
+`sums_and_interpolation` (sums of powers as polynomials, the P_j numerators,
+a coupon bond's price, duration and convexity from the k^j x^k sums) and
+`recursions_and_asymptotics` (Fibonacci closed form, a mortgage payment,
+observed orders, Stirling's relative error vs. 1/(12n), Taylor terms needed
+for eˣ, the flat function).
