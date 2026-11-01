@@ -78,7 +78,7 @@ const Market& market() {
     return m;
 }
 
-void set_items(benchmark::State& state, std::size_t per_iteration) {
+void set_items_options(benchmark::State& state, std::size_t per_iteration) {
     state.SetItemsProcessed(static_cast<std::int64_t>(state.iterations()) *
                             static_cast<std::int64_t>(per_iteration));
     state.counters["options"] = static_cast<double>(per_iteration);
@@ -93,7 +93,7 @@ void BM_bs_price(benchmark::State& state) {
         for (const auto& o : m.chain) sum += p4mfe::ch03::bs_price(o.type, o.S, o.K, o.T, o.sigma, m.spec.r, m.spec.q);
         benchmark::DoNotOptimize(sum);
     }
-    set_items(state, m.chain.size());
+    set_items_options(state, m.chain.size());
 }
 
 void BM_bs_greeks(benchmark::State& state) {
@@ -106,7 +106,7 @@ void BM_bs_greeks(benchmark::State& state) {
         }
         benchmark::DoNotOptimize(sum);
     }
-    set_items(state, m.chain.size());
+    set_items_options(state, m.chain.size());
 }
 
 // Put-call parity residual (ch01) for every call/put pair in the chain.
@@ -128,7 +128,7 @@ void BM_parity_violation(benchmark::State& state) {
         }
         benchmark::DoNotOptimize(sum);
     }
-    set_items(state, m.pairs.size());
+    set_items_options(state, m.pairs.size());
 }
 
 // --------------------------------------------------------- implied vol -----
@@ -172,7 +172,7 @@ void BM_implied_vol(benchmark::State& state, IvSolver solve, Slice s) {
         for (const auto& o : quotes) sum += solve(o.type, o.price, o.S, o.K, o.T, m.spec.r, m.spec.q).sigma;
         benchmark::DoNotOptimize(sum);
     }
-    set_items(state, quotes.size());
+    set_items_options(state, quotes.size());
     state.counters["mean_iterations"] = static_cast<double>(iterations) / static_cast<double>(quotes.size());
 }
 
