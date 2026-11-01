@@ -85,7 +85,7 @@ from the book.
 | 2       | [Numerical integration. Interest rates. Bonds](#chapter-2) | ✓ | ✓ | [1-19 ✓](cpp/ch02_integration_bonds/exercises/README.md) |
 | 3       | [Probability concepts. Black-Scholes formula. Greeks and hedging](#chapter-3) | ✓ | ✓ | [1-29 ✓](cpp/ch03_probability_black_scholes/exercises/README.md) |
 | 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | [1-15 ✓](cpp/ch04_lognormal_risk_neutral/exercises/README.md) |
-| 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | — |
+| 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | [1-9 ✓](cpp/ch05_newton_bootstrapping/exercises/README.md) |
 | 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | — |
 | 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | — |
 | 8       | [Multivariable calculus. Box-Muller. Heat equation. Barrier options. Early exercise](#chapter-8) | ✓ | ✓ | — |
@@ -285,6 +285,19 @@ Run the examples (`./build/cpp/ch05_newton_bootstrapping/ch05_newton_bootstrappi
 `newton_nd_system` (exact vs. finite-difference Jacobians, and how the
 starting point picks the root) and `bootstrap_curve` (yields, implied vol, and
 a zero curve from 0.5, 1, 3 and 5 year bonds, repriced exactly).
+
+### Chapter 5 exercises
+
+Exercises 1-9 of section 5.7 are in `cpp/ch05_newton_bootstrapping/exercises`
+(namespace `p4mfe::ch05::ex`, target `p4mfe::ch05_exercises`) and
+`python/src/p4mfe/ch05_newton_bootstrapping/exercises`, one file per exercise,
+such as `ex04_implied_vol_methods` and `ex08_bootstrap_overnight`. Each
+exercise has the problem statement and the derivation, and the code computes
+the answer with the chapter 5 solvers and bootstrapping, the chapter 2 bond
+code and the chapter 3 Black-Scholes code. See the
+[exercise index](cpp/ch05_newton_bootstrapping/exercises/README.md) for every
+answer at a glance. `./build/cpp/ch05_newton_bootstrapping/exercises/ch05_exercises_solutions`
+and `python -m p4mfe.ch05_newton_bootstrapping.exercises` print all answers.
 
 ## Chapter 6
 
