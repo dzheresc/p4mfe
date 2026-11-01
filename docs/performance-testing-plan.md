@@ -258,8 +258,8 @@ Three levels, from cheapest and most deterministic to most detailed:
    (`--benchmark_filter`), and the runner records `ru_maxrss` from
    `getrusage` (or `/usr/bin/time -v`). This catches memory the counters cannot
    see, such as the RNG state and stack.
-3. **Profiles on demand.** `heaptrack` or `valgrind --tool=massif` for
-   allocation call stacks when (1) or (2) moves. `valgrind memcheck` and an
+3. **Profiles on demand.** `valgrind --tool=massif` (see the Valgrind section)
+   or `heaptrack` for allocation call stacks when (1) or (2) moves. `valgrind memcheck` and an
    ASan + UBSan build of the smoke tier and the exercise programs, for leaks
    and undefined behaviour.
 
@@ -268,6 +268,42 @@ example, heat FD: 3(nx+1) doubles; binomial: n+1 doubles; `solve_linear`: one
 N x N copy; Monte Carlo price: O(1); `box_muller_samples`: n doubles), and the
 benchmark checks the measured peak against it with a tolerance. A mismatch is
 a bug or a surprise worth knowing about.
+
+## Valgrind suite (later stages)
+
+Once the baseline exists and optimization starts, the Valgrind tools are used
+to explain the numbers, not to produce them (they slow code down 20 to 100x,
+so their timings are never compared with Google Benchmark's):
+
+- **massif** (`valgrind --tool=massif --pages-as-heap=no`, viewed with
+  `ms_print` or massif-visualizer): heap over time for the large-tier memory
+  workloads (bond universe, Box-Muller samples, ODE and BVP grids, large
+  `solve_linear`), to confirm the expected memory models and find where peak
+  bytes come from.
+- **callgrind** (`valgrind --tool=callgrind`, viewed with KCachegrind or
+  `callgrind_annotate`): exact instruction counts and call graphs per
+  workload. Instruction counts are deterministic, so they are also a stable
+  before/after metric for an optimization PR, next to the noisy wall-clock
+  medians.
+- **cachegrind** (`valgrind --tool=cachegrind --cache-sim=yes`): cache and
+  branch behaviour for the memory-bound kernels (heat FD sweeps, binomial
+  backward induction, Gaussian elimination's row-major access, the
+  tridiagonal solver).
+
+Mechanics:
+
+- Profiling build: the `bench-profile` preset (`RelWithDebInfo`, `-O2 -g`,
+  frame pointers kept), so source lines resolve.
+- Each benchmark binary accepts `--benchmark_filter` and the smoke or a
+  single standard size, so a Valgrind run covers one workload in seconds to
+  minutes instead of the whole suite. Callgrind runs use
+  `--toggle-collect` on the benchmark body (or
+  `CALLGRIND_START/STOP_INSTRUMENTATION` from `<valgrind/callgrind.h>` around
+  the timed loop) so setup and data generation are excluded.
+- `tools/bench/valgrind.sh <tool> <bench-binary> <filter>` wraps the common
+  invocations and writes output under `build/valgrind/`.
+- Not part of per-PR CI. Optimization PRs attach callgrind instruction counts
+  (and massif peaks where memory changed) for the workloads they touch.
 
 ## Baseline (step 1, before any optimization)
 
@@ -349,9 +385,10 @@ workloads at smaller sizes) will be added only where that is useful.
 
 ## Open questions
 
-1. Google Benchmark is assumed. Fine, or would you prefer nanobench or
-   Catch2's benchmarking?
-2. Which local machine should hold the "quiet" baseline, and can it be pinned
+Decided: Google Benchmark for timing; Valgrind (massif, callgrind,
+cachegrind) for analysis at later stages.
+
+1. Which local machine should hold the "quiet" baseline, and can it be pinned
    to a fixed CPU frequency?
-3. Is the ~2 GB cap on the large tier right, or do you want a bigger memory
+2. Is the ~2 GB cap on the large tier right, or do you want a bigger memory
    stress run somewhere else?
