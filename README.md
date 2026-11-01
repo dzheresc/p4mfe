@@ -62,10 +62,11 @@ pytest python
 
 | Chapter | Topic | C++ | Python | Exercises |
 |---------|-------|-----|--------|-----------|
-| —       | Shared helpers (normal distribution) | ✓ | ✓ | — |
+| —       | Shared helpers (normal pdf, cdf, inverse cdf) | ✓ | ✓ | — |
 | 1       | [Calculus review. Options. Put-Call parity](#chapter-1) | ✓ | ✓ | — |
 | 2       | [Numerical integration. Interest rates. Bonds](#chapter-2) | ✓ | ✓ | — |
 | 3       | [Probability concepts. Black-Scholes formula. Greeks and hedging](#chapter-3) | ✓ | ✓ | — |
+| 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | — |
 
 Chapters will be added following the book's table of contents.
 
@@ -141,3 +142,29 @@ vega and rho are per unit change, not per 1%.
 
 Run the examples (`./build/cpp/ch03_probability_black_scholes/ch03_probability_black_scholes_<name>`):
 `black_scholes_greeks`, `implied_vol`, `delta_gamma_hedge`, `cdf_accuracy`.
+
+## Chapter 4
+
+`cpp/ch04_lognormal_risk_neutral` (namespace `p4mfe::ch04`) and
+`python/src/p4mfe/ch04_lognormal_risk_neutral`. Builds on chapter 3: the
+lognormal pdf/cdf/moments, `log_price_distribution`, `prob_price_above`,
+`bs_d1_d2` and `bs_price` are reused, not redefined. `mu` is the real-world
+drift; pass `mu = r` for risk-neutral quantities. The inverse normal cdf
+`norm_inv` was added to the shared helpers for quantiles.
+
+| Section | C++ header / Python module | What is there |
+|---------|----------------------------|---------------|
+| 4.1 Change of pdfs for functions of random variables | `change_of_variables` | `transformed_pdf` (f_X(h(y)) \|h'(y)\|), `transformed_pdf_numeric`, `linear_transform_pdf`, `exp_transform_pdf`, `square_transform_pdf` (two branches → chi-squared) |
+| 4.2 Lognormal random variables | `lognormal` | `lognormal_moment` (E[Y^n] from the normal mgf), `lognormal_quantile`, `lognormal_median`, `lognormal_mode`, `lognormal_params_from_moments` |
+| 4.3 Independent random variables | `independent` | `independent_joint_pdf`, `sum_pdf` (convolution integral) |
+| 4.3.1 Independent normal random variables | `independent` | `independent_normal_sum`, `independent_normal_combination` |
+| 4.3.2 Independent lognormal random variables | `independent` | `independent_lognormal_product` (products and ratios of powers) |
+| 4.4 The lognormal model for asset prices | `asset_model` | `log_return_distribution`, `price_from_normal`, `price_mean`, `price_variance`, `price_median`, `price_pdf`, `price_cdf`, `price_quantile`, `price_confidence_interval` |
+| 4.5 Risk-neutral derivation of Black-Scholes | `risk_neutral` | `risk_neutral_expectation`, `risk_neutral_price` (any payoff, by integration), `rn_expected_payoff` (closed form F N(d1) − K N(d2)), `monte_carlo_price` (with standard error, antithetic draws) |
+| 4.6 Probability that options expire in the money | `in_the_money` | `prob_itm` (call or put, real-world or risk-neutral), `prob_between` |
+| 4.7 Financial interpretation of N(d1) and N(d2) | `in_the_money` | `cash_or_nothing` (e^(−rT) N(d2)), `asset_or_nothing` (S e^(−qT) N(d1)), `exercise_probabilities`; tests check call = AoN − K·CoN, N(d1) = E[S_T 1{S_T>K}]/E[S_T], Δ = e^(−qT) N(d1), ∂C/∂K = −e^(−rT) N(d2) |
+
+Run the examples (`./build/cpp/ch04_lognormal_risk_neutral/ch04_lognormal_risk_neutral_<name>`):
+`risk_neutral_pricing` (closed form vs. integral vs. Monte Carlo, digital
+decomposition) and `price_ranges` (95%/99% ranges for S_T, in-the-money
+probabilities under mu and r).
