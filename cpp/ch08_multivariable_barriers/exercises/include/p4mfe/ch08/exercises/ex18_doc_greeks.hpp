@@ -1,0 +1,62 @@
+#pragma once
+// Exercise 18 (section 8.12): Delta and Gamma of a down-and-out call.
+
+#include <p4mfe/ch03/black_scholes.hpp>
+#include <p4mfe/ch08/barrier.hpp>
+
+#include <cmath>
+
+namespace p4mfe::ch08::ex {
+
+// ----------------------------------------------------------- Exercise 18 ---
+// Compute the Delta and Gamma of a down-and-out call with B < K using (8.46):
+//   V(S) = C(S) - g(S) C(X),   g(S) = (B/S)^p,   X = B^2/S,   p = 2(r - q)/sigma^2 - 1,
+// for S > B, where C, Delta_C = e^(-qT) N(d1), Gamma_C = e^(-qT) phi(d1)/(S sigma sqrt(T))
+// are the Black-Scholes call value and Greeks with strike K.
+//
+// Derivatives of the pieces:
+//   g'(S)  = -p g(S)/S,              g''(S) = p (p + 1) g(S)/S^2,
+//   X'(S)  = -B^2/S^2 = -X/S,        X''(S) = 2X/S^2,
+//   d/dS C(X)   = Delta_C(X) X' = -(X/S) Delta_C(X),
+//   d2/dS2 C(X) = Gamma_C(X) X'^2 + Delta_C(X) X'' = (X^2/S^2) Gamma_C(X) + (2X/S^2) Delta_C(X).
+// Product rule:
+//   Delta_V = Delta_C(S) - g' C(X) - g (d/dS C(X))
+//           = Delta_C(S) + (g/S) [ p C(X) + X Delta_C(X) ],
+//   Gamma_V = Gamma_C(S) - [ g'' C(X) + 2 g' (d/dS C(X)) + g (d2/dS2 C(X)) ]
+//           = Gamma_C(S) - (g/S^2) [ p (p + 1) C(X) + 2 (p + 1) X Delta_C(X) + X^2 Gamma_C(X) ].
+// Explicitly, with d1(X) = (ln(B^2/(S K)) + (r - q + sigma^2/2) T)/(sigma sqrt(T)):
+//   X Delta_C(X)   = (B^2/S) e^(-qT) N(d1(X)),
+//   X^2 Gamma_C(X) = (B^2/S) e^(-qT) phi(d1(X))/(sigma sqrt(T)).
+//
+// For the exercise 16 data (S = K = 40, B = 35, T = 1/2, sigma = 30%, r = 5%):
+//   Delta = 0.703253,  Gamma = 0.018758,
+// against Delta = 0.588589 and Gamma = 0.045852 for the vanilla call. The
+// knock-out has the larger Delta (its value must drop to 0 at S = B), and its
+// Gamma turns negative close to the barrier: at S = 36, Delta = 0.674361 and
+// Gamma = -0.009534.
+struct DocGreeks {
+    double delta;
+    double gamma;
+};
+
+[[nodiscard]] inline DocGreeks ex18_greeks(double S, double K, double B, double T, double sigma, double r,
+                                          double q = 0.0) {
+    const double p = 2.0 * (r - q) / (sigma * sigma) - 1.0;
+    const double g = std::pow(B / S, p);
+    const double X = B * B / S;
+    const auto gs = ch03::bs_greeks(ch03::OptionType::Call, S, K, T, sigma, r, q);
+    const auto gx = ch03::bs_greeks(ch03::OptionType::Call, X, K, T, sigma, r, q);
+    const double cx = ch03::bs_call(X, K, T, sigma, r, q);
+    return {gs.delta + g / S * (p * cx + X * gx.delta),
+            gs.gamma - g / (S * S) * (p * (p + 1.0) * cx + 2.0 * (p + 1.0) * X * gx.delta + X * X * gx.gamma)};
+}
+
+// Central finite differences of the library's down_and_out_call, for checking.
+[[nodiscard]] inline DocGreeks ex18_greeks_fd(double S, double K, double B, double T, double sigma, double r,
+                                             double q = 0.0, double h = 2e-4) {
+    const auto v = [&](double s) { return down_and_out_call(s, K, B, T, sigma, r, q); };
+    const double hs = h * S;
+    return {(v(S + hs) - v(S - hs)) / (2.0 * hs), (v(S + hs) - 2.0 * v(S) + v(S - hs)) / (hs * hs)};
+}
+
+}  // namespace p4mfe::ch08::ex
