@@ -13,7 +13,7 @@ Status: proposal. Nothing here is built yet.
    change is judged against that baseline.
 3. Catch regressions in CI without flaky failures: gate on deterministic
    numbers (allocation counts and bytes), report timings.
-4. Keep the C++ and Python trees comparable where it is cheap to do so.
+4. C++ only for now; Python is evaluated later (see below).
 
 Non-goals for now: changing any algorithm, multithreading, SIMD. Those come
 after the baseline, each as its own PR with a before/after table.
@@ -283,7 +283,7 @@ performance change is merged before it exists.
   - `python.json` (pytest-benchmark JSON, see below),
   - `ENVIRONMENT.md`: CPU model, core count, RAM, OS and kernel, compiler and
     version, standard library, CMake build type and full flags, Google
-    Benchmark version, Python and NumPy versions, git commit, CPU governor and
+    Benchmark version, git commit, CPU governor and
     pinning used, and anything unusual.
   - `SUMMARY.md`: a readable table per workload (median time, throughput,
     allocations, peak bytes, peak RSS).
@@ -326,21 +326,13 @@ performance change is merged before it exists.
 - Updating the baseline is a deliberate PR that replaces the JSON and
   `ENVIRONMENT.md`, never automatic.
 
-## Python
+## Python (deferred)
 
-The Python tree is a mirror for reading side by side, not a production path,
-so its performance work is kept small:
-
-- `python/benchmarks/` with `pytest-benchmark` (added to a `bench` extra, not
-  collected by the default `testpaths`), covering W1 (option chain, scalar and
-  NumPy-vectorized where the code allows), W3 (bond portfolio), W5 (Monte
-  Carlo) and W6 (heat FD, binomial), at the smoke and standard sizes divided
-  by 10.
-- Peak memory with `tracemalloc` around each case, recorded next to the
-  timings.
-- Results go into the same baseline directory, so C++ vs Python ratios are
-  visible for the same workload.
-- Not gated in CI; the nightly job runs it and reports.
+C++ comes first. The Python tree is not benchmarked in this plan. Once the
+C++ baseline exists and optimizations are under way, each change will be
+checked for whether it also applies to the Python mirror, and Python
+benchmarks (pytest-benchmark for time, tracemalloc for memory, on the same
+workloads at smaller sizes) will be added only where that is useful.
 
 ## Phases
 
@@ -352,10 +344,9 @@ so its performance work is kept small:
 3. **Baseline** (one PR): baseline runs on the CI runner and the local
    machine, committed with environment notes and summaries; nightly workflow
    with comparison and allocation gate.
-4. **Python** (one PR): pytest-benchmark and tracemalloc cases, added to the
-   baseline.
-5. Only then: optimizations, each with a before/after table against the
-   baseline.
+4. Only then: optimizations, each with a before/after table against the
+   baseline, and a note on whether the change also applies to the Python
+   mirror.
 
 ## Open questions
 
@@ -365,5 +356,3 @@ so its performance work is kept small:
    to a fixed CPU frequency?
 3. Is the ~2 GB cap on the large tier right, or do you want a bigger memory
    stress run somewhere else?
-4. Is the Python part wanted at all, or should it wait until the C++ side is
-   done?
