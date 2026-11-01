@@ -64,6 +64,7 @@ pytest python
 |---------|-------|-----|--------|-----------|
 | —       | Shared helpers (normal distribution) | ✓ | ✓ | — |
 | 1       | [Calculus review. Options. Put-Call parity](#chapter-1) | ✓ | ✓ | — |
+| 2       | [Numerical integration. Interest rates. Bonds](#chapter-2) | ✓ | ✓ | — |
 
 Chapters will be added following the book's table of contents.
 
@@ -88,3 +89,29 @@ Chapters will be added following the book's table of contents.
 | 1.10.1 Forwards and Put-Call parity | `forwards` | `synthetic_forward_value` |
 
 Run the example: `./build/cpp/ch01_calculus_options/ch01_calculus_options_put_call_parity`.
+
+## Chapter 2
+
+`cpp/ch02_integration_bonds` (namespace `p4mfe::ch02`) and
+`python/src/p4mfe/ch02_integration_bonds`. Rates are continuously compounded
+unless a name says `discrete`; bonds are `CashFlows` (times and amounts).
+
+| Section | C++ header / Python module | What is there |
+|---------|----------------------------|---------------|
+| 2.1 Improper integrals | `integration` | `improper_integral` (±infinity limits via change of variables), `gamma_function` |
+| 2.2 Differentiating improper integrals | `integration` | `improper_integral_derivative` (differentiation under the integral sign) |
+| 2.3 Midpoint, trapezoidal, Simpson | `integration` | `midpoint_rule`, `trapezoidal_rule`, `simpson_rule`, `integrate` |
+| 2.4 Convergence | `integration` | `observed_order` (≈2, 2, 4) |
+| 2.4.1 Implementation | `integration` | `integrate_to_tolerance` (double n until consecutive results agree) |
+| 2.4.2 A concrete example | example `simpson_convergence` | ∫₀² e^(−x²) dx: error table and tolerance runs |
+| 2.5 Interest rate curves | `rates` | `discount_factor_from_inst_rate`, `zero_rate_from_inst_rate`, `inst_rate_from_zero_rate` |
+| 2.5.1 Constant rates | `rates` | `discount_factor`, `zero_rate_from_discount` |
+| 2.5.2 Forward rates | `rates` | `forward_rate`, `forward_rate_from_discounts`, `forward_rate_from_inst_rate` |
+| 2.6 Bonds. Yield | `bonds` | `bond_cash_flows`, `bond_price`, `bond_price_from_discount`, `bond_price_from_zero_rate` |
+| 2.7 Duration and convexity | `bonds` | `bond_metrics`, `bond_duration`, `bond_convexity`, `dollar_duration`, `dv01`, `price_approx_duration[_convexity]` |
+| 2.8 Discretely compounded interest | `rates`, `bonds` | `discount_factor_discrete`, `continuous_from_discrete`, `discrete_from_continuous`, `bond_price_discrete`, `macaulay_duration`, `modified_duration` |
+| 2.9 Zero coupon bonds | `bonds` | `zero_coupon_bond_price`, `zero_rate_from_zero_coupon_price`, `bootstrap_zero_rates` |
+| 2.10 Numerical bond math | `bonds` | `bond_yield` (Newton's method), `bond_price_from_inst_rate` |
+
+Run the examples: `./build/cpp/ch02_integration_bonds/ch02_integration_bonds_simpson_convergence`
+and `./build/cpp/ch02_integration_bonds/ch02_integration_bonds_bond_yield`.
