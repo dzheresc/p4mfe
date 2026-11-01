@@ -69,7 +69,7 @@ pytest python
 | —       | Shared helpers (normal pdf, cdf, inverse cdf) | ✓ | ✓ | — |
 | 1       | [Calculus review. Options. Put-Call parity](#chapter-1) | ✓ | ✓ | [1-30 ✓](cpp/ch01_calculus_options/exercises/README.md) |
 | 2       | [Numerical integration. Interest rates. Bonds](#chapter-2) | ✓ | ✓ | [1-19 ✓](cpp/ch02_integration_bonds/exercises/README.md) |
-| 3       | [Probability concepts. Black-Scholes formula. Greeks and hedging](#chapter-3) | ✓ | ✓ | — |
+| 3       | [Probability concepts. Black-Scholes formula. Greeks and hedging](#chapter-3) | ✓ | ✓ | [1-29 ✓](cpp/ch03_probability_black_scholes/exercises/README.md) |
 | 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | — |
 | 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | — |
 | 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | — |
@@ -177,6 +177,18 @@ vega and rho are per unit change, not per 1%.
 
 Run the examples (`./build/cpp/ch03_probability_black_scholes/ch03_probability_black_scholes_<name>`):
 `black_scholes_greeks`, `implied_vol`, `delta_gamma_hedge`, `cdf_accuracy`.
+
+### Chapter 3 exercises
+
+Exercises 1-29 of section 3.11 are in `cpp/ch03_probability_black_scholes/exercises`
+(namespace `p4mfe::ch03::ex`, target `p4mfe::ch03_exercises`) and
+`python/src/p4mfe/ch03_probability_black_scholes/exercises`, grouped into files
+such as `ex01_04_dice_coins` and `ex25_29_hedging`. Each exercise has the
+problem statement and the derivation, and the code computes the answer with
+the chapter 3 library (`probability`, `black_scholes`, `hedging`). See the
+[exercise index](cpp/ch03_probability_black_scholes/exercises/README.md) for
+every answer at a glance. `./build/cpp/ch03_probability_black_scholes/exercises/ch03_exercises_solutions`
+and `python -m p4mfe.ch03_probability_black_scholes.exercises` print all answers.
 
 ## Chapter 4
 

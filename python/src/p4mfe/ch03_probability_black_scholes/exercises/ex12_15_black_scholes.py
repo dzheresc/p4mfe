@@ -1,0 +1,59 @@
+"""Exercises 12-15: Black-Scholes pricing, zero strike, put rho from parity, asset-or-nothing Delta.
+
+12. S = 50, K = 45, T = 0.5, sigma = 0.2, q = 0.02, r = 0.06:
+    d1 = 0.957143, d2 = 0.815722, C = 6.508365, P = 0.675922.
+13. P(K=0) = 0 (payoff 0); C(K=0) = S e^(-qT) (payoff S_T). Hedge a short call by buying
+    e^(-qT) shares and reinvesting dividends: one share at T (just one share if q = 0).
+14. P = C - S e^(-qT) + K e^(-rT)  =>  rho(P) = rho(C) - K T e^(-rT) = -K T e^(-rT) N(-d2).
+15. Delta(S e^(-qT) N(d1)) = e^(-qT) (N(d1) + phi(d1)/(sigma sqrt(T))), with sigma = 0.3.
+
+Full derivations: cpp/ch03_probability_black_scholes/exercises/include/p4mfe/ch03/exercises/ex12_15_black_scholes.hpp
+"""
+
+from __future__ import annotations
+
+import math
+from dataclasses import dataclass
+
+from p4mfe.ch01_calculus_options.options import OptionType
+from p4mfe.ch03_probability_black_scholes.black_scholes import bs_call, bs_d1_d2, bs_greeks, bs_put
+from p4mfe.normal import norm_cdf, norm_pdf
+
+
+@dataclass(frozen=True)
+class Ex12Market:
+    S: float = 50.0
+    K: float = 45.0
+    T: float = 0.5
+    sigma: float = 0.2
+    r: float = 0.06
+    q: float = 0.02
+
+
+def ex12_call(m: Ex12Market = Ex12Market()) -> float:
+    return bs_call(m.S, m.K, m.T, m.sigma, m.r, m.q)
+
+
+def ex12_put(m: Ex12Market = Ex12Market()) -> float:
+    return bs_put(m.S, m.K, m.T, m.sigma, m.r, m.q)
+
+
+def ex13_put_zero_strike() -> float:
+    return 0.0
+
+
+def ex13_call_zero_strike(S: float, T: float, q: float = 0.0) -> float:
+    return S * math.exp(-q * T)
+
+
+def ex14_rho_put_from_parity(S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+    return bs_greeks(OptionType.CALL, S, K, T, sigma, r, q).rho - K * T * math.exp(-r * T)
+
+
+def ex15_aon_call(S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+    return S * math.exp(-q * T) * norm_cdf(bs_d1_d2(S, K, T, sigma, r, q)[0])
+
+
+def ex15_aon_delta(S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+    d1 = bs_d1_d2(S, K, T, sigma, r, q)[0]
+    return math.exp(-q * T) * (norm_cdf(d1) + norm_pdf(d1) / (sigma * math.sqrt(T)))
