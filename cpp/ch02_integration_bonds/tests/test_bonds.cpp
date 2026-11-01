@@ -35,6 +35,14 @@ TEST(Ch02Bonds, PriceFromCurves) {
     EXPECT_NEAR(bond_price_from_inst_rate(cf, r_inst), bond_price_from_zero_rate(cf, r_zero), 1e-10);
 }
 
+TEST(Ch02Bonds, PriceFromInstRateRejectsUnsortedTimes) {
+    const auto r = [](double) { return 0.05; };
+    const CashFlows unsorted{{1.0, 0.5}, {3.0, 103.0}};
+    EXPECT_THROW((void)bond_price_from_inst_rate(unsorted, r), std::invalid_argument);
+    const CashFlows negative{{-0.5, 1.0}, {3.0, 103.0}};
+    EXPECT_THROW((void)bond_price_from_inst_rate(negative, r), std::invalid_argument);
+}
+
 TEST(Ch02Bonds, DurationAndConvexityAreYieldDerivatives) {
     const auto cf = bond_cash_flows(5, 0.04, 4);
     const double y = 0.045;

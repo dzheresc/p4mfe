@@ -200,10 +200,11 @@ end
   cash flow. The code integrates only the new piece `[t_{i−1}, t_i]` and adds
   it to a running total, so the interval `[0, t_1]` is integrated once rather
   than `n` times. Mathematically the result is the same, but only if the
-  cash flow dates are in increasing order. That is not checked: `CashFlows`
-  validates only that times and amounts are non-empty and the same size, and
-  a date earlier than the one before it silently reuses the previous
-  discount factor. The book's version has no such requirement.
+  cash flow dates are non-negative and in increasing order, which the book's
+  version does not need. The function checks this and throws
+  (`std::invalid_argument` / `ValueError`) otherwise. Before that check was
+  added, a date earlier than the one before it silently reused the previous
+  discount factor and gave a wrong price.
 - `tol` is one number, not a vector of size `n`, and it applies to each piece
   `[t_{i−1}, t_i]`, so the error in the integral over `[0, t_i]` can add up to
   about `i · tol`. Each piece uses `integrate_to_tolerance` with Simpson's
