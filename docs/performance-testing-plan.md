@@ -1,6 +1,8 @@
 # Performance testing plan
 
-Status: proposal. Nothing here is built yet.
+Status: phase 1 under way. The harness (CMake option, presets, counting
+allocator, size tiers, CI smoke job) and workload W1 are built; the rest is
+proposal.
 
 ## Goals
 

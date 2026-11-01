@@ -1,4 +1,7 @@
 add_subdirectory(common)
+if(P4MFE_BUILD_BENCHMARKS)
+  add_subdirectory(bench_support)
+endif()
 
 # Chapters, in book order.
 add_subdirectory(ch01_calculus_options)
