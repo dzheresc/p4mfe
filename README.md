@@ -87,12 +87,12 @@ from the book.
 | 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | [1-15 ✓](cpp/ch04_lognormal_risk_neutral/exercises/README.md) |
 | 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | [1-9 ✓](cpp/ch05_newton_bootstrapping/exercises/README.md) |
 | 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | [1-18 ✓](cpp/ch06_taylor_bonds_atm/exercises/README.md) |
-| 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | — |
+| 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | [1-14 ✓](cpp/ch07_finite_differences_bs_pde/exercises/README.md) |
 | 8       | [Multivariable calculus. Box-Muller. Heat equation. Barrier options. Early exercise](#chapter-8) | ✓ | ✓ | — |
 | 9       | [Lagrange multipliers. Optimal investment portfolios](#chapter-9) | ✓ | ✓ | — |
 | 10      | [Mathematical appendix](#chapter-10) | ✓ | ✓ | — |
 
-All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter; chapters 1-6 are done.
+All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter; chapters 1-7 are done.
 
 ## Chapter 1
 
@@ -378,6 +378,19 @@ and Gamma as h shrinks, closed-form vs. finite difference Greeks),
 `ode_solutions` (convergence and stability of the three schemes, a boundary
 value problem) and `bs_pde_hedging` (PDE residuals of solutions and
 non-solutions, Delta-hedging P&L vs. rebalancing frequency and drift).
+
+Exercises 1-14 of section 7.6 are in `cpp/ch07_finite_differences_bs_pde/exercises`
+(namespace `p4mfe::ch07::ex`, target `p4mfe::ch07_exercises`) and
+`python/src/p4mfe/ch07_finite_differences_bs_pde/exercises`, one file per
+exercise or pair of exercises, such as `ex05_nonsymmetric_stencils` and
+`ex10_bvp_linear_system`. Each has the problem statement and the derivation
+or proof; the proofs are checked numerically (orders of convergence, limits
+of option spreads, PDE residuals) with the chapter 7 finite differences, ODE
+solvers and PDE code, the chapter 3 Black-Scholes code and chapter 2's
+Simpson rule. See the
+[exercise index](cpp/ch07_finite_differences_bs_pde/exercises/README.md) for
+every answer at a glance. `./build/cpp/ch07_finite_differences_bs_pde/exercises/ch07_exercises_solutions`
+and `python -m p4mfe.ch07_finite_differences_bs_pde.exercises` print all answers.
 
 ## Chapter 8
 
