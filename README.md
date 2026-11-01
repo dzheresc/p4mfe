@@ -86,13 +86,13 @@ from the book.
 | 3       | [Probability concepts. Black-Scholes formula. Greeks and hedging](#chapter-3) | ✓ | ✓ | [1-29 ✓](cpp/ch03_probability_black_scholes/exercises/README.md) |
 | 4       | [Lognormal variables. Risk-neutral valuation](#chapter-4) | ✓ | ✓ | [1-15 ✓](cpp/ch04_lognormal_risk_neutral/exercises/README.md) |
 | 5       | [Newton's method. Implied volatility. Bootstrapping](#chapter-5) | ✓ | ✓ | [1-9 ✓](cpp/ch05_newton_bootstrapping/exercises/README.md) |
-| 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | — |
+| 6       | [Taylor's formula. Taylor series. Bond portfolio optimization. ATM approximations](#chapter-6) | ✓ | ✓ | [1-18 ✓](cpp/ch06_taylor_bonds_atm/exercises/README.md) |
 | 7       | [Finite differences. Black-Scholes PDE](#chapter-7) | ✓ | ✓ | — |
 | 8       | [Multivariable calculus. Box-Muller. Heat equation. Barrier options. Early exercise](#chapter-8) | ✓ | ✓ | — |
 | 9       | [Lagrange multipliers. Optimal investment portfolios](#chapter-9) | ✓ | ✓ | — |
 | 10      | [Mathematical appendix](#chapter-10) | ✓ | ✓ | — |
 
-All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter; chapters 1 and 2 are done.
+All chapters' main concepts are in place. Exercise solutions are being added chapter by chapter; chapters 1-6 are done.
 
 ## Chapter 1
 
@@ -336,6 +336,20 @@ parallel curve shifts; immunizing 7-year bonds with 2- and 20-year bonds, P&L
 unhedged vs. duration-hedged vs. immunized) and `atm_approximation` (relative
 error vs. σ²T/24, ATM formulas with rates, an option's value change from its
 Greeks).
+
+### Chapter 6 exercises
+
+Exercises 1-18 of section 6.11 are in `cpp/ch06_taylor_bonds_atm/exercises`
+(namespace `p4mfe::ch06::ex`, target `p4mfe::ch06_exercises`) and
+`python/src/p4mfe/ch06_taylor_bonds_atm/exercises`, one file per exercise,
+such as `ex06_e_bounds` and `ex17_portfolio_immunization`. Each exercise has
+the problem statement and the derivation or proof, and the code checks it
+numerically with the chapter 6 Taylor series, ATM approximations, dollar
+duration and yield curve shift code, the chapter 2 integration and bond code
+and the chapter 3 Black-Scholes code. See the
+[exercise index](cpp/ch06_taylor_bonds_atm/exercises/README.md) for every
+answer at a glance. `./build/cpp/ch06_taylor_bonds_atm/exercises/ch06_exercises_solutions`
+and `python -m p4mfe.ch06_taylor_bonds_atm.exercises` print all answers.
 
 ## Chapter 7
 
