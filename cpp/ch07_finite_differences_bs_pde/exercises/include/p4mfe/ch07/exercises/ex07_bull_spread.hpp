@@ -33,20 +33,23 @@ namespace p4mfe::ch07::ex {
 // For S <= K it is always 0; for S > K it equals 1 once x <= S - K. So it
 // converges pointwise to 1_{S > K}: 1/x bull spreads with x small are a
 // synthetic cash-or-nothing call maturing at T. (At S = K the limit is 0.)
-[[nodiscard]] inline double ex07_bull_payoff(double ST, double K, double x) {
-  return std::max(ST - K, 0.0) - std::max(ST - K - x, 0.0);
+[[nodiscard]] inline double Ex07BullPayoff(double spot_t, double strike,
+                                           double x) {
+  return std::max(spot_t - strike, 0.0) - std::max(spot_t - strike - x, 0.0);
 }
-[[nodiscard]] inline double ex07_digital_payoff(double ST, double K, double x) {
-  return ex07_bull_payoff(ST, K, x) / x;
+[[nodiscard]] inline double Ex07DigitalPayoff(double spot_t, double strike,
+                                              double x) {
+  return Ex07BullPayoff(spot_t, strike, x) / x;
 }
 // (i) value of 1/x bull spreads, and its Black-Scholes limit -C_K.
-[[nodiscard]] inline double ex07_scaled_bull(double x,
-                                             const SpreadMarket& m = {}) {
-  return (ex_call(m.K, m) - ex_call(m.K + x, m)) / x;
+[[nodiscard]] inline double Ex07ScaledBull(double x,
+                                           const SpreadMarket& m = {}) {
+  return (ExCall(m.strike, m) - ExCall(m.strike + x, m)) / x;
 }
-[[nodiscard]] inline double ex07_cash_or_nothing(const SpreadMarket& m = {}) {
-  const auto [d1, d2] = ch03::BsD1D2(m.S, m.K, m.T, m.sigma, m.r, m.q);
-  return std::exp(-m.r * m.T) * norm_cdf(d2);
+[[nodiscard]] inline double Ex07CashOrNothing(const SpreadMarket& m = {}) {
+  const auto [d1, d2] =
+      ch03::BsD1D2(m.spot, m.strike, m.maturity, m.sigma, m.r, m.q);
+  return std::exp(-m.r * m.maturity) * norm_cdf(d2);
 }
 
 }  // namespace p4mfe::ch07::ex

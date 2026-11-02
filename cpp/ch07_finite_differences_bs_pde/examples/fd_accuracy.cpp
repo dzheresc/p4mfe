@@ -19,27 +19,31 @@ int main() {
               "central err");
   for (double h = 0.1; h > 1e-13; h /= 10)
     std::printf(
-        "%8.0e  %14.3e  %14.3e  %14.3e\n", h, forward_difference(f, a, h) - df,
-        backward_difference(f, a, h) - df, central_difference(f, a, h) - df);
+        "%8.0e  %14.3e  %14.3e  %14.3e\n", h, ForwardDifference(f, a, h) - df,
+        BackwardDifference(f, a, h) - df, CentralDifference(f, a, h) - df);
   std::printf(
       "optimal steps: one-sided %.1e, central %.1e, second order %.1e\n\n",
-      optimal_step(FdScheme::Forward), optimal_step(FdScheme::Central),
-      optimal_step(FdScheme::Central, 2));
+      OptimalStep(FdScheme::kForward), OptimalStep(FdScheme::kCentral),
+      OptimalStep(FdScheme::kCentral, 2));
 
-  const double S = 100, K = 100, T = 1, sigma = 0.2, r = 0.05;
-  const auto exact = ch03::BsGreeks(OptionType::kCall, S, K, T, sigma, r);
-  const auto call_S = [&](double s) { return ch03::BsCall(s, K, T, sigma, r); };
+  const double spot = 100, strike = 100, maturity = 1, sigma = 0.2, r = 0.05;
+  const auto exact =
+      ch03::BsGreeks(OptionType::kCall, spot, strike, maturity, sigma, r);
+  const auto call_of_spot = [&](double s) {
+    return ch03::BsCall(s, strike, maturity, sigma, r);
+  };
   std::printf("ATM call S = K = 100, T = 1, sigma = 0.2, r = 0.05\n");
   std::printf("Delta = %.12f, Gamma = %.12f\n", exact.delta, exact.gamma);
   std::printf("%8s  %14s  %14s  %14s\n", "dS", "fwd Delta err", "cen Delta err",
               "Gamma err");
   for (double h = 1.0; h > 1e-9; h /= 10)
     std::printf("%8.0e  %14.3e  %14.3e  %14.3e\n", h,
-                forward_difference(call_S, S, h) - exact.delta,
-                central_difference(call_S, S, h) - exact.delta,
-                second_central_difference(call_S, S, h) - exact.gamma);
+                ForwardDifference(call_of_spot, spot, h) - exact.delta,
+                CentralDifference(call_of_spot, spot, h) - exact.delta,
+                SecondCentralDifference(call_of_spot, spot, h) - exact.gamma);
 
-  const auto fd = bs_fd_greeks(OptionType::kCall, S, K, T, sigma, r);
+  const auto fd =
+      BsFdGreeks(OptionType::kCall, spot, strike, maturity, sigma, r);
   std::printf("\n%8s  %16s  %16s\n", "Greek", "closed form", "central FD");
   std::printf("%8s  %16.10f  %16.10f\n", "Delta", exact.delta, fd.delta);
   std::printf("%8s  %16.10f  %16.10f\n", "Gamma", exact.gamma, fd.gamma);

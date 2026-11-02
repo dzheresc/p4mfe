@@ -148,7 +148,7 @@ TEST(Ch08Barrier, DownAndOutCall) {
       const auto V = [&](double s, double t) {
         return down_and_out_call(s, K, B, T - t, sigma, r, q);
       };
-      EXPECT_NEAR(ch07::bs_pde_residual_fd(V, S, 0.0, sigma, r, q), 0.0, 1e-5)
+      EXPECT_NEAR(ch07::BsPdeResidualFd(V, S, 0.0, sigma, r, q), 0.0, 1e-5)
           << B << ' ' << S;
       // Matches the heat equation solved on [B, S_max] with zero value at the
       // barrier.
@@ -184,7 +184,7 @@ TEST(Ch08Barrier, UpAndOutPutAndImage) {
     const auto V = [&](double s, double t) {
       return up_and_out_put(s, K, B, T - t, sigma, r, q);
     };
-    EXPECT_NEAR(ch07::bs_pde_residual_fd(V, S, 0.0, sigma, r, q), 0.0, 1e-5);
+    EXPECT_NEAR(ch07::BsPdeResidualFd(V, S, 0.0, sigma, r, q), 0.0, 1e-5);
   }
   // The image of a solution is a solution, and equals it on S = B.
   const double B = 90;
@@ -195,8 +195,7 @@ TEST(Ch08Barrier, UpAndOutPutAndImage) {
     return barrier_image([&](double x) { return call(x, t); }, s, B, sigma, r,
                          0.01);
   };
-  EXPECT_NEAR(ch07::bs_pde_residual_fd(img, 110, 0.1, sigma, r, 0.01), 0.0,
-              1e-6);
+  EXPECT_NEAR(ch07::BsPdeResidualFd(img, 110, 0.1, sigma, r, 0.01), 0.0, 1e-6);
   EXPECT_NEAR(img(B, 0.0), call(B, 0.0), 1e-12);
 }
 

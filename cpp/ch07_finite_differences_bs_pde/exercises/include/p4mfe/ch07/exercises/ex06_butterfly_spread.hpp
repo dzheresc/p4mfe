@@ -13,12 +13,13 @@ namespace p4mfe::ch07::ex {
 // Market for the numerical checks of exercises 6-8 (the exercises have no
 // numbers): spot, maturity, volatility, rate, dividend yield, center strike.
 struct SpreadMarket {
-  double S = 52.0, T = 0.5, sigma = 0.25, r = 0.04, q = 0.01, K = 50.0;
+  double spot = 52.0, maturity = 0.5, sigma = 0.25, r = 0.04, q = 0.01,
+         strike = 50.0;
 };
 
 // Black-Scholes call price as a function of the strike only.
-[[nodiscard]] inline double ex_call(double K, const SpreadMarket& m = {}) {
-  return ch03::BsCall(m.S, K, m.T, m.sigma, m.r, m.q);
+[[nodiscard]] inline double ExCall(double strike, const SpreadMarket& m = {}) {
+  return ch03::BsCall(m.spot, strike, m.maturity, m.sigma, m.r, m.q);
 }
 
 // ------------------------------------------------------------ Exercise 6 ---
@@ -62,28 +63,32 @@ struct SpreadMarket {
 // butterflies, ~ x C_KK(K), tends to 0; the density of Arrow-Debreu prices is
 // C_KK, the limit in (ii).)
 template <std::invocable<double> Call>
-[[nodiscard]] double ex06_butterfly_value(Call&& C, double K, double x) {
-  return C(K + x) - 2.0 * C(K) + C(K - x);
+[[nodiscard]] double Ex06ButterflyValue(Call&& call, double strike, double x) {
+  return call(strike + x) - 2.0 * call(strike) + call(strike - x);
 }
-[[nodiscard]] inline double ex06_butterfly_payoff(double ST, double K,
-                                                  double x) {
-  return std::max(ST - K + x, 0.0) - 2.0 * std::max(ST - K, 0.0) +
-         std::max(ST - K - x, 0.0);
+[[nodiscard]] inline double Ex06ButterflyPayoff(double spot_t, double strike,
+                                                double x) {
+  return std::max(spot_t - strike + x, 0.0) -
+         2.0 * std::max(spot_t - strike, 0.0) +
+         std::max(spot_t - strike - x, 0.0);
 }
 // (ii) value of 1/x^2 butterflies, and its limit for Black-Scholes.
-[[nodiscard]] inline double ex06_scaled_butterfly(double x,
-                                                  const SpreadMarket& m = {}) {
-  return ex06_butterfly_value([&](double k) { return ex_call(k, m); }, m.K, x) /
+[[nodiscard]] inline double Ex06ScaledButterfly(double x,
+                                                const SpreadMarket& m = {}) {
+  return Ex06ButterflyValue([&](double k) { return ExCall(k, m); }, m.strike,
+                            x) /
          (x * x);
 }
-[[nodiscard]] inline double ex06_call_kk(const SpreadMarket& m = {}) {
-  const auto [d1, d2] = ch03::BsD1D2(m.S, m.K, m.T, m.sigma, m.r, m.q);
-  return std::exp(-m.r * m.T) * norm_pdf(d2) / (m.K * m.sigma * std::sqrt(m.T));
+[[nodiscard]] inline double Ex06CallKk(const SpreadMarket& m = {}) {
+  const auto [d1, d2] =
+      ch03::BsD1D2(m.spot, m.strike, m.maturity, m.sigma, m.r, m.q);
+  return std::exp(-m.r * m.maturity) * norm_pdf(d2) /
+         (m.strike * m.sigma * std::sqrt(m.maturity));
 }
 // (iii) payoff of 1/x butterflies.
-[[nodiscard]] inline double ex06_arrow_debreu_payoff(double ST, double K,
-                                                     double x) {
-  return ex06_butterfly_payoff(ST, K, x) / x;
+[[nodiscard]] inline double Ex06ArrowDebreuPayoff(double spot_t, double strike,
+                                                  double x) {
+  return Ex06ButterflyPayoff(spot_t, strike, x) / x;
 }
 
 }  // namespace p4mfe::ch07::ex

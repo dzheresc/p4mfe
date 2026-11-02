@@ -27,20 +27,20 @@ using p4mfe::ch01::OptionType;
 
 // ----------------------------------------------------------------- W1 -----
 
-const std::vector<p4mfe::bench::OptionQuote>& chain() {
-  static const auto c =
+const std::vector<p4mfe::bench::OptionQuote>& Chain() {
+  static const auto kChain =
       p4mfe::bench::make_option_chain(p4mfe::bench::chain_spec_for_tier());
-  return c;
+  return kChain;
 }
 
-void BM_fd_greeks(benchmark::State& state, ch07::FdScheme scheme) {
-  const auto& c = chain();
+void BmFdGreeks(benchmark::State& state, ch07::FdScheme scheme) {
+  const auto& c = Chain();
   const p4mfe::bench::ChainSpec spec;
   // Delta from bumping should match the closed form on every quote.
   double worst = 0.0;
   for (const auto& o : c) {
-    const auto fd = ch07::bs_fd_greeks(o.type, o.S, o.K, o.T, o.sigma, spec.r,
-                                       spec.q, {}, scheme);
+    const auto fd = ch07::BsFdGreeks(o.type, o.S, o.K, o.T, o.sigma, spec.r,
+                                     spec.q, {}, scheme);
     const auto cf =
         p4mfe::ch03::BsGreeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
     worst = std::max(worst, std::abs(fd.delta - cf.delta));
@@ -51,8 +51,8 @@ void BM_fd_greeks(benchmark::State& state, ch07::FdScheme scheme) {
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& o : c) {
-      const auto g = ch07::bs_fd_greeks(o.type, o.S, o.K, o.T, o.sigma, spec.r,
-                                        spec.q, {}, scheme);
+      const auto g = ch07::BsFdGreeks(o.type, o.S, o.K, o.T, o.sigma, spec.r,
+                                      spec.q, {}, scheme);
       sum += g.delta + g.gamma + g.vega + g.theta + g.rho;
     }
     benchmark::DoNotOptimize(sum);
@@ -61,18 +61,18 @@ void BM_fd_greeks(benchmark::State& state, ch07::FdScheme scheme) {
   state.counters["max_delta_error"] = worst;
 }
 
-void BM_pde_residual(benchmark::State& state) {
-  const auto& c = chain();
+void BmPdeResidual(benchmark::State& state) {
+  const auto& c = Chain();
   const p4mfe::bench::ChainSpec spec;
   for (auto _ : state) {
     double worst = 0.0;
     for (const auto& o : c) {
       const auto g =
           p4mfe::ch03::BsGreeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
-      const double V =
+      const double value =
           p4mfe::ch03::BsPrice(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
-      worst = std::max(worst, std::abs(ch07::pde_residual(V, g, o.S, o.sigma,
-                                                          spec.r, spec.q)));
+      worst = std::max(worst, std::abs(ch07::PdeResidual(value, g, o.S, o.sigma,
+                                                         spec.r, spec.q)));
     }
     benchmark::DoNotOptimize(worst);
   }
@@ -81,12 +81,12 @@ void BM_pde_residual(benchmark::State& state) {
 
 // ----------------------------------------------------------------- W5 -----
 
-void BM_delta_hedge(benchmark::State& state) {
+void BmDeltaHedge(benchmark::State& state) {
   const auto steps = static_cast<std::size_t>(state.range(0));
   const auto paths = static_cast<std::size_t>(state.range(1));
   const auto stats =
-      ch07::delta_hedge_stats(OptionType::kCall, 100.0, 100.0, 1.0, 0.2, 0.045,
-                              0.015, 0.10, steps, paths);
+      ch07::DeltaHedgeStats(OptionType::kCall, 100.0, 100.0, 1.0, 0.2, 0.045,
+                            0.015, 0.10, steps, paths);
   // Hedging error ~ O(1/sqrt(steps)) of the premium; the mean is ~0.
   if (!check(state,
              std::abs(stats.mean) <
@@ -95,9 +95,9 @@ void BM_delta_hedge(benchmark::State& state) {
              "delta hedge P&L mean is not ~0"))
     return;
   for (auto _ : state)
-    benchmark::DoNotOptimize(
-        ch07::delta_hedge_stats(OptionType::kCall, 100.0, 100.0, 1.0, 0.2,
-                                0.045, 0.015, 0.10, steps, paths));
+    benchmark::DoNotOptimize(ch07::DeltaHedgeStats(OptionType::kCall, 100.0,
+                                                   100.0, 1.0, 0.2, 0.045,
+                                                   0.015, 0.10, steps, paths));
   state.counters["pnl_std_dev"] = stats.std_dev;
   set_items(state, paths, "paths");
 }
@@ -105,49 +105,48 @@ void BM_delta_hedge(benchmark::State& state) {
 // ----------------------------------------------------------------- W6 -----
 
 // y' = -2 x y, y(0) = 1, on [0, 2]: y = exp(-x^2).
-double ode_rhs(double x, double y) { return -2.0 * x * y; }
+double OdeRhs(double x, double y) { return -2.0 * x * y; }
 
-void BM_ode(benchmark::State& state, ch07::OdeScheme scheme) {
+void BmOde(benchmark::State& state, ch07::OdeScheme scheme) {
   const auto n = static_cast<std::size_t>(state.range(0));
-  const auto s = ch07::solve_ivp(ode_rhs, 0.0, 1.0, 2.0, n, scheme);
+  const auto s = ch07::SolveIvp(OdeRhs, 0.0, 1.0, 2.0, n, scheme);
   const double err =
-      ch07::max_error(s, [](double x) { return std::exp(-x * x); });
+      ch07::MaxError(s, [](double x) { return std::exp(-x * x); });
   if (!check(state, err < 1e-1, "ODE solution is off")) return;
   for (auto _ : state)
-    benchmark::DoNotOptimize(
-        ch07::solve_ivp(ode_rhs, 0.0, 1.0, 2.0, n, scheme));
+    benchmark::DoNotOptimize(ch07::SolveIvp(OdeRhs, 0.0, 1.0, 2.0, n, scheme));
   state.counters["max_error"] = err;
   state.SetComplexityN(static_cast<std::int64_t>(n));
   set_items(state, n, "steps");
 }
 
 // y'' + y = 0 on [0, pi/2], y(0) = 0, y(pi/2) = 1: y = sin x.
-void BM_bvp(benchmark::State& state) {
+void BmBvp(benchmark::State& state) {
   const auto n = static_cast<std::size_t>(state.range(0));
   const auto zero = [](double) { return 0.0; };
   const auto one = [](double) { return 1.0; };
   const double b = std::numbers::pi / 2.0;
-  const auto s = ch07::solve_bvp(zero, one, zero, 0.0, b, 0.0, 1.0, n);
-  const double err = ch07::max_error(s, [](double x) { return std::sin(x); });
+  const auto s = ch07::SolveBvp(zero, one, zero, 0.0, b, 0.0, 1.0, n);
+  const double err = ch07::MaxError(s, [](double x) { return std::sin(x); });
   if (!check(state, err < 1e-3, "BVP solution is off")) return;
   for (auto _ : state)
     benchmark::DoNotOptimize(
-        ch07::solve_bvp(zero, one, zero, 0.0, b, 0.0, 1.0, n));
+        ch07::SolveBvp(zero, one, zero, 0.0, b, 0.0, 1.0, n));
   state.counters["max_error"] = err;
   state.SetComplexityN(static_cast<std::int64_t>(n));
   set_items(state, n, "intervals");
 }
 
-const bool registered = [] {
-  (void)chain();
-  benchmark::RegisterBenchmark("W1/ch07/bs_fd_greeks/central", BM_fd_greeks,
-                               ch07::FdScheme::Central);
-  benchmark::RegisterBenchmark("W1/ch07/bs_fd_greeks/forward", BM_fd_greeks,
-                               ch07::FdScheme::Forward);
-  benchmark::RegisterBenchmark("W1/ch07/pde_residual", BM_pde_residual);
+const bool kRegistered = [] {
+  (void)Chain();
+  benchmark::RegisterBenchmark("W1/ch07/bs_fd_greeks/central", BmFdGreeks,
+                               ch07::FdScheme::kCentral);
+  benchmark::RegisterBenchmark("W1/ch07/bs_fd_greeks/forward", BmFdGreeks,
+                               ch07::FdScheme::kForward);
+  benchmark::RegisterBenchmark("W1/ch07/pde_residual", BmPdeResidual);
 
   auto* h =
-      benchmark::RegisterBenchmark("W5/ch07/delta_hedge_stats", BM_delta_hedge);
+      benchmark::RegisterBenchmark("W5/ch07/delta_hedge_stats", BmDeltaHedge);
   h->ArgNames({"steps", "paths"});
   for (const auto& [steps, paths] : p4mfe::bench::by_tier<
            std::vector<std::pair<std::int64_t, std::int64_t>>>(
@@ -159,16 +158,16 @@ const bool registered = [] {
   const auto ode_ns = p4mfe::bench::by_tier<std::vector<std::int64_t>>(
       {1'000}, {1'000, 100'000, 1'000'000}, {100'000, 1'000'000, 10'000'000});
   const std::pair<const char*, ch07::OdeScheme> schemes[] = {
-      {"euler_forward", ch07::OdeScheme::Forward},
-      {"euler_backward", ch07::OdeScheme::Backward},
-      {"leapfrog", ch07::OdeScheme::Central}};
+      {"euler_forward", ch07::OdeScheme::kForward},
+      {"euler_backward", ch07::OdeScheme::kBackward},
+      {"leapfrog", ch07::OdeScheme::kCentral}};
   for (const auto& [name, scheme] : schemes) {
     auto* b = benchmark::RegisterBenchmark(std::string("W6/ch07/") + name,
-                                           BM_ode, scheme);
+                                           BmOde, scheme);
     for (const auto n : ode_ns) b->Arg(n);
     b->Complexity(benchmark::oN)->Unit(benchmark::kMicrosecond);
   }
-  auto* bvp = benchmark::RegisterBenchmark("W6/ch07/solve_bvp", BM_bvp);
+  auto* bvp = benchmark::RegisterBenchmark("W6/ch07/solve_bvp", BmBvp);
   for (const auto n : p4mfe::bench::by_tier<std::vector<std::int64_t>>(
            {1'000}, {1'000, 100'000, 1'000'000}, {1'000'000, 10'000'000}))
     bvp->Arg(n);

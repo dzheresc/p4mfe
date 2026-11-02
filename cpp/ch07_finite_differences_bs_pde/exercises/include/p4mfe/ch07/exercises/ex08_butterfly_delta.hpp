@@ -34,17 +34,17 @@ namespace p4mfe::ch07::ex {
 //   int f g = g(K) + g'(K) int f u + g''(K)/2 int f u^2 + ...,
 // int f u = 0 by symmetry and int f u^2 = 2/x^2 int_0^x (x - u) u^2 du = x^2/6,
 // so int f g = g(K) + g''(K) x^2/12 + O(x^4).
-[[nodiscard]] inline double ex08_f(double S, double K, double x) {
-  return ex06_butterfly_payoff(S, K, x) / (x * x);
+[[nodiscard]] inline double Ex08F(double spot, double strike, double x) {
+  return Ex06ButterflyPayoff(spot, strike, x) / (x * x);
 }
 // int f(S) g(S) dS by Simpson's rule (chapter 2) on [K - x, K] and [K, K + x],
 // where f is smooth; f = 0 elsewhere.
 template <std::invocable<double> G>
-[[nodiscard]] double ex08_integral(G&& g, double K, double x,
-                                   std::size_t n = 64) {
-  const auto fg = [&](double S) { return ex08_f(S, K, x) * g(S); };
-  return ch02::SimpsonRule(fg, K - x, K, n) +
-         ch02::SimpsonRule(fg, K, K + x, n);
+[[nodiscard]] double Ex08Integral(G&& g, double strike, double x,
+                                  std::size_t n = 64) {
+  const auto fg = [&](double spot) { return Ex08F(spot, strike, x) * g(spot); };
+  return ch02::SimpsonRule(fg, strike - x, strike, n) +
+         ch02::SimpsonRule(fg, strike, strike + x, n);
 }
 
 }  // namespace p4mfe::ch07::ex

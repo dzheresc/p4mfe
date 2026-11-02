@@ -31,8 +31,8 @@ concept Pricer =
 
 // Absolute bump sizes for each variable.
 struct FdSteps {
-  double dS = 1e-2;
-  double dT = 1e-4;
+  double d_spot = 1e-2;
+  double d_t = 1e-4;
   double dsigma = 1e-4;
   double dr = 1e-4;
 };
@@ -42,34 +42,35 @@ struct FdSteps {
 // the first-order Greeks (Theta's scheme is in calendar time t); Gamma always
 // uses the central second difference.
 template <Pricer P>
-[[nodiscard]] Greeks fd_greeks(P&& V, double S, double T, double sigma,
-                               double r, const FdSteps& h = {},
-                               FdScheme scheme = FdScheme::Central) {
-  const auto in_S = [&](double s) { return V(s, T, sigma, r); };
+[[nodiscard]] Greeks FdGreeks(P&& pricer, double spot, double maturity,
+                              double sigma, double r, const FdSteps& h = {},
+                              FdScheme scheme = FdScheme::kCentral) {
+  const auto in_spot = [&](double s) { return pricer(s, maturity, sigma, r); };
   const auto in_t = [&](double t) {
-    return V(S, T - t, sigma, r);
+    return pricer(spot, maturity - t, sigma, r);
   };  // calendar time t, maturity fixed
-  const auto in_sigma = [&](double v) { return V(S, T, v, r); };
-  const auto in_r = [&](double x) { return V(S, T, sigma, x); };
+  const auto in_sigma = [&](double v) { return pricer(spot, maturity, v, r); };
+  const auto in_r = [&](double x) { return pricer(spot, maturity, sigma, x); };
   Greeks g{};
-  g.delta = first_difference(in_S, S, h.dS, scheme);
-  g.gamma = second_central_difference(in_S, S, h.dS);
-  g.vega = first_difference(in_sigma, sigma, h.dsigma, scheme);
-  g.theta = first_difference(in_t, 0.0, h.dT, scheme);
-  g.rho = first_difference(in_r, r, h.dr, scheme);
+  g.delta = FirstDifference(in_spot, spot, h.d_spot, scheme);
+  g.gamma = SecondCentralDifference(in_spot, spot, h.d_spot);
+  g.vega = FirstDifference(in_sigma, sigma, h.dsigma, scheme);
+  g.theta = FirstDifference(in_t, 0.0, h.d_t, scheme);
+  g.rho = FirstDifference(in_r, r, h.dr, scheme);
   return g;
 }
 
 // Black-Scholes Greeks by finite differences, to compare with ch03::bs_greeks.
-[[nodiscard]] inline Greeks bs_fd_greeks(OptionType type, double S, double K,
-                                         double T, double sigma, double r,
-                                         double q = 0.0, const FdSteps& h = {},
-                                         FdScheme scheme = FdScheme::Central) {
-  return fd_greeks(
+[[nodiscard]] inline Greeks BsFdGreeks(OptionType type, double spot,
+                                       double strike, double maturity,
+                                       double sigma, double r, double q = 0.0,
+                                       const FdSteps& h = {},
+                                       FdScheme scheme = FdScheme::kCentral) {
+  return FdGreeks(
       [&](double s, double t, double v, double x) {
-        return ch03::BsPrice(type, s, K, t, v, x, q);
+        return ch03::BsPrice(type, s, strike, t, v, x, q);
       },
-      S, T, sigma, r, h, scheme);
+      spot, maturity, sigma, r, h, scheme);
 }
 
 }  // namespace p4mfe::ch07

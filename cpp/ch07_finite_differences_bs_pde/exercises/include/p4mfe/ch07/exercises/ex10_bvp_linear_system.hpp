@@ -48,18 +48,18 @@ struct Ex10System {
 struct Ex10Row {
   double lower, diag, upper;
 };
-[[nodiscard]] constexpr Ex10Row ex10_row(double i) noexcept {
+[[nodiscard]] constexpr Ex10Row Ex10ComputeRow(double i) noexcept {
   return {3.0 * i * i + 0.5 * i, 1.0 - 6.0 * i * i, 3.0 * i * i - 0.5 * i};
 }
 
-[[nodiscard]] inline Ex10System ex10_system(std::size_t n, double y0 = 1.0,
-                                            double yn = 0.5) {
+[[nodiscard]] inline Ex10System Ex10MakeSystem(std::size_t n, double y0 = 1.0,
+                                               double yn = 0.5) {
   if (n < 2) throw std::invalid_argument("ex10_system: need n >= 2");
   const std::size_t m = n - 1;
   Ex10System s{std::vector<double>(m), std::vector<double>(m),
                std::vector<double>(m), std::vector<double>(m)};
   for (std::size_t k = 0; k < m; ++k) {
-    const auto row = ex10_row(static_cast<double>(k + 1));
+    const auto row = Ex10ComputeRow(static_cast<double>(k + 1));
     s.lower[k] = row.lower;
     s.diag[k] = row.diag;
     s.upper[k] = row.upper;
@@ -72,10 +72,10 @@ struct Ex10Row {
 }
 
 // Solution y_0..y_n of the discrete system (Thomas algorithm, section 7.2).
-[[nodiscard]] inline OdeSolution ex10_solve(std::size_t n, double y0 = 1.0,
-                                            double yn = 0.5) {
-  const auto s = ex10_system(n, y0, yn);
-  const auto inner = solve_tridiagonal(s.lower, s.diag, s.upper, s.rhs);
+[[nodiscard]] inline OdeSolution Ex10Solve(std::size_t n, double y0 = 1.0,
+                                           double yn = 0.5) {
+  const auto s = Ex10MakeSystem(n, y0, yn);
+  const auto inner = SolveTridiagonal(s.lower, s.diag, s.upper, s.rhs);
   OdeSolution sol{std::vector<double>(n + 1), std::vector<double>(n + 1)};
   for (std::size_t i = 0; i <= n; ++i)
     sol.x[i] = static_cast<double>(i) / static_cast<double>(n);

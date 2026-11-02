@@ -37,10 +37,10 @@ struct OdeSolution {
   std::vector<double> y;
 };
 
-enum class OdeScheme { Forward, Backward, Central };
+enum class OdeScheme { kForward, kBackward, kCentral };
 
 namespace detail {
-inline OdeSolution make_grid(double x0, double x_end, std::size_t n) {
+inline OdeSolution MakeGrid(double x0, double x_end, std::size_t n) {
   if (n == 0) throw std::invalid_argument("ODE solver: need n >= 1 steps");
   OdeSolution s{std::vector<double>(n + 1), std::vector<double>(n + 1)};
   const double h = (x_end - x0) / static_cast<double>(n);
@@ -52,9 +52,9 @@ inline OdeSolution make_grid(double x0, double x_end, std::size_t n) {
 
 // ---------------------------------------------------------------- 7.2 ------
 template <std::invocable<double, double> F>
-[[nodiscard]] OdeSolution euler_forward(F&& f, double x0, double y0,
-                                        double x_end, std::size_t n) {
-  auto s = detail::make_grid(x0, x_end, n);
+[[nodiscard]] OdeSolution EulerForward(F&& f, double x0, double y0,
+                                       double x_end, std::size_t n) {
+  auto s = detail::MakeGrid(x0, x_end, n);
   const double h = (x_end - x0) / static_cast<double>(n);
   s.y[0] = y0;
   for (std::size_t k = 0; k < n; ++k)
@@ -66,9 +66,9 @@ template <std::invocable<double, double> F>
 // by Newton's method (chapter 5) from the explicit Euler guess, with dg/dy by
 // a central difference (chapter 1).
 template <std::invocable<double, double> F>
-[[nodiscard]] OdeSolution euler_backward(F&& f, double x0, double y0,
-                                         double x_end, std::size_t n) {
-  auto s = detail::make_grid(x0, x_end, n);
+[[nodiscard]] OdeSolution EulerBackward(F&& f, double x0, double y0,
+                                        double x_end, std::size_t n) {
+  auto s = detail::MakeGrid(x0, x_end, n);
   const double h = (x_end - x0) / static_cast<double>(n);
   s.y[0] = y0;
   for (std::size_t k = 0; k < n; ++k) {
@@ -84,9 +84,9 @@ template <std::invocable<double, double> F>
 }
 
 template <std::invocable<double, double> F>
-[[nodiscard]] OdeSolution leapfrog(F&& f, double x0, double y0, double x_end,
+[[nodiscard]] OdeSolution Leapfrog(F&& f, double x0, double y0, double x_end,
                                    std::size_t n) {
-  auto s = detail::make_grid(x0, x_end, n);
+  auto s = detail::MakeGrid(x0, x_end, n);
   const double h = (x_end - x0) / static_cast<double>(n);
   s.y[0] = y0;
   s.y[1] = y0 + h * f(x0, y0);
@@ -96,15 +96,15 @@ template <std::invocable<double, double> F>
 }
 
 template <std::invocable<double, double> F>
-[[nodiscard]] OdeSolution solve_ivp(F&& f, double x0, double y0, double x_end,
-                                    std::size_t n, OdeScheme scheme) {
+[[nodiscard]] OdeSolution SolveIvp(F&& f, double x0, double y0, double x_end,
+                                   std::size_t n, OdeScheme scheme) {
   switch (scheme) {
-    case OdeScheme::Forward:
-      return euler_forward(f, x0, y0, x_end, n);
-    case OdeScheme::Backward:
-      return euler_backward(f, x0, y0, x_end, n);
-    case OdeScheme::Central:
-      return leapfrog(f, x0, y0, x_end, n);
+    case OdeScheme::kForward:
+      return EulerForward(f, x0, y0, x_end, n);
+    case OdeScheme::kBackward:
+      return EulerBackward(f, x0, y0, x_end, n);
+    case OdeScheme::kCentral:
+      return Leapfrog(f, x0, y0, x_end, n);
   }
   throw std::invalid_argument("solve_ivp: unknown scheme");
 }
@@ -113,7 +113,7 @@ template <std::invocable<double, double> F>
 //   lower[i] x[i-1] + diag[i] x[i] + upper[i] x[i+1] = rhs[i],  i = 0..n-1
 // (lower[0] and upper[n-1] are ignored). Gaussian elimination without
 // pivoting; fine for diagonally dominant systems such as those below.
-[[nodiscard]] inline std::vector<double> solve_tridiagonal(
+[[nodiscard]] inline std::vector<double> SolveTridiagonal(
     const std::vector<double>& lower, std::vector<double> diag,
     const std::vector<double>& upper, std::vector<double> rhs) {
   const std::size_t n = diag.size();
@@ -141,10 +141,10 @@ template <std::invocable<double, double> F>
 //   = r_i.
 template <std::invocable<double> P, std::invocable<double> Q,
           std::invocable<double> R>
-[[nodiscard]] OdeSolution solve_bvp(P&& p, Q&& q, R&& r, double a, double b,
-                                    double ya, double yb, std::size_t n) {
+[[nodiscard]] OdeSolution SolveBvp(P&& p, Q&& q, R&& r, double a, double b,
+                                   double ya, double yb, std::size_t n) {
   if (n < 2) throw std::invalid_argument("solve_bvp: need n >= 2 intervals");
-  auto s = detail::make_grid(a, b, n);
+  auto s = detail::MakeGrid(a, b, n);
   const double h = (b - a) / static_cast<double>(n);
   const std::size_t m = n - 1;  // unknowns y_1..y_{n-1}
   std::vector<double> lo(m), di(m), up(m), rhs(m);
@@ -158,7 +158,7 @@ template <std::invocable<double> P, std::invocable<double> Q,
   }
   rhs[0] -= lo[0] * ya;
   rhs[m - 1] -= up[m - 1] * yb;
-  const auto inner = solve_tridiagonal(lo, std::move(di), up, std::move(rhs));
+  const auto inner = SolveTridiagonal(lo, std::move(di), up, std::move(rhs));
   s.y[0] = ya;
   s.y[n] = yb;
   std::copy(inner.begin(), inner.end(), s.y.begin() + 1);
@@ -167,7 +167,7 @@ template <std::invocable<double> P, std::invocable<double> Q,
 
 // Largest |y_k - y(x_k)| over the grid.
 template <std::invocable<double> Exact>
-[[nodiscard]] double max_error(const OdeSolution& s, Exact&& exact) {
+[[nodiscard]] double MaxError(const OdeSolution& s, Exact&& exact) {
   double e = 0.0;
   for (std::size_t k = 0; k < s.x.size(); ++k)
     e = std::max(e, std::abs(s.y[k] - exact(s.x[k])));

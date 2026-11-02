@@ -15,20 +15,20 @@ from p4mfe.normal import norm_cdf, norm_pdf
 
 @dataclass(frozen=True)
 class Ex12Market:
-    S: float = 50.0
-    K: float = 52.0
+    spot: float = 50.0
+    strike: float = 52.0
     tau: float = 0.75
     sigma: float = 0.3
     r: float = 0.05
 
 
 def ex12_lhs(m: Ex12Market, option_type: OptionType = OptionType.CALL) -> float:
-    g = bs_greeks(option_type, m.S, m.K, m.tau, m.sigma, m.r, 0.0)
-    return 1.0 + 0.5 * m.sigma**2 * m.S**2 * g.gamma / g.theta
+    g = bs_greeks(option_type, m.spot, m.strike, m.tau, m.sigma, m.r, 0.0)
+    return 1.0 + 0.5 * m.sigma**2 * m.spot**2 * g.gamma / g.theta
 
 
 def ex12_rhs(m: Ex12Market) -> float:
-    _, d2 = bs_d1_d2(m.S, m.K, m.tau, m.sigma, m.r, 0.0)
+    _, d2 = bs_d1_d2(m.spot, m.strike, m.tau, m.sigma, m.r, 0.0)
     return 1.0 / (
         1.0
         + m.sigma / (2.0 * m.r * math.sqrt(m.tau)) * norm_pdf(d2) / norm_cdf(d2)

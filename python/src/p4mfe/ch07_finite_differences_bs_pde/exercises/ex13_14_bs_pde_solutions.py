@@ -16,43 +16,49 @@ from ..bs_pde import bs_pde_residual_fd, forward_contract_value
 
 @dataclass(frozen=True)
 class PdeMarket:
-    K: float = 40.0
-    T: float = 1.0
+    strike: float = 40.0
+    maturity: float = 1.0
     sigma: float = 0.3
     r: float = 0.05
     q: float = 0.02
 
 
-def ex13_call(S: float, t: float, m: PdeMarket = PdeMarket()) -> float:
-    return bs_call(S, m.K, m.T - t, m.sigma, m.r, m.q)
+def ex13_call(spot: float, t: float, m: PdeMarket = PdeMarket()) -> float:
+    return bs_call(spot, m.strike, m.maturity - t, m.sigma, m.r, m.q)
 
 
 def ex13_residual_greeks(
-    S: float, t: float, m: PdeMarket = PdeMarket()
+    spot: float, t: float, m: PdeMarket = PdeMarket()
 ) -> float:
-    return bs_pde_residual(OptionType.CALL, S, m.K, m.T - t, m.sigma, m.r, m.q)
-
-
-def ex13_residual_fd(S: float, t: float, m: PdeMarket = PdeMarket()) -> float:
-    return bs_pde_residual_fd(
-        lambda s, u: ex13_call(s, u, m), S, t, m.sigma, m.r, m.q
+    return bs_pde_residual(
+        OptionType.CALL, spot, m.strike, m.maturity - t, m.sigma, m.r, m.q
     )
 
 
-def ex14_forward(S: float, t: float, m: PdeMarket = PdeMarket()) -> float:
-    return forward_contract_value(S, t, m.K, m.T, m.r, m.q)
+def ex13_residual_fd(
+    spot: float, t: float, m: PdeMarket = PdeMarket()
+) -> float:
+    return bs_pde_residual_fd(
+        lambda s, u: ex13_call(s, u, m), spot, t, m.sigma, m.r, m.q
+    )
+
+
+def ex14_forward(spot: float, t: float, m: PdeMarket = PdeMarket()) -> float:
+    return forward_contract_value(spot, t, m.strike, m.maturity, m.r, m.q)
 
 
 def ex14_residual_exact(
-    S: float, t: float, m: PdeMarket = PdeMarket()
+    spot: float, t: float, m: PdeMarket = PdeMarket()
 ) -> float:
-    tau = m.T - t
+    tau = m.maturity - t
     eq, er = math.exp(-m.q * tau), math.exp(-m.r * tau)
-    f_t = m.q * S * eq - m.r * m.K * er
-    return f_t + (m.r - m.q) * S * eq - m.r * ex14_forward(S, t, m)
+    f_t = m.q * spot * eq - m.r * m.strike * er
+    return f_t + (m.r - m.q) * spot * eq - m.r * ex14_forward(spot, t, m)
 
 
-def ex14_residual_fd(S: float, t: float, m: PdeMarket = PdeMarket()) -> float:
+def ex14_residual_fd(
+    spot: float, t: float, m: PdeMarket = PdeMarket()
+) -> float:
     return bs_pde_residual_fd(
-        lambda s, u: ex14_forward(s, u, m), S, t, m.sigma, m.r, m.q
+        lambda s, u: ex14_forward(s, u, m), spot, t, m.sigma, m.r, m.q
     )

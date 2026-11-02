@@ -11,7 +11,7 @@ namespace p4mfe::ch07::ex {
 // Market for the checks; tau = T - t, with T the maturity and t the calendar
 // time.
 struct PdeMarket {
-  double K = 40.0, T = 1.0, sigma = 0.3, r = 0.05, q = 0.02;
+  double strike = 40.0, maturity = 1.0, sigma = 0.3, r = 0.05, q = 0.02;
 };
 
 // ----------------------------------------------------------- Exercise 13 ---
@@ -36,22 +36,21 @@ struct PdeMarket {
 // (q + r - q - r) = 0; the K e^(-r tau) N(d2) terms add to (-r + r) = 0. The
 // sum is 0, so C solves the Black-Scholes PDE. (By put-call parity and exercise
 // 14, so does the put.)
-[[nodiscard]] inline double ex13_call(double S, double t,
-                                      const PdeMarket& m = {}) {
-  return ch03::BsCall(S, m.K, m.T - t, m.sigma, m.r, m.q);
+[[nodiscard]] inline double Ex13Call(double spot, double t,
+                                     const PdeMarket& m = {}) {
+  return ch03::BsCall(spot, m.strike, m.maturity - t, m.sigma, m.r, m.q);
 }
 // The PDE residual from the closed-form Greeks (zero up to rounding) ...
-[[nodiscard]] inline double ex13_residual_greeks(double S, double t,
-                                                 const PdeMarket& m = {}) {
-  return ch03::BsPdeResidual(ch03::OptionType::kCall, S, m.K, m.T - t, m.sigma,
-                             m.r, m.q);
+[[nodiscard]] inline double Ex13ResidualGreeks(double spot, double t,
+                                               const PdeMarket& m = {}) {
+  return ch03::BsPdeResidual(ch03::OptionType::kCall, spot, m.strike,
+                             m.maturity - t, m.sigma, m.r, m.q);
 }
 // ... and from finite differences of the price (zero up to O(h^2)).
-[[nodiscard]] inline double ex13_residual_fd(double S, double t,
-                                             const PdeMarket& m = {}) {
-  return bs_pde_residual_fd(
-      [&](double s, double u) { return ex13_call(s, u, m); }, S, t, m.sigma,
-      m.r, m.q);
+[[nodiscard]] inline double Ex13ResidualFd(double spot, double t,
+                                           const PdeMarket& m = {}) {
+  return BsPdeResidualFd([&](double s, double u) { return Ex13Call(s, u, m); },
+                         spot, t, m.sigma, m.r, m.q);
 }
 
 // ----------------------------------------------------------- Exercise 14 ---
@@ -68,24 +67,24 @@ struct PdeMarket {
 // The PDE holds for every sigma: f is linear in S, so it has no Gamma.
 // Note that f = C - P (put-call parity), so with exercise 13 the put also
 // solves the PDE (the PDE is linear).
-[[nodiscard]] inline double ex14_forward(double S, double t,
-                                         const PdeMarket& m = {}) {
-  return forward_contract_value(S, t, m.K, m.T, m.r, m.q);
+[[nodiscard]] inline double Ex14Forward(double spot, double t,
+                                        const PdeMarket& m = {}) {
+  return ForwardContractValue(spot, t, m.strike, m.maturity, m.r, m.q);
 }
 // Residual with the exact partial derivatives above (zero up to rounding).
-[[nodiscard]] inline double ex14_residual_exact(double S, double t,
-                                                const PdeMarket& m = {}) {
-  const double tau = m.T - t;
+[[nodiscard]] inline double Ex14ResidualExact(double spot, double t,
+                                              const PdeMarket& m = {}) {
+  const double tau = m.maturity - t;
   const double eq = std::exp(-m.q * tau), er = std::exp(-m.r * tau);
-  const double f_t = m.q * S * eq - m.r * m.K * er;
-  const double f_S = eq;
-  return f_t + (m.r - m.q) * S * f_S - m.r * ex14_forward(S, t, m);
+  const double f_t = m.q * spot * eq - m.r * m.strike * er;
+  const double f_spot = eq;
+  return f_t + (m.r - m.q) * spot * f_spot - m.r * Ex14Forward(spot, t, m);
 }
-[[nodiscard]] inline double ex14_residual_fd(double S, double t,
-                                             const PdeMarket& m = {}) {
-  return bs_pde_residual_fd(
-      [&](double s, double u) { return ex14_forward(s, u, m); }, S, t, m.sigma,
-      m.r, m.q);
+[[nodiscard]] inline double Ex14ResidualFd(double spot, double t,
+                                           const PdeMarket& m = {}) {
+  return BsPdeResidualFd(
+      [&](double s, double u) { return Ex14Forward(s, u, m); }, spot, t,
+      m.sigma, m.r, m.q);
 }
 
 }  // namespace p4mfe::ch07::ex

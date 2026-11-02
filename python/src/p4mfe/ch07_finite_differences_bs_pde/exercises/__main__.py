@@ -84,12 +84,12 @@ def main() -> None:
     )
 
     header("Ex 8: int f(S) g(S) dS -> g(K), g(S) = cos(S/7), K = 50")
-    g = lambda S: math.cos(S / 7)  # noqa: E731
+    g = lambda spot: math.cos(spot / 7)  # noqa: E731
     for x in (2.0, 1.0, 0.5, 0.1):
-        I = ex08_integral(g, 50.0, x)
+        integral = ex08_integral(g, 50.0, x)
         print(
-            f"    x = {x:<5.3g} integral = {I:.12f}  g(K) = {g(50.0):.12f}  "
-            f"diff/(x^2/12 g''(K)) = {(I - g(50.0)) / (x * x / 12 * -math.cos(50 / 7) / 49):.6f}"
+            f"    x = {x:<5.3g} integral = {integral:.12f}  g(K) = {g(50.0):.12f}  "
+            f"diff/(x^2/12 g''(K)) = {(integral - g(50.0)) / (x * x / 12 * -math.cos(50 / 7) / 49):.6f}"
         )
 
     header("Ex 9: forward Euler for y' = y, y(0) = 1")
@@ -118,12 +118,12 @@ def main() -> None:
     header("Ex 11: y'' - 2y' + x^2 y = 0 as Y' = f(x, Y), Y(0) = (1, 0)")
     ref = ex11_rk4([1.0, 0.0], 0.0, 1.0, 1000)
     print(
-        f"  RK4 (n = 1000): y(1) = {ref.Y[-1, 0]:.10f}  y'(1) = {ref.Y[-1, 1]:.10f}, "
+        f"  RK4 (n = 1000): y(1) = {ref.y[-1, 0]:.10f}  y'(1) = {ref.y[-1, 1]:.10f}, "
         f"ODE residual at x = 0.5: {ex11_ode_residual(ref, 500):.2e}"
     )
     for n in (10, 100, 1000):
         print(
-            f"    forward Euler n = {n:<5d} y(1) = {ex11_euler([1.0, 0.0], 0.0, 1.0, n).Y[-1, 0]:.8f}"
+            f"    forward Euler n = {n:<5d} y(1) = {ex11_euler([1.0, 0.0], 0.0, 1.0, n).y[-1, 0]:.8f}"
         )
 
     header(
@@ -139,11 +139,11 @@ def main() -> None:
     header(
         "Ex 13-14: PDE residuals (K = 40, T = 1, sigma = 30%, r = 5%, q = 2%)"
     )
-    for S in (20.0, 40.0, 60.0):
+    for spot in (20.0, 40.0, 60.0):
         print(
-            f"    S = {S:<4.0f} t = 0.5: call Greeks {ex13_residual_greeks(S, 0.5):.1e}, "
-            f"call FD {ex13_residual_fd(S, 0.5):.1e}, forward exact {ex14_residual_exact(S, 0.5):.1e}, "
-            f"forward FD {ex14_residual_fd(S, 0.5):.1e}"
+            f"    S = {spot:<4.0f} t = 0.5: call Greeks {ex13_residual_greeks(spot, 0.5):.1e}, "
+            f"call FD {ex13_residual_fd(spot, 0.5):.1e}, forward exact {ex14_residual_exact(spot, 0.5):.1e}, "
+            f"forward FD {ex14_residual_fd(spot, 0.5):.1e}"
         )
 
 

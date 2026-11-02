@@ -10,48 +10,48 @@ from dataclasses import dataclass
 import numpy as np
 
 
-def ex11_f(x: float, Y: np.ndarray) -> np.ndarray:
-    return np.array([[0.0, 1.0], [-x * x, 2.0]]) @ np.asarray(Y, dtype=float)
+def ex11_f(x: float, y: np.ndarray) -> np.ndarray:
+    return np.array([[0.0, 1.0], [-x * x, 2.0]]) @ np.asarray(y, dtype=float)
 
 
 @dataclass
 class Ex11Solution:
     x: np.ndarray
-    Y: np.ndarray  # shape (n + 1, 2)
+    y: np.ndarray  # shape (n + 1, 2)
 
 
-def ex11_euler(Y0, x0: float, x_end: float, n: int) -> Ex11Solution:
+def ex11_euler(y0, x0: float, x_end: float, n: int) -> Ex11Solution:
     if n < 1:
         raise ValueError("need n >= 1")
     h = (x_end - x0) / n
     x = x0 + h * np.arange(n + 1)
-    Y = np.empty((n + 1, 2))
-    Y[0] = Y0
+    y = np.empty((n + 1, 2))
+    y[0] = y0
     for k in range(n):
-        Y[k + 1] = Y[k] + h * ex11_f(x[k], Y[k])
-    return Ex11Solution(x, Y)
+        y[k + 1] = y[k] + h * ex11_f(x[k], y[k])
+    return Ex11Solution(x, y)
 
 
-def ex11_rk4(Y0, x0: float, x_end: float, n: int) -> Ex11Solution:
+def ex11_rk4(y0, x0: float, x_end: float, n: int) -> Ex11Solution:
     if n < 1:
         raise ValueError("need n >= 1")
     h = (x_end - x0) / n
     x = x0 + h * np.arange(n + 1)
-    Y = np.empty((n + 1, 2))
-    Y[0] = Y0
+    y = np.empty((n + 1, 2))
+    y[0] = y0
     for k in range(n):
-        k1 = ex11_f(x[k], Y[k])
-        k2 = ex11_f(x[k] + h / 2, Y[k] + h / 2 * k1)
-        k3 = ex11_f(x[k] + h / 2, Y[k] + h / 2 * k2)
-        k4 = ex11_f(x[k] + h, Y[k] + h * k3)
-        Y[k + 1] = Y[k] + h / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
-    return Ex11Solution(x, Y)
+        k1 = ex11_f(x[k], y[k])
+        k2 = ex11_f(x[k] + h / 2, y[k] + h / 2 * k1)
+        k3 = ex11_f(x[k] + h / 2, y[k] + h / 2 * k2)
+        k4 = ex11_f(x[k] + h, y[k] + h * k3)
+        y[k + 1] = y[k] + h / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+    return Ex11Solution(x, y)
 
 
 def ex11_ode_residual(s: Ex11Solution, k: int) -> float:
     """y'' - 2y' + x^2 y at node k, derivatives of the first component by central differences."""
     h = s.x[1] - s.x[0]
-    ym, y, yp = s.Y[k - 1, 0], s.Y[k, 0], s.Y[k + 1, 0]
+    ym, y, yp = s.y[k - 1, 0], s.y[k, 0], s.y[k + 1, 0]
     return float(
         (yp - 2 * y + ym) / h**2 - 2 * (yp - ym) / (2 * h) + s.x[k] ** 2 * y
     )

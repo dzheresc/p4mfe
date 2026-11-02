@@ -16,18 +16,18 @@ from p4mfe.normal import norm_cdf
 from .ex06_butterfly_spread import SpreadMarket, ex_call
 
 
-def ex07_bull_payoff(ST: float, K: float, x: float) -> float:
-    return max(ST - K, 0.0) - max(ST - K - x, 0.0)
+def ex07_bull_payoff(spot_t: float, strike: float, x: float) -> float:
+    return max(spot_t - strike, 0.0) - max(spot_t - strike - x, 0.0)
 
 
-def ex07_digital_payoff(ST: float, K: float, x: float) -> float:
-    return ex07_bull_payoff(ST, K, x) / x
+def ex07_digital_payoff(spot_t: float, strike: float, x: float) -> float:
+    return ex07_bull_payoff(spot_t, strike, x) / x
 
 
 def ex07_scaled_bull(x: float, m: SpreadMarket = SpreadMarket()) -> float:
-    return (ex_call(m.K, m) - ex_call(m.K + x, m)) / x
+    return (ex_call(m.strike, m) - ex_call(m.strike + x, m)) / x
 
 
 def ex07_cash_or_nothing(m: SpreadMarket = SpreadMarket()) -> float:
-    _, d2 = bs_d1_d2(m.S, m.K, m.T, m.sigma, m.r, m.q)
-    return math.exp(-m.r * m.T) * norm_cdf(d2)
+    _, d2 = bs_d1_d2(m.spot, m.strike, m.maturity, m.sigma, m.r, m.q)
+    return math.exp(-m.r * m.maturity) * norm_cdf(d2)

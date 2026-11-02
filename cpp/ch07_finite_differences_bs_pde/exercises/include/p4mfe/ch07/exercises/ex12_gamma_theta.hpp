@@ -40,17 +40,19 @@ namespace p4mfe::ch07::ex {
 //   claimed formula. For r > 0 it lies in (0, 1); it tends to 0 as r -> 0,
 //   recovering (i) (A/B -> infinity).
 struct Ex12Market {
-  double S = 50.0, K = 52.0, tau = 0.75, sigma = 0.3, r = 0.05;
+  double spot = 50.0, strike = 52.0, tau = 0.75, sigma = 0.3, r = 0.05;
 };
 
-[[nodiscard]] inline double ex12_lhs(
+[[nodiscard]] inline double Ex12Lhs(
     const Ex12Market& m, ch03::OptionType type = ch03::OptionType::kCall) {
-  const auto g = ch03::BsGreeks(type, m.S, m.K, m.tau, m.sigma, m.r, 0.0);
-  return 1.0 + 0.5 * m.sigma * m.sigma * m.S * m.S * g.gamma / g.theta;
+  const auto g =
+      ch03::BsGreeks(type, m.spot, m.strike, m.tau, m.sigma, m.r, 0.0);
+  return 1.0 + 0.5 * m.sigma * m.sigma * m.spot * m.spot * g.gamma / g.theta;
 }
 // The right-hand side of (ii) (for r != 0).
-[[nodiscard]] inline double ex12_rhs(const Ex12Market& m) {
-  const auto [d1, d2] = ch03::BsD1D2(m.S, m.K, m.tau, m.sigma, m.r, 0.0);
+[[nodiscard]] inline double Ex12Rhs(const Ex12Market& m) {
+  const auto [d1, d2] =
+      ch03::BsD1D2(m.spot, m.strike, m.tau, m.sigma, m.r, 0.0);
   return 1.0 / (1.0 + m.sigma / (2.0 * m.r * std::sqrt(m.tau)) * norm_pdf(d2) /
                           norm_cdf(d2));
 }
