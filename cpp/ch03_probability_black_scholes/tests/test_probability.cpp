@@ -38,12 +38,12 @@ TEST(Ch03Continuous, Exponential) {
 }
 
 TEST(Ch03Continuous, StandardNormalMoments) {
-  const ContinuousDistribution z{[](double x) { return norm_pdf(x); },
+  const ContinuousDistribution z{[](double x) { return NormPdf(x); },
                                  -p4mfe::ch02::kInfinity,
                                  p4mfe::ch02::kInfinity};
   EXPECT_NEAR(Mean(z), 0.0, 1e-9);
   EXPECT_NEAR(Variance(z), 1.0, 1e-8);
-  EXPECT_NEAR(Cdf(z, 1.0), norm_cdf(1.0), 1e-8);
+  EXPECT_NEAR(Cdf(z, 1.0), NormCdf(1.0), 1e-8);
   // E[e^(tZ)] = e^(t^2/2).
   EXPECT_NEAR(ExpectedValue(z, [](double x) { return std::exp(0.5 * x); }),
               StdNormalMgf(0.5), 1e-8);

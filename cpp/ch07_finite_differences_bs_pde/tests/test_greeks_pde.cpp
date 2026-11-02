@@ -45,13 +45,13 @@ TEST(Ch07FdGreeks, AnyPricer) {
   const auto digital = [&](double spot, double maturity, double sigma,
                            double r) {
     return std::exp(-r * maturity) *
-           norm_cdf(ch03::BsD1D2(spot, strike, maturity, sigma, r, q).d2);
+           NormCdf(ch03::BsD1D2(spot, strike, maturity, sigma, r, q).d2);
   };
   const double spot = 95, maturity = 0.5, sigma = 0.25, r = 0.03;
   const auto g = FdGreeks(digital, spot, maturity, sigma, r);
   const double d2 = ch03::BsD1D2(spot, strike, maturity, sigma, r).d2;
   EXPECT_NEAR(g.delta,
-              std::exp(-r * maturity) * norm_pdf(d2) /
+              std::exp(-r * maturity) * NormPdf(d2) /
                   (spot * sigma * std::sqrt(maturity)),
               1e-7);
   // The digital also satisfies the Black-Scholes PDE.

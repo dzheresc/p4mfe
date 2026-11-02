@@ -43,8 +43,8 @@ struct D1D2 {
   const double fwd_spot = spot * std::exp(-q * maturity);
   const double disc_strike = strike * std::exp(-r * maturity);
   return type == OptionType::kCall
-             ? fwd_spot * norm_cdf(d1) - disc_strike * norm_cdf(d2)
-             : disc_strike * norm_cdf(-d2) - fwd_spot * norm_cdf(-d1);
+             ? fwd_spot * NormCdf(d1) - disc_strike * NormCdf(d2)
+             : disc_strike * NormCdf(-d2) - fwd_spot * NormCdf(-d1);
 }
 [[nodiscard]] inline double BsCall(double spot, double strike, double maturity,
                                    double sigma, double r, double q = 0.0) {
@@ -78,22 +78,22 @@ struct Greeks {
   const double eq = std::exp(-q * maturity);
   const double er = std::exp(-r * maturity);
   const double sqrt_maturity = std::sqrt(maturity);
-  const double pdf1 = norm_pdf(d1);
+  const double pdf1 = NormPdf(d1);
 
   Greeks g{};
   g.gamma = eq * pdf1 / (spot * sigma * sqrt_maturity);
   g.vega = spot * eq * pdf1 * sqrt_maturity;
   const double decay = -spot * sigma * eq * pdf1 / (2.0 * sqrt_maturity);
   if (type == OptionType::kCall) {
-    g.delta = eq * norm_cdf(d1);
+    g.delta = eq * NormCdf(d1);
     g.theta =
-        decay + q * spot * eq * norm_cdf(d1) - r * strike * er * norm_cdf(d2);
-    g.rho = strike * maturity * er * norm_cdf(d2);
+        decay + q * spot * eq * NormCdf(d1) - r * strike * er * NormCdf(d2);
+    g.rho = strike * maturity * er * NormCdf(d2);
   } else {
-    g.delta = -eq * norm_cdf(-d1);
+    g.delta = -eq * NormCdf(-d1);
     g.theta =
-        decay - q * spot * eq * norm_cdf(-d1) + r * strike * er * norm_cdf(-d2);
-    g.rho = -strike * maturity * er * norm_cdf(-d2);
+        decay - q * spot * eq * NormCdf(-d1) + r * strike * er * NormCdf(-d2);
+    g.rho = -strike * maturity * er * NormCdf(-d2);
   }
   return g;
 }
@@ -109,8 +109,8 @@ struct Greeks {
                                              double maturity, double sigma,
                                              double r, double q = 0.0) {
   const auto [d1, d2] = BsD1D2(spot, strike, maturity, sigma, r, q);
-  return spot * std::exp(-q * maturity) * norm_pdf(d1) -
-         strike * std::exp(-r * maturity) * norm_pdf(d2);
+  return spot * std::exp(-q * maturity) * NormPdf(d1) -
+         strike * std::exp(-r * maturity) * NormPdf(d2);
 }
 
 // The Greeks satisfy the Black-Scholes PDE

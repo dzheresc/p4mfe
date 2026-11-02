@@ -72,7 +72,7 @@ struct Ex16Market {
   const double d1 = (std::log(barrier * barrier / (spot * strike)) +
                      0.5 * sigma * sigma * maturity) /
                     st;
-  return barrier * norm_cdf(d1) - spot * strike / barrier * norm_cdf(d1 - st);
+  return barrier * NormCdf(d1) - spot * strike / barrier * NormCdf(d1 - st);
 }
 
 // (1/B) N(d2), the term the hint asks about.
@@ -83,7 +83,7 @@ struct Ex16Market {
   const double d2 = (std::log(barrier * barrier / (spot * strike)) -
                      0.5 * sigma * sigma * maturity) /
                     st;
-  return norm_cdf(d2) / barrier;
+  return NormCdf(d2) / barrier;
 }
 
 }  // namespace p4mfe::ch08::ex

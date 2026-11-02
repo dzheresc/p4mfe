@@ -44,7 +44,7 @@ inline const double kEx01Limit =
     }
     return inv_sqrt_2pi * sum;
   }
-  return (norm_cdf(x) - 0.5 - x * inv_sqrt_2pi) / (x * x * x);
+  return (NormCdf(x) - 0.5 - x * inv_sqrt_2pi) / (x * x * x);
 }
 
 // ------------------------------------------------------------ Exercise 2 ---

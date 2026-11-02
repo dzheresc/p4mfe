@@ -110,7 +110,7 @@ struct RouletteOdds {
   const double mean = n * bet * (2.0 * p - 1.0);
   const double sd = bet * std::sqrt(n * 4.0 * p * (1.0 - p));
   const double t = continuity ? threshold - bet : threshold;
-  return {norm_cdf((mean - t) / sd), norm_cdf((-t - mean) / sd)};
+  return {NormCdf((mean - t) / sd), NormCdf((-t - mean) / sd)};
 }
 
 }  // namespace p4mfe::ch04::ex

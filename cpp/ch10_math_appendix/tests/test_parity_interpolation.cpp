@@ -24,10 +24,10 @@ TEST(Ch10Parity, ClassifiesClassicalFunctions) {
   EXPECT_EQ(ClassifyParity(cosf, kPts), Parity::kEven);
   EXPECT_EQ(ClassifyParity(sinf, kPts), Parity::kOdd);
   EXPECT_EQ(ClassifyParity(expf, kPts), Parity::kNeither);
-  EXPECT_EQ(ClassifyParity([](double x) { return norm_pdf(x); }, kPts),
+  EXPECT_EQ(ClassifyParity([](double x) { return NormPdf(x); }, kPts),
             Parity::kEven);
   // N(x) - 1/2 is odd, i.e. N(-x) = 1 - N(x).
-  EXPECT_TRUE(IsOdd([](double x) { return norm_cdf(x) - 0.5; }, kPts, 1e-14));
+  EXPECT_TRUE(IsOdd([](double x) { return NormCdf(x) - 0.5; }, kPts, 1e-14));
 }
 
 TEST(Ch10Parity, ProductsAndDerivatives) {
@@ -63,8 +63,8 @@ TEST(Ch10Parity, SymmetricIntegrals) {
   EXPECT_NEAR(SymmetricIntegral([](double x) { return std::sin(x); }, 3.0), 0.0,
               1e-15);
   // int_{-a}^{a} phi = 2 N(a) - 1.
-  EXPECT_NEAR(SymmetricIntegral([](double x) { return norm_pdf(x); }, 2.0),
-              2.0 * norm_cdf(2.0) - 1.0, 1e-10);
+  EXPECT_NEAR(SymmetricIntegral([](double x) { return NormPdf(x); }, 2.0),
+              2.0 * NormCdf(2.0) - 1.0, 1e-10);
   EXPECT_THROW((void)SymmetricIntegral(f, -1.0), std::invalid_argument);
 }
 

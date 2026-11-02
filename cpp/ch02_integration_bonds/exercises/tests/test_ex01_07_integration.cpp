@@ -19,7 +19,7 @@ TEST(Ch02Ex01, CubicTermOfNormalCdf) {
   // The series branch agrees with norm_cdf where cancellation is mild.
   const double x = 0.9;
   const double naive =
-      (p4mfe::norm_cdf(x) - 0.5 - x / std::sqrt(2 * std::numbers::pi)) /
+      (p4mfe::NormCdf(x) - 0.5 - x / std::sqrt(2 * std::numbers::pi)) /
       (x * x * x);
   EXPECT_NEAR(Ex01Quotient(x), naive, 1e-13);
   EXPECT_NEAR(Ex01Quotient(1.0 - 1e-12), Ex01Quotient(1.0), 1e-10);
@@ -117,17 +117,16 @@ TEST(Ch02Ex05, CallGamma) {
   }
   // g(x) is also the improper integral itself.
   const double x = 105.0;
-  const double gi =
-      ImproperIntegral([](double y) { return p4mfe::norm_pdf(y); }, -kInfinity,
-                       Ex05B(p, x), 1e-11)
-          .value;
+  const double gi = ImproperIntegral([](double y) { return p4mfe::NormPdf(y); },
+                                     -kInfinity, Ex05B(p, x), 1e-11)
+                        .value;
   EXPECT_NEAR(gi, Ex05G(p, x), 1e-9);
 }
 
 TEST(Ch02Ex06, SecondDerivativeIsH) {
   // Standard normal h: closed form, numerical integral, and finite differences.
   for (double t : {-2.0, -0.5, 0.0, 0.7, 2.5}) {
-    EXPECT_NEAR(Ex06G([](double x) { return p4mfe::norm_pdf(x); }, t),
+    EXPECT_NEAR(Ex06G([](double x) { return p4mfe::NormPdf(x); }, t),
                 Ex06GNormal(t), 1e-9)
         << t;
     const double h = 1e-3;
@@ -136,7 +135,7 @@ TEST(Ch02Ex06, SecondDerivativeIsH) {
         (Ex06GNormal(t + h) - 2 * Ex06GNormal(t) + Ex06GNormal(t - h)) /
         (h * h);
     EXPECT_NEAR(g1, Ex06GNormalPrime(t), 1e-7) << t;
-    EXPECT_NEAR(g2, p4mfe::norm_pdf(t), 1e-6) << t;
+    EXPECT_NEAR(g2, p4mfe::NormPdf(t), 1e-6) << t;
   }
   // A non-symmetric h with only polynomial decay: h(x) = 1/(1+x^2)^2.
   const auto hh = [](double x) { return 1.0 / ((1 + x * x) * (1 + x * x)); };

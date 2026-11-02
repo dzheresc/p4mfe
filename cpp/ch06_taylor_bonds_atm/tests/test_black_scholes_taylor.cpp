@@ -68,7 +68,7 @@ TEST(Ch06Atm, Greeks) {
 TEST(Ch06Atm, Derivation) {
   // N_lin is N's tangent at 0.
   for (double x : {-0.05, 0.01, 0.1})
-    EXPECT_NEAR(NormCdfLinear(x), norm_cdf(x), std::pow(std::abs(x), 3) / 10);
+    EXPECT_NEAR(NormCdfLinear(x), NormCdf(x), std::pow(std::abs(x), 3) / 10);
   // Linearizing N, then expanding exponentials, then dropping quadratic rate
   // terms.
   const double spot = 100, maturity = 0.5, sigma = 0.3, r = 0.03, q = 0.01;

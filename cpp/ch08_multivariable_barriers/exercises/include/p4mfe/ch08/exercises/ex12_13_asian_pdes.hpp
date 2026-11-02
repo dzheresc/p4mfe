@@ -60,8 +60,8 @@ struct AsianMarket {
       std::sqrt(s2 * tau * tau * tau / (3.0 * m.maturity * m.maturity));
   const double d2 = (mean - std::log(m.strike)) / sd;
   return std::exp(-m.r * tau) *
-         (std::exp(mean + 0.5 * sd * sd) * norm_cdf(d2 + sd) -
-          m.strike * norm_cdf(d2));
+         (std::exp(mean + 0.5 * sd * sd) * NormCdf(d2 + sd) -
+          m.strike * NormCdf(d2));
 }
 
 // Left side of the PDE for F, by central differences in y and t.

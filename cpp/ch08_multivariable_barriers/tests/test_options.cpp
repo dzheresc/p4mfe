@@ -62,7 +62,7 @@ TEST(Ch08BoxMuller, Transform) {
       return Point2{x, y};
     };
     EXPECT_NEAR(JacobianDeterminant(inv, z[0], z[1]),
-                norm_pdf(z[0]) * norm_pdf(z[1]), 1e-9);
+                NormPdf(z[0]) * NormPdf(z[1]), 1e-9);
   }
 }
 
@@ -80,7 +80,7 @@ TEST(Ch08BoxMuller, Samples) {
   EXPECT_NEAR(m, 0.0, 0.01);
   EXPECT_NEAR(m2 / n, 1.0, 0.01);
   EXPECT_NEAR(m4 / n, 3.0, 0.05);
-  EXPECT_NEAR(below / n, norm_cdf(-1.0), 0.003);
+  EXPECT_NEAR(below / n, NormCdf(-1.0), 0.003);
   EXPECT_NEAR(cross / (n / 2), 0.0, 0.01);  // independent pair
 }
 

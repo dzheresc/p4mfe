@@ -77,7 +77,7 @@ using ch03::NormalParams;
                                           double mu, double q = 0.0) {
   if (!(p > 0.0 && p < 1.0))
     throw std::domain_error("price_quantile: need 0 < p < 1");
-  return PriceFromNormal(norm_inv(p), spot0, maturity, sigma, mu, q);
+  return PriceFromNormal(NormInv(p), spot0, maturity, sigma, mu, q);
 }
 
 // The range [lo, hi] that S_T falls in with probability `confidence`, with
@@ -97,7 +97,7 @@ struct PriceRange {
   if (!(confidence > 0.0 && confidence < 1.0))
     throw std::domain_error(
         "price_confidence_interval: need 0 < confidence < 1");
-  const double z = norm_inv(0.5 * (1.0 + confidence));
+  const double z = NormInv(0.5 * (1.0 + confidence));
   return {PriceFromNormal(-z, spot0, maturity, sigma, mu, q),
           PriceFromNormal(z, spot0, maturity, sigma, mu, q)};
 }

@@ -49,7 +49,7 @@ namespace p4mfe::ch07::ex {
 [[nodiscard]] inline double Ex07CashOrNothing(const SpreadMarket& m = {}) {
   const auto [d1, d2] =
       ch03::BsD1D2(m.spot, m.strike, m.maturity, m.sigma, m.r, m.q);
-  return std::exp(-m.r * m.maturity) * norm_cdf(d2);
+  return std::exp(-m.r * m.maturity) * NormCdf(d2);
 }
 
 }  // namespace p4mfe::ch07::ex

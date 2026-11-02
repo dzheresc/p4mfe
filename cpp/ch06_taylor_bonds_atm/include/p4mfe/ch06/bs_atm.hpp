@@ -115,7 +115,7 @@ inline constexpr double kInvSqrt2pi =
 [[nodiscard]] inline double AtmPriceExact(double spot, double maturity,
                                           double sigma) noexcept {
   const double x = 0.5 * sigma * std::sqrt(maturity);
-  return spot * (norm_cdf(x) - norm_cdf(-x));
+  return spot * (NormCdf(x) - NormCdf(-x));
 }
 
 // (C_approx - C) / C_approx, exact, for r = q = 0 (independent of S).

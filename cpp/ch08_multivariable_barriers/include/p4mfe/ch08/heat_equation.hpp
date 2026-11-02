@@ -82,7 +82,7 @@ template <std::invocable<double> U0>
                                   double tol = 1e-9) {
   if (tau == 0.0) return u0(x);
   const ch03::ContinuousDistribution std_normal{
-      [](double z) { return norm_pdf(z); }, -ch02::kInfinity, ch02::kInfinity};
+      [](double z) { return NormPdf(z); }, -ch02::kInfinity, ch02::kInfinity};
   const double s = std::sqrt(2.0 * tau);
   return ch03::ExpectedValue(
       std_normal, [&](double z) { return u0(x + s * z); }, tol);

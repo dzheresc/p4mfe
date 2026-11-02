@@ -74,7 +74,7 @@ inline constexpr std::array<double, 3> kEx22Maturities{1.0 / 24.0, 0.25, 1.0};
                                                   double spot = 50.0,
                                                   double sigma = 0.3) {
   const double d1 = 0.5 * sigma * std::sqrt(tau);
-  return spot * norm_pdf(d1) / (2.0 * std::sqrt(tau)) *
+  return spot * NormPdf(d1) / (2.0 * std::sqrt(tau)) *
          (1.0 - sigma * sigma * tau / 4.0);
 }
 

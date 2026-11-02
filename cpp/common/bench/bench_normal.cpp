@@ -20,24 +20,24 @@ struct Points {
   std::vector<double> p;  // in (1e-12, 1 - 1e-12), half of them in the tails
 };
 
-const Points& points() {
-  static const Points pts = [] {
+const Points& GetPoints() {
+  static const Points kPts = [] {
     const std::size_t n =
         p4mfe::bench::by_tier<std::size_t>(10'000, 1'000'000, 10'000'000);
     Points out{std::vector<double>(n), std::vector<double>(n)};
     for (std::size_t i = 0; i < n; ++i) {
       const double u = (static_cast<double>(i) + 0.5) / static_cast<double>(n);
       out.x[i] = -8.0 + 16.0 * u;
-      out.p[i] = p4mfe::norm_cdf(-7.0 + 14.0 * u);  // ~1e-12 .. 1 - 1e-12
+      out.p[i] = p4mfe::NormCdf(-7.0 + 14.0 * u);  // ~1e-12 .. 1 - 1e-12
     }
     return out;
   }();
-  return pts;
+  return kPts;
 }
 
 template <double (*F)(double) noexcept>
-void BM_kernel(benchmark::State& state, bool probabilities) {
-  const auto& v = probabilities ? points().p : points().x;
+void BmKernel(benchmark::State& state, bool probabilities) {
+  const auto& v = probabilities ? GetPoints().p : GetPoints().x;
   for (auto _ : state) {
     double sum = 0.0;
     for (const double x : v) sum += F(x);
@@ -46,27 +46,26 @@ void BM_kernel(benchmark::State& state, bool probabilities) {
   set_items(state, v.size(), "points");
 }
 
-// Round trip x -> N(x) -> N^-1, to check norm_inv in setup. Beyond |x| = 5
+// Round trip x -> N(x) -> N^-1, to check NormInv in setup. Beyond |x| = 5
 // the upper tail of N(x) has too few significant digits for a tight check.
-void BM_norm_inv_check(benchmark::State& state) {
+void BmNormInvCheck(benchmark::State& state) {
   double worst = 0.0;
-  for (const double x : points().x)
+  for (const double x : GetPoints().x)
     if (std::abs(x) < 5.0)
-      worst =
-          std::max(worst, std::abs(p4mfe::norm_inv(p4mfe::norm_cdf(x)) - x));
+      worst = std::max(worst, std::abs(p4mfe::NormInv(p4mfe::NormCdf(x)) - x));
   if (!p4mfe::bench::check(state, worst < 1e-6,
-                           "norm_inv(norm_cdf(x)) does not round trip"))
+                           "NormInv(NormCdf(x)) does not round trip"))
     return;
-  BM_kernel<p4mfe::norm_inv>(state, true);
+  BmKernel<p4mfe::NormInv>(state, true);
 }
 
-const bool registered = [] {
-  (void)points();
-  benchmark::RegisterBenchmark("W2/common/norm_pdf", BM_kernel<p4mfe::norm_pdf>,
+const bool kRegistered = [] {
+  (void)GetPoints();
+  benchmark::RegisterBenchmark("W2/common/norm_pdf", BmKernel<p4mfe::NormPdf>,
                                false);
-  benchmark::RegisterBenchmark("W2/common/norm_cdf", BM_kernel<p4mfe::norm_cdf>,
+  benchmark::RegisterBenchmark("W2/common/norm_cdf", BmKernel<p4mfe::NormCdf>,
                                false);
-  benchmark::RegisterBenchmark("W2/common/norm_inv", BM_norm_inv_check);
+  benchmark::RegisterBenchmark("W2/common/norm_inv", BmNormInvCheck);
   return true;
 }();
 

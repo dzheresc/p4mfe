@@ -37,7 +37,7 @@ struct Ex11Params {
 
 // g(x) in closed form, N(b(x)) - 1/2.
 [[nodiscard]] inline double Ex11G(const Ex11Params& p, double x) {
-  return norm_cdf(Ex11B(p, x)) - 0.5;
+  return NormCdf(Ex11B(p, x)) - 0.5;
 }
 
 // g'(x), the answer.

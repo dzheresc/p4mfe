@@ -132,8 +132,8 @@ TEST(Ch06TaylorSeries, ClassicalExpansionsConverge) {
 
 TEST(Ch06TaylorSeries, NormalCdfSeries) {
   for (double x : {-2.0, -0.5, 0.0, 0.1, 1.0, 3.0})
-    EXPECT_NEAR(NormCdfSeries(x, 60), norm_cdf(x), 1e-14) << x;
+    EXPECT_NEAR(NormCdfSeries(x, 60), NormCdf(x), 1e-14) << x;
   // Truncation error shrinks with n.
-  EXPECT_GT(std::abs(NormCdfSeries(1.5, 3) - norm_cdf(1.5)),
-            std::abs(NormCdfSeries(1.5, 6) - norm_cdf(1.5)));
+  EXPECT_GT(std::abs(NormCdfSeries(1.5, 3) - NormCdf(1.5)),
+            std::abs(NormCdfSeries(1.5, 6) - NormCdf(1.5)));
 }

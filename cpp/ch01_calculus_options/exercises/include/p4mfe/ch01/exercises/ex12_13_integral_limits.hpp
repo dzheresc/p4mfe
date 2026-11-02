@@ -52,7 +52,7 @@ template <std::invocable<double> G>
 [[nodiscard]] double Ex13GaussianAverage(G&& g, double mu, double sigma,
                                          std::size_t n = 4000,
                                          double z_max = 10.0) {
-  return RiemannSum([&](double z) { return norm_pdf(z) * g(mu + sigma * z); },
+  return RiemannSum([&](double z) { return NormPdf(z) * g(mu + sigma * z); },
                     -z_max, z_max, n, RiemannRule::kMidpoint);
 }
 

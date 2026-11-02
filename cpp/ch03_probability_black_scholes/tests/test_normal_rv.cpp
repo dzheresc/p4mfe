@@ -8,7 +8,7 @@
 using namespace p4mfe::ch03;
 
 TEST(Ch03Normal, PdfCdfShiftScale) {
-  EXPECT_NEAR(NormalPdf(3.0, 1.0, 2.0), norm_pdf(1.0) / 2.0, 1e-16);
+  EXPECT_NEAR(NormalPdf(3.0, 1.0, 2.0), NormPdf(1.0) / 2.0, 1e-16);
   EXPECT_NEAR(NormalCdf(1.0, 1.0, 2.0), 0.5, 1e-16);
   EXPECT_NEAR(NormalCdf(1.0 + 1.96 * 2.0, 1.0, 2.0), 0.9750021048517795, 1e-13);
 }
@@ -40,20 +40,20 @@ TEST(Ch03Lognormal, PriceModel) {
   const double d2 =
       (std::log(spot0 / strike) + (r - q - 0.5 * sigma * sigma) * maturity) /
       (sigma * std::sqrt(maturity));
-  EXPECT_NEAR(ProbPriceAbove(strike, spot0, maturity, sigma, r, q),
-              norm_cdf(d2), 1e-14);
+  EXPECT_NEAR(ProbPriceAbove(strike, spot0, maturity, sigma, r, q), NormCdf(d2),
+              1e-14);
 }
 
 // Section 3.9: both approximations of N(x) against the erfc-based reference.
 TEST(Ch03CdfApprox, PolynomialWithinAbramowitzStegunBound) {
   for (double x = -8.0; x <= 8.0; x += 0.01)
-    EXPECT_NEAR(NormCdfPoly(x), norm_cdf(x), 7.5e-8) << x;
+    EXPECT_NEAR(NormCdfPoly(x), NormCdf(x), 7.5e-8) << x;
   EXPECT_NEAR(NormCdfPoly(0.0), 0.5, 1e-9);
 }
 
 TEST(Ch03CdfApprox, SimpsonToTolerance) {
   for (double x : {-6.0, -2.5, -1.0, -0.1, 0.0, 0.3, 1.0, 1.96, 4.0}) {
-    EXPECT_NEAR(NormCdfSimpson(x), norm_cdf(x), 1e-12) << x;
+    EXPECT_NEAR(NormCdfSimpson(x), NormCdf(x), 1e-12) << x;
   }
-  EXPECT_NEAR(NormCdfSimpson(1.0, 1e-6), norm_cdf(1.0), 1e-6);
+  EXPECT_NEAR(NormCdfSimpson(1.0, 1e-6), NormCdf(1.0), 1e-6);
 }

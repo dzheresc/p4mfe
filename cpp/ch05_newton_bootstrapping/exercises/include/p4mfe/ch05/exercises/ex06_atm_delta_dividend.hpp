@@ -36,13 +36,13 @@ struct Ex06Market {
   return (m.r - q + 0.5 * m.sigma * m.sigma) * std::sqrt(m.maturity) / m.sigma;
 }
 [[nodiscard]] inline double Ex06Delta(double q, const Ex06Market& m = {}) {
-  return std::exp(-q * m.maturity) * norm_cdf(Ex06D1(q, m));
+  return std::exp(-q * m.maturity) * NormCdf(Ex06D1(q, m));
 }
 [[nodiscard]] inline double Ex06DeltaDq(double q, const Ex06Market& m = {}) {
   const double d1 = Ex06D1(q, m);
   return -std::exp(-q * m.maturity) *
-         (m.maturity * norm_cdf(d1) +
-          norm_pdf(d1) * std::sqrt(m.maturity) / m.sigma);
+         (m.maturity * NormCdf(d1) +
+          NormPdf(d1) * std::sqrt(m.maturity) / m.sigma);
 }
 [[nodiscard]] inline RootResult Ex06Solve(double q0 = 0.0,
                                           const Ex06Market& m = {}) {

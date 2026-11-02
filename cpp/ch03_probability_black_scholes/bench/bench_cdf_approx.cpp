@@ -39,7 +39,7 @@ void Sweep(benchmark::State& state, const std::vector<double>& xs, F f,
            double max_error) {
   double worst = 0.0;
   for (const double x : xs)
-    worst = std::max(worst, std::abs(f(x) - p4mfe::norm_cdf(x)));
+    worst = std::max(worst, std::abs(f(x) - p4mfe::NormCdf(x)));
   if (!p4mfe::bench::check(state, worst < max_error,
                            "approximation error larger than expected"))
     return;

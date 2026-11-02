@@ -42,7 +42,7 @@ struct Ex09Market {
   return ProbItm(OptionType::kPut, m.spot, m.strike, m.maturity, m.sigma, m.r);
 }
 [[nodiscard]] inline double Ex09NMinusD2(const Ex09Market& m = {}) {
-  return norm_cdf(-ch03::BsD1D2(m.spot, m.strike, m.maturity, m.sigma, m.r).d2);
+  return NormCdf(-ch03::BsD1D2(m.spot, m.strike, m.maturity, m.sigma, m.r).d2);
 }
 
 // ----------------------------------------------------------- Exercise 10 ---
@@ -71,7 +71,7 @@ struct Ex09Market {
 [[nodiscard]] inline double Ex10AtmCallDelta(double r, double q, double sigma,
                                              double maturity) {
   return std::exp(-q * maturity) *
-         norm_cdf((r - q + 0.5 * sigma * sigma) * std::sqrt(maturity) / sigma);
+         NormCdf((r - q + 0.5 * sigma * sigma) * std::sqrt(maturity) / sigma);
 }
 // q* by bisection: Delta(ATM call) is decreasing in q.
 [[nodiscard]] inline double Ex10ThresholdQ(double r, double sigma,
