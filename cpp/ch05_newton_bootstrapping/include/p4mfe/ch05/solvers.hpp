@@ -36,6 +36,12 @@ struct RootResult {
     std::vector<double> iterates; // x_0, x_1, ..., x (for convergence studies)
 };
 
+// Initial capacity of RootResult::iterates. Newton and the secant method
+// usually converge in under 16 steps; bisection needs about 50 to reach
+// double precision.
+inline constexpr std::size_t kFastIteratesHint = 16;
+inline constexpr std::size_t kBisectionIteratesHint = 64;
+
 template <class F>
 concept ScalarFunction = std::invocable<F, double> && std::convertible_to<std::invoke_result_t<F, double>, double>;
 
@@ -52,6 +58,8 @@ template <ScalarFunction F>
     if (fr == 0.0) return {xr, 0, {xr}};
     if ((fl < 0.0) == (fr < 0.0)) throw std::invalid_argument("bisection: f(a) and f(b) must have opposite signs");
     RootResult res{0.5 * (xl + xr), 0, {}};
+    // About log2((b - a) / tol) iterates; one allocation covers typical use.
+    res.iterates.reserve(kBisectionIteratesHint);
     while (res.iterations < tol.max_iter) {
         const double xm = 0.5 * (xl + xr);
         const double fm = f(xm);
@@ -73,7 +81,9 @@ template <ScalarFunction F>
 // --------------------------------------------------------------- 5.1.2 -----
 template <ScalarFunction F, ScalarFunction DF>
 [[nodiscard]] RootResult newton(F&& f, DF&& df, double x0, const Tolerances& tol = {}) {
-    RootResult res{x0, 0, {x0}};
+    RootResult res{x0, 0, {}};
+    res.iterates.reserve(kFastIteratesHint);  // one allocation for typical use
+    res.iterates.push_back(x0);
     double fx = f(x0);
     while (res.iterations < tol.max_iter) {
         if (fx == 0.0) return res;
@@ -97,7 +107,9 @@ template <ScalarFunction F, ScalarFunction DF>
 // often beats Newton per unit of work when f' is as expensive as f.
 template <ScalarFunction F>
 [[nodiscard]] RootResult secant(F&& f, double x_prev, double x0, const Tolerances& tol = {}) {
-    RootResult res{x0, 0, {x0}};
+    RootResult res{x0, 0, {}};
+    res.iterates.reserve(kFastIteratesHint);  // one allocation for typical use
+    res.iterates.push_back(x0);
     double f_prev = f(x_prev);
     double fx = f(x0);
     while (res.iterations < tol.max_iter) {
