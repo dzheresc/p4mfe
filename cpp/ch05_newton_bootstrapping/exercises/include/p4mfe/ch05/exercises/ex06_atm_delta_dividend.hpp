@@ -29,27 +29,28 @@ namespace p4mfe::ch05::ex {
 // the threshold must be lower. (Compare chapter 4, exercise 10, and the
 // approximation q* ~ (r + sigma^2/2)/(1 + sigma sqrt(pi T/2)) = 0.06715.)
 struct Ex06Market {
-  double T = 0.5, sigma = 0.3, r = 0.04;
+  double maturity = 0.5, sigma = 0.3, r = 0.04;
 };
 
-[[nodiscard]] inline double ex06_d1(double q, const Ex06Market& m = {}) {
-  return (m.r - q + 0.5 * m.sigma * m.sigma) * std::sqrt(m.T) / m.sigma;
+[[nodiscard]] inline double Ex06D1(double q, const Ex06Market& m = {}) {
+  return (m.r - q + 0.5 * m.sigma * m.sigma) * std::sqrt(m.maturity) / m.sigma;
 }
-[[nodiscard]] inline double ex06_delta(double q, const Ex06Market& m = {}) {
-  return std::exp(-q * m.T) * norm_cdf(ex06_d1(q, m));
+[[nodiscard]] inline double Ex06Delta(double q, const Ex06Market& m = {}) {
+  return std::exp(-q * m.maturity) * norm_cdf(Ex06D1(q, m));
 }
-[[nodiscard]] inline double ex06_delta_dq(double q, const Ex06Market& m = {}) {
-  const double d1 = ex06_d1(q, m);
-  return -std::exp(-q * m.T) *
-         (m.T * norm_cdf(d1) + norm_pdf(d1) * std::sqrt(m.T) / m.sigma);
+[[nodiscard]] inline double Ex06DeltaDq(double q, const Ex06Market& m = {}) {
+  const double d1 = Ex06D1(q, m);
+  return -std::exp(-q * m.maturity) *
+         (m.maturity * norm_cdf(d1) +
+          norm_pdf(d1) * std::sqrt(m.maturity) / m.sigma);
 }
-[[nodiscard]] inline RootResult ex06_solve(double q0 = 0.0,
-                                           const Ex06Market& m = {}) {
-  return newton([&](double q) { return ex06_delta(q, m) - 0.5; },
-                [&](double q) { return ex06_delta_dq(q, m); }, q0,
+[[nodiscard]] inline RootResult Ex06Solve(double q0 = 0.0,
+                                          const Ex06Market& m = {}) {
+  return Newton([&](double q) { return Ex06Delta(q, m) - 0.5; },
+                [&](double q) { return Ex06DeltaDq(q, m); }, q0,
                 {1e-12, 1e-12, 100});
 }
-[[nodiscard]] inline double ex06_upper_bound(const Ex06Market& m = {}) {
+[[nodiscard]] inline double Ex06UpperBound(const Ex06Market& m = {}) {
   return m.r + 0.5 * m.sigma * m.sigma;
 }
 

@@ -48,21 +48,21 @@ template <class F, std::invocable<double> G>
 template <class F, ch05::VectorFunction G>
 [[nodiscard]] Vector chain_rule_gradient(F&& f, G&& G_, const Vector& x) {
   const Matrix J =
-      ch05::finite_difference_jacobian(G_, x, 1e-6, ch05::Difference::Central);
+      ch05::FiniteDifferenceJacobian(G_, x, 1e-6, ch05::Difference::kCentral);
   const Vector grad = ch01::Gradient(f, G_(x));
   Vector out(x.size(), 0.0);
-  for (std::size_t j = 0; j < J.cols(); ++j)
-    for (std::size_t i = 0; i < J.rows(); ++i) out[j] += J(i, j) * grad[i];
+  for (std::size_t j = 0; j < J.Cols(); ++j)
+    for (std::size_t i = 0; i < J.Rows(); ++i) out[j] += J(i, j) * grad[i];
   return out;
 }
 
 [[nodiscard]] inline Matrix multiply(const Matrix& A, const Matrix& B) {
-  if (A.cols() != B.rows())
+  if (A.Cols() != B.Rows())
     throw std::invalid_argument("multiply: inner dimensions differ");
-  Matrix C(A.rows(), B.cols());
-  for (std::size_t i = 0; i < A.rows(); ++i)
-    for (std::size_t k = 0; k < A.cols(); ++k)
-      for (std::size_t j = 0; j < B.cols(); ++j) C(i, j) += A(i, k) * B(k, j);
+  Matrix C(A.Rows(), B.Cols());
+  for (std::size_t i = 0; i < A.Rows(); ++i)
+    for (std::size_t k = 0; k < A.Cols(); ++k)
+      for (std::size_t j = 0; j < B.Cols(); ++j) C(i, j) += A(i, k) * B(k, j);
   return C;
 }
 
@@ -70,9 +70,9 @@ template <class F, ch05::VectorFunction G>
 template <ch05::VectorFunction F, ch05::VectorFunction G>
 [[nodiscard]] Matrix chain_rule_jacobian(F&& F_, G&& G_, const Vector& x) {
   return multiply(
-      ch05::finite_difference_jacobian(F_, G_(x), 1e-6,
-                                       ch05::Difference::Central),
-      ch05::finite_difference_jacobian(G_, x, 1e-6, ch05::Difference::Central));
+      ch05::FiniteDifferenceJacobian(F_, G_(x), 1e-6,
+                                     ch05::Difference::kCentral),
+      ch05::FiniteDifferenceJacobian(G_, x, 1e-6, ch05::Difference::kCentral));
 }
 
 }  // namespace p4mfe::ch08

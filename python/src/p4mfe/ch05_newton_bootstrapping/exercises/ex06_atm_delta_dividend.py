@@ -18,23 +18,24 @@ from ..solvers import RootResult, Tolerances, newton
 
 @dataclass(frozen=True)
 class Ex06Market:
-    T: float = 0.5
+    maturity: float = 0.5
     sigma: float = 0.3
     r: float = 0.04
 
 
 def ex06_d1(q: float, m: Ex06Market = Ex06Market()) -> float:
-    return (m.r - q + 0.5 * m.sigma**2) * math.sqrt(m.T) / m.sigma
+    return (m.r - q + 0.5 * m.sigma**2) * math.sqrt(m.maturity) / m.sigma
 
 
 def ex06_delta(q: float, m: Ex06Market = Ex06Market()) -> float:
-    return math.exp(-q * m.T) * norm_cdf(ex06_d1(q, m))
+    return math.exp(-q * m.maturity) * norm_cdf(ex06_d1(q, m))
 
 
 def ex06_delta_dq(q: float, m: Ex06Market = Ex06Market()) -> float:
     d1 = ex06_d1(q, m)
-    return -math.exp(-q * m.T) * (
-        m.T * norm_cdf(d1) + norm_pdf(d1) * math.sqrt(m.T) / m.sigma
+    return -math.exp(-q * m.maturity) * (
+        m.maturity * norm_cdf(d1)
+        + norm_pdf(d1) * math.sqrt(m.maturity) / m.sigma
     )
 
 

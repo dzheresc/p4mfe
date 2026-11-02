@@ -47,31 +47,32 @@ namespace p4mfe::ch05::ex {
 //      (ch01::call_bounds). The end points correspond to sigma = 0 and
 //      sigma = infinity, so no finite positive volatility attains them.
 struct Ex03Market {
-  double S, K, T, r, q, C;
+  double spot, strike, maturity, r, q, call;
 };
 
-[[nodiscard]] inline double ex03_f(double x, const Ex03Market& m) {
-  return ch03::BsCall(m.S, m.K, m.T, x, m.r, m.q) - m.C;
+[[nodiscard]] inline double Ex03F(double x, const Ex03Market& m) {
+  return ch03::BsCall(m.spot, m.strike, m.maturity, x, m.r, m.q) - m.call;
 }
-[[nodiscard]] inline double ex03_forward(const Ex03Market& m) {
-  return m.S * std::exp((m.r - m.q) * m.T);
+[[nodiscard]] inline double Ex03Forward(const Ex03Market& m) {
+  return m.spot * std::exp((m.r - m.q) * m.maturity);
 }
 
 // (i)
-[[nodiscard]] inline double ex03_limit_infinity(const Ex03Market& m) {
-  return m.S * std::exp(-m.q * m.T) - m.C;
+[[nodiscard]] inline double Ex03LimitInfinity(const Ex03Market& m) {
+  return m.spot * std::exp(-m.q * m.maturity) - m.call;
 }
 
 // (ii): the common limit of d1 and d2, and of f, as x -> 0.
-[[nodiscard]] inline double ex03_d_limit_zero(const Ex03Market& m) {
-  const double F = ex03_forward(m);
-  if (F < m.K) return -std::numeric_limits<double>::infinity();
-  if (F > m.K) return std::numeric_limits<double>::infinity();
+[[nodiscard]] inline double Ex03DLimitZero(const Ex03Market& m) {
+  const double forward = Ex03Forward(m);
+  if (forward < m.strike) return -std::numeric_limits<double>::infinity();
+  if (forward > m.strike) return std::numeric_limits<double>::infinity();
   return 0.0;
 }
-[[nodiscard]] inline double ex03_limit_zero(const Ex03Market& m) {
-  if (ex03_forward(m) <= m.K) return -m.C;
-  return m.S * std::exp(-m.q * m.T) - m.K * std::exp(-m.r * m.T) - m.C;
+[[nodiscard]] inline double Ex03LimitZero(const Ex03Market& m) {
+  if (Ex03Forward(m) <= m.strike) return -m.call;
+  return m.spot * std::exp(-m.q * m.maturity) -
+         m.strike * std::exp(-m.r * m.maturity) - m.call;
 }
 
 // (iv)
@@ -79,13 +80,14 @@ struct Ex03Range {
   double lower,
       upper;  // open interval of call prices with an implied volatility
 };
-[[nodiscard]] inline Ex03Range ex03_price_range(double S, double K, double T,
-                                                double r, double q) {
-  const double s = S * std::exp(-q * T);
-  return {std::max(s - K * std::exp(-r * T), 0.0), s};
+[[nodiscard]] inline Ex03Range Ex03PriceRange(double spot, double strike,
+                                              double maturity, double r,
+                                              double q) {
+  const double s = spot * std::exp(-q * maturity);
+  return {std::max(s - strike * std::exp(-r * maturity), 0.0), s};
 }
-[[nodiscard]] inline bool ex03_has_positive_root(const Ex03Market& m) {
-  return ex03_limit_zero(m) < 0.0 && ex03_limit_infinity(m) > 0.0;
+[[nodiscard]] inline bool Ex03HasPositiveRoot(const Ex03Market& m) {
+  return Ex03LimitZero(m) < 0.0 && Ex03LimitInfinity(m) > 0.0;
 }
 
 }  // namespace p4mfe::ch05::ex

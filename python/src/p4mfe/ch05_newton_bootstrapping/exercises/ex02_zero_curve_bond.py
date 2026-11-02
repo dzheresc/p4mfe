@@ -42,10 +42,10 @@ class Ex02Result:
 
 def ex02_solve() -> Ex02Result:
     cf = ex02_cash_flows()
-    B = bond_price_from_zero_rate(cf, ex02_zero_rate)
-    y = bond_yield_newton(cf, B).x
+    price = bond_price_from_zero_rate(cf, ex02_zero_rate)
+    y = bond_yield_newton(cf, price).x
     m = bond_metrics(cf, y)
     y2 = 2.0 * (math.exp(y / 2.0) - 1.0)
     return Ex02Result(
-        B, y, m.duration, m.convexity, y2, modified_duration(cf, y2, 2)
+        price, y, m.duration, m.convexity, y2, modified_duration(cf, y2, 2)
     )

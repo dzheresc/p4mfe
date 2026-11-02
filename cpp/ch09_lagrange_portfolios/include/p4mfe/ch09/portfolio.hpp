@@ -46,11 +46,11 @@ using ch05::Matrix;
 }
 
 [[nodiscard]] inline Vector multiply(const Matrix& A, const Vector& x) {
-  if (A.cols() != x.size())
+  if (A.Cols() != x.size())
     throw std::invalid_argument("multiply: size mismatch");
-  Vector y(A.rows(), 0.0);
-  for (std::size_t i = 0; i < A.rows(); ++i)
-    for (std::size_t j = 0; j < A.cols(); ++j) y[i] += A(i, j) * x[j];
+  Vector y(A.Rows(), 0.0);
+  for (std::size_t i = 0; i < A.Rows(); ++i)
+    for (std::size_t j = 0; j < A.Cols(); ++j) y[i] += A(i, j) * x[j];
   return y;
 }
 
@@ -59,7 +59,7 @@ using ch05::Matrix;
 [[nodiscard]] inline Matrix covariance_matrix(const Vector& sigma,
                                               const Matrix& corr) {
   const std::size_t n = sigma.size();
-  if (corr.rows() != n || corr.cols() != n)
+  if (corr.Rows() != n || corr.Cols() != n)
     throw std::invalid_argument("covariance_matrix: size mismatch");
   Matrix S(n, n);
   for (std::size_t i = 0; i < n; ++i)
@@ -87,8 +87,8 @@ struct FrontierConstants {
 [[nodiscard]] inline FrontierConstants frontier_constants(const Vector& mu,
                                                           const Matrix& Sigma) {
   const Vector ones(mu.size(), 1.0);
-  const Vector Si1 = ch05::solve_linear(Sigma, ones);
-  const Vector Simu = ch05::solve_linear(Sigma, mu);
+  const Vector Si1 = ch05::SolveLinear(Sigma, ones);
+  const Vector Simu = ch05::SolveLinear(Sigma, mu);
   const double A = dot(ones, Si1), B = dot(ones, Simu), C = dot(mu, Simu);
   const double D = A * C - B * B;
   if (!(D > 0.0))
@@ -99,7 +99,7 @@ struct FrontierConstants {
 
 // ---------------------------------------------------------------- 9.3 ------
 [[nodiscard]] inline Vector global_min_variance_portfolio(const Matrix& Sigma) {
-  Vector w = ch05::solve_linear(Sigma, Vector(Sigma.rows(), 1.0));
+  Vector w = ch05::SolveLinear(Sigma, Vector(Sigma.Rows(), 1.0));
   double s = 0.0;
   for (double x : w) s += x;
   for (double& x : w) x /= s;
@@ -113,7 +113,7 @@ struct FrontierConstants {
   Vector rhs(mu.size());
   for (std::size_t i = 0; i < mu.size(); ++i)
     rhs[i] = ((C - B * target_mean) + (A * target_mean - B) * mu[i]) / D;
-  return ch05::solve_linear(Sigma, rhs);
+  return ch05::SolveLinear(Sigma, rhs);
 }
 
 // sigma_P^2 on the frontier for mean mu_P.
@@ -130,7 +130,7 @@ struct FrontierConstants {
     const Vector& mu, const Matrix& Sigma, double r_f, double target_mean) {
   Vector m(mu.size());
   for (std::size_t i = 0; i < mu.size(); ++i) m[i] = mu[i] - r_f;
-  Vector w = ch05::solve_linear(Sigma, m);
+  Vector w = ch05::SolveLinear(Sigma, m);
   const double k = (target_mean - r_f) / dot(m, w);
   for (double& x : w) x *= k;
   return w;
@@ -142,7 +142,7 @@ struct FrontierConstants {
                                                double r_f) {
   Vector m(mu.size());
   for (std::size_t i = 0; i < mu.size(); ++i) m[i] = mu[i] - r_f;
-  Vector w = ch05::solve_linear(Sigma, m);
+  Vector w = ch05::SolveLinear(Sigma, m);
   double s = 0.0;
   for (double x : w) s += x;
   if (s == 0.0)
@@ -184,7 +184,7 @@ struct FrontierConstants {
                                                  double r_f, double sigma_P) {
   Vector m(mu.size());
   for (std::size_t i = 0; i < mu.size(); ++i) m[i] = mu[i] - r_f;
-  return r_f + sigma_P * std::sqrt(dot(m, ch05::solve_linear(Sigma, m)));
+  return r_f + sigma_P * std::sqrt(dot(m, ch05::SolveLinear(Sigma, m)));
 }
 
 [[nodiscard]] inline Vector max_return_portfolio_with_cash(const Vector& mu,

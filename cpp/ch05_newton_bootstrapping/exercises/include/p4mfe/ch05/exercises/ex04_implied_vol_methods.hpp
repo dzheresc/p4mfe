@@ -32,41 +32,42 @@ namespace p4mfe::ch05::ex {
 // (ii) sigma_approx = 0.396672, relative error 9.49e-4 (under 0.1%): the ATM
 //      approximation is excellent for short maturities.
 struct Ex04Market {
-  double S = 30.0, K = 30.0, T = 0.25, r = 0.06, q = 0.02, C = 2.5;
+  double spot = 30.0, strike = 30.0, maturity = 0.25, r = 0.06, q = 0.02,
+         call = 2.5;
 };
-inline constexpr Tolerances ex04_tolerances{1e-9, 1e-6, 200};
+inline constexpr Tolerances kEx04Tolerances{1e-9, 1e-6, 200};
 
-[[nodiscard]] inline double ex04_f(double sigma, const Ex04Market& m = {}) {
-  return ch03::BsCall(m.S, m.K, m.T, sigma, m.r, m.q) - m.C;
+[[nodiscard]] inline double Ex04F(double sigma, const Ex04Market& m = {}) {
+  return ch03::BsCall(m.spot, m.strike, m.maturity, sigma, m.r, m.q) - m.call;
 }
-[[nodiscard]] inline double ex04_vega(double sigma, const Ex04Market& m = {}) {
-  return ch03::BsGreeks(ch01::OptionType::kCall, m.S, m.K, m.T, sigma, m.r, m.q)
+[[nodiscard]] inline double Ex04Vega(double sigma, const Ex04Market& m = {}) {
+  return ch03::BsGreeks(ch01::OptionType::kCall, m.spot, m.strike, m.maturity,
+                        sigma, m.r, m.q)
       .vega;
 }
 
-[[nodiscard]] inline RootResult ex04_bisection(const Ex04Market& m = {}) {
-  return bisection([&](double s) { return ex04_f(s, m); }, 0.0001, 1.0,
-                   ex04_tolerances);
+[[nodiscard]] inline RootResult Ex04Bisection(const Ex04Market& m = {}) {
+  return Bisection([&](double s) { return Ex04F(s, m); }, 0.0001, 1.0,
+                   kEx04Tolerances);
 }
-[[nodiscard]] inline RootResult ex04_secant(const Ex04Market& m = {}) {
-  return secant([&](double s) { return ex04_f(s, m); }, 0.49, 0.5,
-                ex04_tolerances);
+[[nodiscard]] inline RootResult Ex04Secant(const Ex04Market& m = {}) {
+  return Secant([&](double s) { return Ex04F(s, m); }, 0.49, 0.5,
+                kEx04Tolerances);
 }
-[[nodiscard]] inline RootResult ex04_newton(const Ex04Market& m = {}) {
-  return newton([&](double s) { return ex04_f(s, m); },
-                [&](double s) { return ex04_vega(s, m); }, 0.5,
-                ex04_tolerances);
+[[nodiscard]] inline RootResult Ex04Newton(const Ex04Market& m = {}) {
+  return Newton([&](double s) { return Ex04F(s, m); },
+                [&](double s) { return Ex04Vega(s, m); }, 0.5, kEx04Tolerances);
 }
 
 // (6.104)
-[[nodiscard]] inline double ex04_sigma_approx(const Ex04Market& m = {}) {
-  return std::sqrt(2.0 * std::numbers::pi) / (m.S * std::sqrt(m.T)) *
-         (m.C - 0.5 * (m.r - m.q) * m.T * m.S) /
-         (1.0 - 0.5 * (m.r + m.q) * m.T);
+[[nodiscard]] inline double Ex04SigmaApprox(const Ex04Market& m = {}) {
+  return std::sqrt(2.0 * std::numbers::pi) / (m.spot * std::sqrt(m.maturity)) *
+         (m.call - 0.5 * (m.r - m.q) * m.maturity * m.spot) /
+         (1.0 - 0.5 * (m.r + m.q) * m.maturity);
 }
-[[nodiscard]] inline double ex04_relative_error(const Ex04Market& m = {}) {
-  const double s = ex04_newton(m).x;
-  return std::abs(ex04_sigma_approx(m) - s) / s;
+[[nodiscard]] inline double Ex04RelativeError(const Ex04Market& m = {}) {
+  const double s = Ex04Newton(m).x;
+  return std::abs(Ex04SigmaApprox(m) - s) / s;
 }
 
 }  // namespace p4mfe::ch05::ex

@@ -50,33 +50,38 @@ def test_bond_yield_round_trip_long_bond(y):
 
 # 5.4 -----------------------------------------------------------------------
 @pytest.mark.parametrize("t", [OptionType.CALL, OptionType.PUT])
-@pytest.mark.parametrize("K", [25.0, 30.0, 36.0])
+@pytest.mark.parametrize("strike", [25.0, 30.0, 36.0])
 @pytest.mark.parametrize("sigma", [0.15, 0.3, 0.8])
-def test_implied_vol_recovers_sigma(t, K, sigma):
-    S, T, r, q = 30.0, 0.5, 0.03, 0.01
-    price = bs_price(t, S, K, T, sigma, r, q)
-    assert implied_vol_newton(t, price, S, K, T, r, q).x == pytest.approx(
-        sigma, abs=1e-9
-    )
-    assert implied_vol_secant(t, price, S, K, T, r, q).x == pytest.approx(
-        sigma, abs=1e-9
-    )
-    assert implied_vol_bisection(t, price, S, K, T, r, q).x == pytest.approx(
-        sigma, abs=1e-8
-    )
-    assert implied_vol_newton(t, price, S, K, T, r, q).x == pytest.approx(
-        ch03_iv.implied_vol_newton(t, price, S, K, T, r, q).sigma, abs=1e-9
+def test_implied_vol_recovers_sigma(t, strike, sigma):
+    spot, maturity, r, q = 30.0, 0.5, 0.03, 0.01
+    price = bs_price(t, spot, strike, maturity, sigma, r, q)
+    assert implied_vol_newton(
+        t, price, spot, strike, maturity, r, q
+    ).x == pytest.approx(sigma, abs=1e-9)
+    assert implied_vol_secant(
+        t, price, spot, strike, maturity, r, q
+    ).x == pytest.approx(sigma, abs=1e-9)
+    assert implied_vol_bisection(
+        t, price, spot, strike, maturity, r, q
+    ).x == pytest.approx(sigma, abs=1e-8)
+    assert implied_vol_newton(
+        t, price, spot, strike, maturity, r, q
+    ).x == pytest.approx(
+        ch03_iv.implied_vol_newton(
+            t, price, spot, strike, maturity, r, q
+        ).sigma,
+        abs=1e-9,
     )
 
 
 def test_implied_vol_newton_is_monotone():
-    S, K, T, r, sigma = 40, 44, 0.75, 0.04, 0.27
+    spot, strike, maturity, r, sigma = 40, 44, 0.75, 0.04, 0.27
     res = implied_vol_newton(
         OptionType.CALL,
-        bs_call(S, K, T, sigma, r),
-        S,
-        K,
-        T,
+        bs_call(spot, strike, maturity, sigma, r),
+        spot,
+        strike,
+        maturity,
         r,
         0.0,
         Tolerances(1e-14, 1e-14, 100),
@@ -109,11 +114,11 @@ def test_recovers_piecewise_linear_curve():
         np.array([0.05, 0.051, 0.0525, 0.058, 0.061]),
     )
     quotes = []
-    for T, cpn in zip(truth.times[1:], [0.0, 0.05, 0.055, 0.06]):
-        cf = bond_cash_flows(T, cpn, 2)
+    for maturity, cpn in zip(truth.times[1:], [0.0, 0.05, 0.055, 0.06]):
+        cf = bond_cash_flows(maturity, cpn, 2)
         quotes.append(
             BondQuote(
-                T,
+                maturity,
                 cpn,
                 bond_price_from_zero_rate(
                     cf, lambda t: zero_rate_linear(truth, t)

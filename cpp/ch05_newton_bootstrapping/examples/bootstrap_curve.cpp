@@ -15,9 +15,9 @@ int main() {
 
   // 5.3: 3-year semiannual 6% bond at 101.
   const auto cf = ch02::BondCashFlows(3.0, 0.06, 2);
-  const auto yn = bond_yield_newton(cf, 101.0);
-  const auto ys = bond_yield_secant(cf, 101.0);
-  const auto yb = bond_yield_bisection(cf, 101.0);
+  const auto yn = BondYieldNewton(cf, 101.0);
+  const auto ys = BondYieldSecant(cf, 101.0);
+  const auto yb = BondYieldBisection(cf, 101.0);
   std::printf(
       "Bond yield:  Newton %.12f (%zu it)  secant %.12f (%zu it)  bisection "
       "%.12f (%zu it)\n",
@@ -25,9 +25,9 @@ int main() {
 
   // 5.4: a call worth 2.5 with S = 30, K = 30, T = 0.5, r = 3%, q = 1%.
   const auto vn =
-      implied_vol_newton(OptionType::kCall, 2.5, 30, 30, 0.5, 0.03, 0.01);
+      ImpliedVolNewton(OptionType::kCall, 2.5, 30, 30, 0.5, 0.03, 0.01);
   const auto vs =
-      implied_vol_secant(OptionType::kCall, 2.5, 30, 30, 0.5, 0.03, 0.01);
+      ImpliedVolSecant(OptionType::kCall, 2.5, 30, 30, 0.5, 0.03, 0.01);
   std::printf("Implied vol: Newton %.12f (%zu it)  secant %.12f (%zu it)\n",
               vn.x, vn.iterations, vs.x, vs.iterations);
 
@@ -36,7 +36,7 @@ int main() {
                                       {1.0, 0.05, 100.0},
                                       {3.0, 0.055, 100.5},
                                       {5.0, 0.06, 101.0}};
-  const auto curve = bootstrap_zero_curve(quotes, 2, ZeroCurve{{0.0}, {0.05}});
+  const auto curve = BootstrapZeroCurve(quotes, 2, ZeroCurve{{0.0}, {0.05}});
   std::printf("\nBootstrapped zero curve (linear between nodes):\n%8s  %10s\n",
               "t", "r(0,t)");
   for (std::size_t j = 0; j < curve.times.size(); ++j)
@@ -46,6 +46,6 @@ int main() {
     const auto c = ch02::BondCashFlows(q.maturity, q.coupon_rate, 2);
     std::printf("  T = %.1f  quote %.4f  model %.10f\n", q.maturity, q.price,
                 ch02::BondPriceFromZeroRate(
-                    c, [&](double t) { return zero_rate_linear(curve, t); }));
+                    c, [&](double t) { return ZeroRateLinear(curve, t); }));
   }
 }

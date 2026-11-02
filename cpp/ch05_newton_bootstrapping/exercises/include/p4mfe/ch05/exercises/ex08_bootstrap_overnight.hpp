@@ -39,23 +39,23 @@ namespace p4mfe::ch05::ex {
 // The code uses the interpolation, and the tests check (5.43) holds. The steep
 // drop at 5 years is what the data say: a 4% coupon bond at 103 has a yield of
 // only about 3.3%.
-[[nodiscard]] inline std::vector<ch02::BondQuote> ex08_quotes() {
+[[nodiscard]] inline std::vector<ch02::BondQuote> Ex08Quotes() {
   return {{0.5, 0.0, 97.5},
           {1.0, 0.05, 100.0},
           {5.0 / 3.0, 0.06, 103.0},
           {10.0 / 3.0, 0.05, 102.0},
           {5.0, 0.04, 103.0}};
 }
-inline constexpr double ex08_overnight = 0.05;
+inline constexpr double kEx08Overnight = 0.05;
 
-[[nodiscard]] inline ch02::ZeroCurve ex08_curve() {
-  return bootstrap_zero_curve(ex08_quotes(), 2,
-                              ch02::ZeroCurve{{0.0}, {ex08_overnight}});
+[[nodiscard]] inline ch02::ZeroCurve Ex08Curve() {
+  return BootstrapZeroCurve(Ex08Quotes(), 2,
+                            ch02::ZeroCurve{{0.0}, {kEx08Overnight}});
 }
 
 // Right side of (5.43) minus 103, using the hint's formula for r(0, 7/6).
-[[nodiscard]] inline double ex08_hint_residual(const ch02::ZeroCurve& c) {
-  const auto r = [&](double t) { return zero_rate_linear(c, t); };
+[[nodiscard]] inline double Ex08HintResidual(const ch02::ZeroCurve& c) {
+  const auto r = [&](double t) { return ZeroRateLinear(c, t); };
   const double x = r(5.0 / 3.0);
   const double r76 = (3.0 * r(1.0) + x) / 4.0;
   return 3.0 * std::exp(-r(1.0 / 6.0) / 6.0) +

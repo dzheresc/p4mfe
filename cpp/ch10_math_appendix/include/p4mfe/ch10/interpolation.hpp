@@ -100,7 +100,7 @@ inline void check_nodes(std::span<const double> xs, std::size_t ny) {
     double p = 1.0;
     for (std::size_t j = 0; j < n; ++j, p *= xs[i]) V(i, j) = p;
   }
-  return ch05::solve_linear(std::move(V), Vector(ys.begin(), ys.end()));
+  return ch05::SolveLinear(std::move(V), Vector(ys.begin(), ys.end()));
 }
 
 // M / (n+1)! |prod_i (x - x_i)|, the interpolation error bound when |f^(n+1)|

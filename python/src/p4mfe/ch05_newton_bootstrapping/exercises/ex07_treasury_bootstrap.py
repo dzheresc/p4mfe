@@ -51,22 +51,26 @@ def ex07_bootstrap_compounded(quotes, m: int, freq: int = 2) -> ZeroCurve:
     rates: list[float] = []
     for bq in sorted(quotes, key=lambda q: q.maturity):
         cf = bond_cash_flows(bq.maturity, bq.coupon_rate, freq)
-        T = bq.maturity
+        maturity = bq.maturity
         empty = not times
-        T_last = 0.0 if empty else times[-1]
+        last_maturity = 0.0 if empty else times[-1]
         r_last = 0.0 if empty else rates[-1]
         curve = None if empty else ZeroCurve(np.array(times), np.array(rates))
         pv_known = 0.0
         c, t, w = [], [], []
         for ti, ci in zip(cf.times, cf.amounts):
-            if not empty and ti <= T_last:
+            if not empty and ti <= last_maturity:
                 pv_known += ci * ex07_discount(
                     zero_rate_linear(curve, ti), ti, m
                 )
             else:
                 c.append(ci)
                 t.append(ti)
-                w.append(1.0 if empty else (ti - T_last) / (T - T_last))
+                w.append(
+                    1.0
+                    if empty
+                    else (ti - last_maturity) / (maturity - last_maturity)
+                )
 
         def f(
             x, c=c, t=t, w=w, pv_known=pv_known, r_last=r_last, price=bq.price
@@ -88,7 +92,7 @@ def ex07_bootstrap_compounded(quotes, m: int, freq: int = 2) -> ZeroCurve:
                 f, df, 0.05 if empty else r_last, Tolerances(1e-12, 1e-12, 100)
             ).x
         )
-        times.append(T)
+        times.append(maturity)
     return ZeroCurve(np.array(times), np.array(rates))
 
 

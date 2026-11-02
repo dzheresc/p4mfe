@@ -78,7 +78,7 @@ template <std::invocable<double, double> F>
     const auto dg = [&](double y) { return ch01::Derivative(g, y); };
     const double scale = std::max(1.0, std::abs(yk));
     const ch05::Tolerances tol{1e-12 * scale, 1e-12 * scale, 100};
-    s.y[k + 1] = ch05::newton(g, dg, yk + h * f(s.x[k], yk), tol).x;
+    s.y[k + 1] = ch05::Newton(g, dg, yk + h * f(s.x[k], yk), tol).x;
   }
   return s;
 }

@@ -53,7 +53,7 @@ concept ScalarFunction =
 // midpoint x_M each step. Returns the last x_M; `iterates` holds the
 // midpoints and `iterations` counts them.
 template <ScalarFunction F>
-[[nodiscard]] RootResult bisection(F&& f, double a, double b,
+[[nodiscard]] RootResult Bisection(F&& f, double a, double b,
                                    const Tolerances& tol = {}) {
   if (!(a < b)) throw std::invalid_argument("bisection: need a < b");
   double xl = a, xr = b;
@@ -87,7 +87,7 @@ template <ScalarFunction F>
 
 // --------------------------------------------------------------- 5.1.2 -----
 template <ScalarFunction F, ScalarFunction DF>
-[[nodiscard]] RootResult newton(F&& f, DF&& df, double x0,
+[[nodiscard]] RootResult Newton(F&& f, DF&& df, double x0,
                                 const Tolerances& tol = {}) {
   RootResult res{x0, 0, {}};
   res.iterates.reserve(kFastIteratesHint);  // one allocation for typical use
@@ -117,7 +117,7 @@ template <ScalarFunction F, ScalarFunction DF>
 // x_0. Only one new evaluation of f per step, which is why the secant method
 // often beats Newton per unit of work when f' is as expensive as f.
 template <ScalarFunction F>
-[[nodiscard]] RootResult secant(F&& f, double x_prev, double x0,
+[[nodiscard]] RootResult Secant(F&& f, double x_prev, double x0,
                                 const Tolerances& tol = {}) {
   RootResult res{x0, 0, {}};
   res.iterates.reserve(kFastIteratesHint);  // one allocation for typical use
@@ -146,8 +146,8 @@ template <ScalarFunction F>
 // Estimated order of convergence from the last three errors e_k = |x_k - x*|:
 //   p ~ ln(e_{k+1} / e_k) / ln(e_k / e_{k-1}).
 // About 1 for bisection (on average), 2 for Newton, 1.618 for secant.
-[[nodiscard]] inline double convergence_order(double e_prev, double e,
-                                              double e_next) {
+[[nodiscard]] inline double ConvergenceOrder(double e_prev, double e,
+                                             double e_next) {
   return std::log(e_next / e) / std::log(e / e_prev);
 }
 

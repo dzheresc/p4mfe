@@ -35,14 +35,22 @@ def test_ex01():
     assert r.duration == pytest.approx(4.642735, abs=5e-7)
     assert r.convexity == pytest.approx(22.573118, abs=5e-7)
     cf = bond_cash_flows(5.0, 0.03375, 2)
-    B = 100 + 1 / 32
-    assert bond_price(cf, r.yield_) == pytest.approx(B, abs=1e-10)
+    price = 100 + 1 / 32
+    assert bond_price(cf, r.yield_) == pytest.approx(price, abs=1e-10)
     h = 1e-4
-    Bp, Bm = bond_price(cf, r.yield_ + h), bond_price(cf, r.yield_ - h)
-    assert -(Bp - Bm) / (2 * h) / B == pytest.approx(r.duration, abs=1e-6)
-    assert (Bp - 2 * B + Bm) / h**2 / B == pytest.approx(r.convexity, abs=1e-4)
-    assert bond_yield_bisection(cf, B).x == pytest.approx(r.yield_, abs=1e-10)
-    assert bond_yield(cf, B) == pytest.approx(r.yield_, abs=1e-10)
+    price_up, price_down = bond_price(cf, r.yield_ + h), bond_price(
+        cf, r.yield_ - h
+    )
+    assert -(price_up - price_down) / (2 * h) / price == pytest.approx(
+        r.duration, abs=1e-6
+    )
+    assert (
+        price_up - 2 * price + price_down
+    ) / h**2 / price == pytest.approx(r.convexity, abs=1e-4)
+    assert bond_yield_bisection(cf, price).x == pytest.approx(
+        r.yield_, abs=1e-10
+    )
+    assert bond_yield(cf, price) == pytest.approx(r.yield_, abs=1e-10)
 
 
 def test_ex02():
@@ -53,37 +61,39 @@ def test_ex02():
     assert r.convexity == pytest.approx(3.689501, abs=5e-7)
     assert r.yield_semiannual == pytest.approx(0.057606, abs=5e-7)
     assert r.modified_duration_semiannual == pytest.approx(1.837191, abs=5e-7)
-    B = sum(
+    price = sum(
         4 * math.exp(-ex02_zero_rate(t) * t) for t in (0.5, 1.0, 1.5)
     ) + 104 * math.exp(-ex02_zero_rate(2) * 2)
-    assert r.price == pytest.approx(B, abs=1e-12)
+    assert r.price == pytest.approx(price, abs=1e-12)
     cf = ex02_cash_flows()
-    assert bond_price(cf, r.yield_) == pytest.approx(B, abs=1e-10)
+    assert bond_price(cf, r.yield_) == pytest.approx(price, abs=1e-10)
     assert bond_price_discrete(cf, r.yield_semiannual, 2) == pytest.approx(
-        B, abs=1e-10
+        price, abs=1e-10
     )
     h = 1e-5
-    dB = (
+    d_price = (
         bond_price_discrete(cf, r.yield_semiannual + h, 2)
         - bond_price_discrete(cf, r.yield_semiannual - h, 2)
     ) / (2 * h)
-    assert -dB / B == pytest.approx(r.modified_duration_semiannual, abs=1e-7)
+    assert -d_price / price == pytest.approx(
+        r.modified_duration_semiannual, abs=1e-7
+    )
 
 
 @pytest.mark.parametrize("case", ["F<K", "F=K", "F>K"])
 def test_ex03(case):
-    S, T, r, q = 50.0, 0.75, 0.05, 0.01
-    F = S * math.exp((r - q) * T)
-    K = {"F<K": 60.0, "F=K": F, "F>K": 40.0}[case]
-    lo, hi = ex03_price_range(S, K, T, r, q)
-    m = Ex03Market(S, K, T, r, q, 0.5 * (lo + hi))
+    spot, maturity, r, q = 50.0, 0.75, 0.05, 0.01
+    forward = spot * math.exp((r - q) * maturity)
+    strike = {"F<K": 60.0, "F=K": forward, "F>K": 40.0}[case]
+    lo, hi = ex03_price_range(spot, strike, maturity, r, q)
+    m = Ex03Market(spot, strike, maturity, r, q, 0.5 * (lo + hi))
     # (i)
     assert ex03_f(200.0, m) == pytest.approx(ex03_limit_infinity(m), abs=1e-9)
-    d1, d2 = bs_d1_d2(S, K, T, 200.0, r, q)
+    d1, d2 = bs_d1_d2(spot, strike, maturity, 200.0, r, q)
     assert d1 > 50 and d2 < -50
     # (ii)
     assert ex03_f(1e-12, m) == pytest.approx(ex03_limit_zero(m), abs=1e-9)
-    d1, d2 = bs_d1_d2(S, K, T, 1e-6, r, q)
+    d1, d2 = bs_d1_d2(spot, strike, maturity, 1e-6, r, q)
     lim = ex03_d_limit_zero(m)
     if math.isinf(lim):
         assert d1 * lim > 0 and abs(d1) > 1e3 and abs(d2) > 1e3
@@ -94,17 +104,23 @@ def test_ex03(case):
     for k in range(1, 500):
         x = 0.01 * k
         fx = ex03_f(x, m)
-        assert bs_greeks(OptionType.CALL, S, K, T, x, r, q).vega > 0
+        assert (
+            bs_greeks(OptionType.CALL, spot, strike, maturity, x, r, q).vega > 0
+        )
         assert prev <= fx < ex03_limit_infinity(m)
         prev = fx
     # (iv)
-    b = call_bounds(S, K, T, r, q)
+    b = call_bounds(spot, strike, maturity, r, q)
     assert (lo, hi) == pytest.approx((b.lower, b.upper), abs=1e-12)
     assert ex03_has_positive_root(m)
-    sigma = implied_vol_newton(OptionType.CALL, m.C, S, K, T, r, q).x
+    sigma = implied_vol_newton(
+        OptionType.CALL, m.call, spot, strike, maturity, r, q
+    ).x
     assert ex03_f(sigma, m) == pytest.approx(0.0, abs=1e-8)
-    for C in (hi, lo, hi + 1.0):
-        assert not ex03_has_positive_root(Ex03Market(S, K, T, r, q, C))
+    for call in (hi, lo, hi + 1.0):
+        assert not ex03_has_positive_root(
+            Ex03Market(spot, strike, maturity, r, q, call)
+        )
 
 
 def test_ex04():
@@ -114,9 +130,11 @@ def test_ex04():
     assert s.x == pytest.approx(n.x, abs=1e-6)
     assert n.iterations == 3 and s.iterations == 3 and b.iterations >= 20
     m = Ex04Market()
-    assert bs_call(m.S, m.K, m.T, n.x, m.r, m.q) == pytest.approx(m.C, abs=1e-9)
+    assert bs_call(
+        m.spot, m.strike, m.maturity, n.x, m.r, m.q
+    ) == pytest.approx(m.call, abs=1e-9)
     assert ch03_implied_vol_newton(
-        OptionType.CALL, m.C, m.S, m.K, m.T, m.r, m.q
+        OptionType.CALL, m.call, m.spot, m.strike, m.maturity, m.r, m.q
     ).sigma == pytest.approx(n.x, abs=1e-8)
     assert ex04_sigma_approx() == pytest.approx(0.396672, abs=5e-7)
     assert ex04_relative_error() == pytest.approx(9.49e-4, abs=5e-6)

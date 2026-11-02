@@ -99,7 +99,7 @@ template <class F>
       for (std::size_t j = 0; j < H.size(); ++j) M(i, j) = H[i][j];
     return M;
   };
-  return ch05::newton_nd(grad, hess, std::move(x0), tol).x;
+  return ch05::NewtonNd(grad, hess, std::move(x0), tol).x;
 }
 
 }  // namespace p4mfe::ch08

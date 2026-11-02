@@ -19,47 +19,51 @@ from p4mfe.ch03_probability_black_scholes.black_scholes import bs_call
 
 @dataclass(frozen=True)
 class Ex03Market:
-    S: float
-    K: float
-    T: float
+    spot: float
+    strike: float
+    maturity: float
     r: float
     q: float
-    C: float
+    call: float
 
 
 def ex03_f(x: float, m: Ex03Market) -> float:
-    return bs_call(m.S, m.K, m.T, x, m.r, m.q) - m.C
+    return bs_call(m.spot, m.strike, m.maturity, x, m.r, m.q) - m.call
 
 
 def ex03_forward(m: Ex03Market) -> float:
-    return m.S * math.exp((m.r - m.q) * m.T)
+    return m.spot * math.exp((m.r - m.q) * m.maturity)
 
 
 def ex03_limit_infinity(m: Ex03Market) -> float:
-    return m.S * math.exp(-m.q * m.T) - m.C
+    return m.spot * math.exp(-m.q * m.maturity) - m.call
 
 
 def ex03_d_limit_zero(m: Ex03Market) -> float:
-    F = ex03_forward(m)
-    if F < m.K:
+    forward = ex03_forward(m)
+    if forward < m.strike:
         return -math.inf
-    if F > m.K:
+    if forward > m.strike:
         return math.inf
     return 0.0
 
 
 def ex03_limit_zero(m: Ex03Market) -> float:
-    if ex03_forward(m) <= m.K:
-        return -m.C
-    return m.S * math.exp(-m.q * m.T) - m.K * math.exp(-m.r * m.T) - m.C
+    if ex03_forward(m) <= m.strike:
+        return -m.call
+    return (
+        m.spot * math.exp(-m.q * m.maturity)
+        - m.strike * math.exp(-m.r * m.maturity)
+        - m.call
+    )
 
 
 def ex03_price_range(
-    S: float, K: float, T: float, r: float, q: float
+    spot: float, strike: float, maturity: float, r: float, q: float
 ) -> tuple[float, float]:
     """Open interval of call prices that have a positive implied volatility."""
-    s = S * math.exp(-q * T)
-    return max(s - K * math.exp(-r * T), 0.0), s
+    s = spot * math.exp(-q * maturity)
+    return max(s - strike * math.exp(-r * maturity), 0.0), s
 
 
 def ex03_has_positive_root(m: Ex03Market) -> bool:
