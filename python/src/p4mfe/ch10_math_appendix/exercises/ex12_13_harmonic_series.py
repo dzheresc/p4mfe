@@ -34,8 +34,10 @@ def ex12_harmonic_bounds(n: int) -> tuple[float, float]:
 
 
 def ex12_k_log_k_bounds(n: int) -> tuple[float, float]:
-    I = math.log(math.log(n)) - math.log(math.log(2.0))
-    return I + 1.0 / (n * math.log(n)), I + 1.0 / (2.0 * math.log(2.0))
+    integral = math.log(math.log(n)) - math.log(math.log(2.0))
+    return integral + 1.0 / (n * math.log(n)), integral + 1.0 / (
+        2.0 * math.log(2.0)
+    )
 
 
 def ex13_x(n: int) -> float:

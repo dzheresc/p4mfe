@@ -29,12 +29,12 @@ struct PowerSeries {
 
   // Partial sum sum_{k<=n} a_k (x - c)^k (Horner).
   [[nodiscard]] double operator()(double x) const noexcept {
-    return polynomial_value(a, x - center);
+    return PolynomialValue(a, x - center);
   }
 };
 
 // Term-by-term derivative (one coefficient fewer).
-[[nodiscard]] inline PowerSeries derivative(const PowerSeries& s) {
+[[nodiscard]] inline PowerSeries Derivative(const PowerSeries& s) {
   PowerSeries d{{}, s.center};
   for (std::size_t k = 1; k < s.a.size(); ++k)
     d.a.push_back(static_cast<double>(k) * s.a[k]);
@@ -43,7 +43,7 @@ struct PowerSeries {
 }
 
 // Term-by-term antiderivative vanishing at the center (one coefficient more).
-[[nodiscard]] inline PowerSeries antiderivative(const PowerSeries& s) {
+[[nodiscard]] inline PowerSeries Antiderivative(const PowerSeries& s) {
   PowerSeries d{{0.0}, s.center};
   for (std::size_t k = 0; k < s.a.size(); ++k)
     d.a.push_back(s.a[k] / static_cast<double>(k + 1));
@@ -52,8 +52,8 @@ struct PowerSeries {
 
 // Cauchy product, truncated to the shorter of the two lengths (the terms
 // beyond it would be incomplete).
-[[nodiscard]] inline PowerSeries cauchy_product(const PowerSeries& p,
-                                                const PowerSeries& q) {
+[[nodiscard]] inline PowerSeries CauchyProduct(const PowerSeries& p,
+                                               const PowerSeries& q) {
   if (p.center != q.center)
     throw std::invalid_argument("cauchy_product: series need the same center");
   const std::size_t n = std::min(p.a.size(), q.a.size());
@@ -65,7 +65,7 @@ struct PowerSeries {
 
 // Ratio-test estimate |a_{n-1} / a_n| from the last two coefficients
 // (infinity if a_n = 0, i.e. the estimate does not apply).
-[[nodiscard]] inline double radius_ratio_estimate(const Vector& a) {
+[[nodiscard]] inline double RadiusRatioEstimate(const Vector& a) {
   if (a.size() < 2)
     throw std::invalid_argument("radius_ratio_estimate: need two coefficients");
   const double last = a.back();
@@ -74,7 +74,7 @@ struct PowerSeries {
 }
 
 // Root-test estimate 1 / |a_n|^(1/n) from the last nonzero coefficient, n >= 1.
-[[nodiscard]] inline double radius_root_estimate(const Vector& a) {
+[[nodiscard]] inline double RadiusRootEstimate(const Vector& a) {
   for (std::size_t n = a.size(); n-- > 1;)
     if (a[n] != 0.0)
       return std::pow(std::abs(a[n]), -1.0 / static_cast<double>(n));
@@ -82,7 +82,7 @@ struct PowerSeries {
 }
 
 // Coefficients of classical series around 0, terms k = 0..n.
-[[nodiscard]] inline PowerSeries exp_power_series(unsigned n) {
+[[nodiscard]] inline PowerSeries ExpPowerSeries(unsigned n) {
   PowerSeries s{Vector(n + 1), 0.0};
   double c = 1.0;
   for (unsigned k = 0; k <= n; ++k) {
@@ -91,10 +91,10 @@ struct PowerSeries {
   }
   return s;
 }
-[[nodiscard]] inline PowerSeries geometric_power_series(unsigned n) {
+[[nodiscard]] inline PowerSeries GeometricPowerSeries(unsigned n) {
   return {Vector(n + 1, 1.0), 0.0};
 }
-[[nodiscard]] inline PowerSeries log1p_power_series(unsigned n) {
+[[nodiscard]] inline PowerSeries Log1pPowerSeries(unsigned n) {
   PowerSeries s{Vector(n + 1, 0.0), 0.0};
   for (unsigned k = 1; k <= n; ++k) s.a[k] = (k % 2 ? 1.0 : -1.0) / k;
   return s;

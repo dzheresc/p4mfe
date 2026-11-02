@@ -63,8 +63,10 @@ def test_ex02_closed_forms():
 def test_ex02_lhopital_gives_the_sums():
     for n in range(1, 201):
         for j in (2, 3):
-            N = ex02_numerator(n, j)
-            assert all(ex02_derivative_at_one(N, r) == 0 for r in range(j + 1))
+            numer = ex02_numerator(n, j)
+            assert all(
+                ex02_derivative_at_one(numer, r) == 0 for r in range(j + 1)
+            )
         assert ex02_derivative_at_one(ex02_numerator(n, 2), 3) == -n * (
             n + 1
         ) * (2 * n + 1)
@@ -95,6 +97,8 @@ def test_ex04_recursions_reproduce_sum_of_squares():
     assert list(ex04_cubic()) == pytest.approx(
         [0, 1 / 6, 0.5, 1 / 3], abs=1e-12
     )
-    P = list(EX04_RECURSION) + [-1.0]
+    char_poly = list(EX04_RECURSION) + [-1.0]
     for z in (-1.5, 0.2, 2.0, 3.0):
-        assert -polynomial_value(P, z) == pytest.approx((z - 1) ** 4, abs=1e-12)
+        assert -polynomial_value(char_poly, z) == pytest.approx(
+            (z - 1) ** 4, abs=1e-12
+        )

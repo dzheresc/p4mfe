@@ -26,19 +26,19 @@
 namespace p4mfe::ch10 {
 
 // C (M |x - a|)^(n+1) / (n+1)!, via chapter 6's Lagrange remainder bound.
-[[nodiscard]] inline double taylor_bound_geometric(double C, double M, double a,
-                                                   double x, unsigned n) {
-  return ch06::TaylorRemainderBound(C * std::pow(M, n + 1), a, x, n);
+[[nodiscard]] inline double TaylorBoundGeometric(double c, double m, double a,
+                                                 double x, unsigned n) {
+  return ch06::TaylorRemainderBound(c * std::pow(m, n + 1), a, x, n);
 }
 
 // Smallest n with C (M |x-a|)^(n+1) / (n+1)! < tol.
-[[nodiscard]] inline unsigned taylor_terms_needed(double C, double M, double a,
-                                                  double x, double tol,
-                                                  unsigned max_n = 1000) {
+[[nodiscard]] inline unsigned TaylorTermsNeeded(double c, double m, double a,
+                                                double x, double tol,
+                                                unsigned max_n = 1000) {
   if (!(tol > 0.0))
     throw std::invalid_argument("taylor_terms_needed: tol must be positive");
-  const double q = M * std::abs(x - a);
-  double bound = C * q;  // n = 0
+  const double q = m * std::abs(x - a);
+  double bound = c * q;  // n = 0
   for (unsigned n = 0; n <= max_n; ++n) {
     if (bound < tol) return n;
     bound *= q / (n + 2.0);
@@ -47,14 +47,14 @@ namespace p4mfe::ch10 {
 }
 
 // The smooth, non-analytic function e^(-1/x^2) (0 at x = 0).
-[[nodiscard]] inline double flat_function(double x) noexcept {
+[[nodiscard]] inline double FlatFunction(double x) noexcept {
   return x == 0.0 ? 0.0 : std::exp(-1.0 / (x * x));
 }
 
 // Taylor series at a from the derivatives f(a), f'(a), ..., f^(n)(a): a_k =
 // f^(k)(a) / k!.
-[[nodiscard]] inline PowerSeries taylor_series(std::span<const double> derivs,
-                                               double a) {
+[[nodiscard]] inline PowerSeries TaylorSeries(std::span<const double> derivs,
+                                              double a) {
   PowerSeries s{Vector(derivs.begin(), derivs.end()), a};
   double fact = 1.0;
   for (std::size_t k = 1; k < s.a.size(); ++k) {
@@ -65,7 +65,7 @@ namespace p4mfe::ch10 {
 }
 
 // f(c), f'(c), ..., f^(n)(c) of a power series: k! a_k.
-[[nodiscard]] inline Vector derivatives_at_center(const PowerSeries& s) {
+[[nodiscard]] inline Vector DerivativesAtCenter(const PowerSeries& s) {
   Vector d(s.a);
   double fact = 1.0;
   for (std::size_t k = 1; k < d.size(); ++k) {

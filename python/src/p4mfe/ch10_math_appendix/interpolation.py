@@ -76,9 +76,15 @@ def interpolating_polynomial(
 ) -> np.ndarray:
     """Monomial coefficients a_0..a_n (Vandermonde system; small n only)."""
     _check_nodes(xs, len(ys))
-    V = np.vander(np.asarray(xs, float), increasing=True)
-    return solve_linear(V, ys)
+    vandermonde = np.vander(np.asarray(xs, float), increasing=True)
+    return solve_linear(vandermonde, ys)
 
 
-def interpolation_error_bound(M: float, xs: Sequence[float], x: float) -> float:
-    return M * abs(math.prod(x - xi for xi in xs)) / math.factorial(len(xs))
+def interpolation_error_bound(
+    deriv_bound: float, xs: Sequence[float], x: float
+) -> float:
+    return (
+        deriv_bound
+        * abs(math.prod(x - xi for xi in xs))
+        / math.factorial(len(xs))
+    )

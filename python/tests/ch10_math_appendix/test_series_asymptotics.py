@@ -133,13 +133,13 @@ def test_central_binomial(n):
 # 10.8 ----------------------------------------------------------------------
 def test_geometric_derivative_bound():
     x = 0.8
-    C = math.exp(2 * x)
-    n = taylor_terms_needed(C, 2.0, 0.0, x, 1e-10)
+    c = math.exp(2 * x)
+    n = taylor_terms_needed(c, 2.0, 0.0, x, 1e-10)
     assert abs(exp_power_series(n)(2 * x) - math.exp(2 * x)) < 1e-10
     assert abs(
         exp_power_series(n - 1)(2 * x) - math.exp(2 * x)
-    ) <= taylor_bound_geometric(C, 2.0, 0.0, x, n - 1)
-    assert taylor_bound_geometric(C, 2.0, 0.0, x, n - 1) >= 1e-10
+    ) <= taylor_bound_geometric(c, 2.0, 0.0, x, n - 1)
+    assert taylor_bound_geometric(c, 2.0, 0.0, x, n - 1) >= 1e-10
     assert taylor_bound_geometric(1.0, 1.0, 0.0, 10.0, 60) < 1e-15
 
 

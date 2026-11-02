@@ -31,27 +31,27 @@ namespace p4mfe::ch10::ex {
 // (n + i)^r expanded gives the solutions n^r lambda^n, r < m.
 
 // sum_{i=0}^{k} a_i y_{n+i} for y_m = C m lambda^m, computed directly.
-[[nodiscard]] inline double ex08_residual(std::span<const double> a,
-                                          double lambda, double C, unsigned n) {
+[[nodiscard]] inline double Ex08Residual(std::span<const double> a,
+                                         double lambda, double c, unsigned n) {
   double s = 0.0;
   for (std::size_t i = 0; i < a.size(); ++i) {
     const double m = static_cast<double>(n + i);
-    s += a[i] * C * m * std::pow(lambda, m);
+    s += a[i] * c * m * std::pow(lambda, m);
   }
   return s;
 }
 
 // The right side of the hint: C n lambda^n P(lambda) + C lambda^(n+1)
 // P'(lambda).
-[[nodiscard]] inline double ex08_hint(std::span<const double> a, double lambda,
-                                      double C, unsigned n) {
-  double dP = 0.0;
+[[nodiscard]] inline double Ex08Hint(std::span<const double> a, double lambda,
+                                     double c, unsigned n) {
+  double d_poly = 0.0;
   for (std::size_t i = 1; i < a.size(); ++i)
-    dP += static_cast<double>(i) * a[i] *
-          std::pow(lambda, static_cast<double>(i) - 1.0);
-  const double N = n;
-  return C * N * std::pow(lambda, N) * polynomial_value(a, lambda) +
-         C * std::pow(lambda, N + 1.0) * dP;
+    d_poly += static_cast<double>(i) * a[i] *
+              std::pow(lambda, static_cast<double>(i) - 1.0);
+  const double nd = n;
+  return c * nd * std::pow(lambda, nd) * PolynomialValue(a, lambda) +
+         c * std::pow(lambda, nd + 1.0) * d_poly;
 }
 
 }  // namespace p4mfe::ch10::ex

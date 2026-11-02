@@ -30,15 +30,15 @@ namespace p4mfe::ch10::ex {
 
 // h(x) = x^i f(x^j).
 template <std::invocable<double> F>
-[[nodiscard]] double ex01_h(F&& f, unsigned i, unsigned j, double x) {
+[[nodiscard]] double Ex01H(F&& f, unsigned i, unsigned j, double x) {
   return std::pow(x, static_cast<double>(i)) *
          f(std::pow(x, static_cast<double>(j)));
 }
 
 // The parity predicted by (iii): (-1)^(i+j).
-[[nodiscard]] constexpr Parity ex01_predicted_parity(unsigned i,
-                                                     unsigned j) noexcept {
-  return (i + j) % 2 == 0 ? Parity::Even : Parity::Odd;
+[[nodiscard]] constexpr Parity Ex01PredictedParity(unsigned i,
+                                                   unsigned j) noexcept {
+  return (i + j) % 2 == 0 ? Parity::kEven : Parity::kOdd;
 }
 
 }  // namespace p4mfe::ch10::ex

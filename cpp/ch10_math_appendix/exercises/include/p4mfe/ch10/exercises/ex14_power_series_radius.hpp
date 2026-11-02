@@ -26,7 +26,7 @@ namespace p4mfe::ch10::ex {
 // So the series converges exactly on [-1, 1).
 
 // Coefficients a_0..a_n of the series (a_0 = a_1 = 0).
-[[nodiscard]] inline Vector ex14_coefficients(unsigned n) {
+[[nodiscard]] inline Vector Ex14Coefficients(unsigned n) {
   Vector a(n + 1, 0.0);
   for (unsigned k = 2; k <= n; ++k)
     a[k] = 1.0 / (k * std::log(static_cast<double>(k)));
@@ -34,7 +34,7 @@ namespace p4mfe::ch10::ex {
 }
 
 // sum_{k=2}^{n} x^k / (k ln k).
-[[nodiscard]] inline double ex14_partial_sum(double x, unsigned n) {
+[[nodiscard]] inline double Ex14PartialSum(double x, unsigned n) {
   double s = 0.0, xk = x;
   for (unsigned k = 2; k <= n; ++k) {
     xk *= x;
@@ -44,9 +44,9 @@ namespace p4mfe::ch10::ex {
 }
 
 // Ratio |a_k / a_{k+1}| for one k, the ratio-test estimate of R.
-[[nodiscard]] inline double ex14_ratio(unsigned k) {
-  const double K = k;
-  return (K + 1.0) * std::log(K + 1.0) / (K * std::log(K));
+[[nodiscard]] inline double Ex14Ratio(unsigned k) {
+  const double kd = k;
+  return (kd + 1.0) * std::log(kd + 1.0) / (kd * std::log(kd));
 }
 
 }  // namespace p4mfe::ch10::ex

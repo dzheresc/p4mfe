@@ -11,10 +11,12 @@ from typing import Sequence
 from p4mfe.ch10_math_appendix.interpolation import polynomial_value
 
 
-def ex08_residual(a: Sequence[float], lam: float, C: float, n: int) -> float:
-    return sum(ai * C * (n + i) * lam ** (n + i) for i, ai in enumerate(a))
+def ex08_residual(a: Sequence[float], lam: float, c: float, n: int) -> float:
+    return sum(ai * c * (n + i) * lam ** (n + i) for i, ai in enumerate(a))
 
 
-def ex08_hint(a: Sequence[float], lam: float, C: float, n: int) -> float:
-    dP = sum(i * a[i] * lam ** (i - 1) for i in range(1, len(a)))
-    return C * n * lam**n * polynomial_value(a, lam) + C * lam ** (n + 1) * dP
+def ex08_hint(a: Sequence[float], lam: float, c: float, n: int) -> float:
+    d_poly = sum(i * a[i] * lam ** (i - 1) for i in range(1, len(a)))
+    return (
+        c * n * lam**n * polynomial_value(a, lam) + c * lam ** (n + 1) * d_poly
+    )

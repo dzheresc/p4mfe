@@ -27,19 +27,19 @@ namespace p4mfe::ch10::ex {
 // The sums below use chapter 10's exact binomial; they fit in 64 bits for
 // n <= 60 (first two) and n <= 58 (third).
 
-[[nodiscard]] inline std::uint64_t ex11_sum_binomials(unsigned n) {
+[[nodiscard]] inline std::uint64_t Ex11SumBinomials(unsigned n) {
   std::uint64_t s = 0;
-  for (unsigned j = 0; j <= n; ++j) s += binomial(n, j);
+  for (unsigned j = 0; j <= n; ++j) s += Binomial(n, j);
   return s;
 }
-[[nodiscard]] inline std::uint64_t ex11_sum_even_binomials(unsigned n) {
+[[nodiscard]] inline std::uint64_t Ex11SumEvenBinomials(unsigned n) {
   std::uint64_t s = 0;
-  for (unsigned k = 0; 2 * k <= n; ++k) s += binomial(n, 2 * k);
+  for (unsigned k = 0; 2 * k <= n; ++k) s += Binomial(n, 2 * k);
   return s;
 }
-[[nodiscard]] inline std::uint64_t ex11_sum_j_binomials(unsigned n) {
+[[nodiscard]] inline std::uint64_t Ex11SumJBinomials(unsigned n) {
   std::uint64_t s = 0;
-  for (unsigned j = 1; j <= n; ++j) s += j * binomial(n, j);
+  for (unsigned j = 1; j <= n; ++j) s += j * Binomial(n, j);
   return s;
 }
 

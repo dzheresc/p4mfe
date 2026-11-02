@@ -40,15 +40,15 @@ def sum_k3(n: int) -> int:
 
 def sums_of_powers_recursive(n: int, i: int) -> list[int]:
     """S_0(n), ..., S_i(n) from the telescoping recursion."""
-    S = [n]
+    sums = [n]
     for p in range(1, i + 1):
         rhs = (
             (n + 1) ** (p + 1)
             - 1
-            - sum(math.comb(p + 1, j) * S[j] for j in range(p))
+            - sum(math.comb(p + 1, j) * sums[j] for j in range(p))
         )
-        S.append(rhs // (p + 1))
-    return S
+        sums.append(rhs // (p + 1))
+    return sums
 
 
 def sum_of_powers_polynomial(i: int) -> np.ndarray:
@@ -93,18 +93,18 @@ def sum_k2_xk(n: int, x: float) -> float:
 
 def kj_xk_numerator(j: int) -> list[float]:
     """P_j: P_0 = P_1 = x, P_2 = x + x^2, P_3 = x + 4x^2 + x^3 (Eulerian numbers)."""
-    P = [0.0, 1.0]
+    poly = [0.0, 1.0]
     for m in range(j):
-        Q = [0.0] * (len(P) + 1)
-        for k, p in enumerate(P):
-            Q[k + 1] += (m + 1) * p
+        next_poly = [0.0] * (len(poly) + 1)
+        for k, p in enumerate(poly):
+            next_poly[k + 1] += (m + 1) * p
             if k:
-                Q[k] += k * p
-                Q[k + 1] -= k * p
-        while len(Q) > 1 and Q[-1] == 0.0:
-            Q.pop()
-        P = Q
-    return P
+                next_poly[k] += k * p
+                next_poly[k + 1] -= k * p
+        while len(next_poly) > 1 and next_poly[-1] == 0.0:
+            next_poly.pop()
+        poly = next_poly
+    return poly
 
 
 def sum_kj_xk_infinite(j: int, x: float) -> float:

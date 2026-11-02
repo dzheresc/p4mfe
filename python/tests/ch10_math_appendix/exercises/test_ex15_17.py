@@ -20,13 +20,13 @@ def test_ex15_nested_radical():
     assert ex15_limit(6.0) == 3.0
     assert ex15_limit(1.0) == pytest.approx(GOLDEN, abs=1e-15)
     for a in (0.01, 0.5, 1.0, 2.0, 6.0, 100.0):
-        L = ex15_limit(a)
+        limit = ex15_limit(a)
         prev = 0.0
         for n in range(1, 11):
             x = ex15_iterate(a, n)
-            assert prev < x < L
+            assert prev < x < limit
             prev = x
-        assert ex15_iterate(a, 200) == pytest.approx(L, rel=1e-13)
+        assert ex15_iterate(a, 200) == pytest.approx(limit, rel=1e-13)
     with pytest.raises(ValueError):
         ex15_limit(0.0)
 
@@ -35,11 +35,11 @@ def test_ex16_continued_fraction():
     assert ex16_limit(1.0) == pytest.approx(GOLDEN, abs=1e-15)
     assert ex16_limit(2.0) == pytest.approx(1 + math.sqrt(2), abs=1e-15)
     for a in (0.1, 0.5, 1.0, 2.0, 10.0):
-        L = ex16_limit(a)
-        assert L == pytest.approx(a + 1 / L, rel=1e-14)
+        limit = ex16_limit(a)
+        assert limit == pytest.approx(a + 1 / limit, rel=1e-14)
         for n in (1, 3, 5):
-            assert ex16_iterate(a, n) < L < ex16_iterate(a, n + 1)
-        assert ex16_iterate(a, 2000) == pytest.approx(L, rel=1e-13)
+            assert ex16_iterate(a, n) < limit < ex16_iterate(a, n + 1)
+        assert ex16_iterate(a, 2000) == pytest.approx(limit, rel=1e-13)
 
 
 def test_ex17_tower_equal_to_two():
