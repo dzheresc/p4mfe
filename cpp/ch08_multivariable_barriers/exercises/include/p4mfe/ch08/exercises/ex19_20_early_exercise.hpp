@@ -28,17 +28,18 @@ namespace p4mfe::ch08::ex {
 //   optimal and C_A = C. The check below compares American and European
 //   binomial prices (chapter 8's binomial_price) for q = 0.
 struct CallMarket {
-  double K = 40.0, T = 1.0, sigma = 0.3, r = 0.05, q = 0.0;
+  double strike = 40.0, maturity = 1.0, sigma = 0.3, r = 0.05, q = 0.0;
 };
 
-[[nodiscard]] inline double ex19_time_value(double S,
-                                            const CallMarket& m = {}) {
-  return ch03::BsCall(S, m.K, m.T, m.sigma, m.r, m.q) - std::max(S - m.K, 0.0);
+[[nodiscard]] inline double Ex19TimeValue(double spot,
+                                          const CallMarket& m = {}) {
+  return ch03::BsCall(spot, m.strike, m.maturity, m.sigma, m.r, m.q) -
+         std::max(spot - m.strike, 0.0);
 }
 
 // The lower bound used in (i): S - K e^(-rT) - (S - K) = K (1 - e^(-rT)).
-[[nodiscard]] inline double ex19_lower_bound_gap(const CallMarket& m = {}) {
-  return m.K * -std::expm1(-m.r * m.T);
+[[nodiscard]] inline double Ex19LowerBoundGap(const CallMarket& m = {}) {
+  return m.strike * -std::expm1(-m.r * m.maturity);
 }
 
 // ----------------------------------------------------------- Exercise 20 ---
@@ -56,16 +57,19 @@ struct CallMarket {
 // C > 0 = S - K) and is found by bisection (chapter 5). For small q,
 // C - (S - K) -> K (1 - e^(-rT)) - S (1 - e^(-qT)) as S -> infinity, so
 // S* ~ K (1 - e^(-rT))/(1 - e^(-qT)) ~ K r/q.
-[[nodiscard]] inline double ex20_threshold(const CallMarket& m) {
-  return m.K / -std::expm1(-m.q * m.T);
+[[nodiscard]] inline double Ex20Threshold(const CallMarket& m) {
+  return m.strike / -std::expm1(-m.q * m.maturity);
 }
 
-[[nodiscard]] inline double ex20_crossover(const CallMarket& m) {
-  const auto f = [&](double S) {
-    return ch03::BsCall(S, m.K, m.T, m.sigma, m.r, m.q) - (S - m.K);
+[[nodiscard]] inline double Ex20Crossover(const CallMarket& m) {
+  const auto f = [&](double spot) {
+    return ch03::BsCall(spot, m.strike, m.maturity, m.sigma, m.r, m.q) -
+           (spot - m.strike);
   };
-  const double S0 = ex20_threshold(m);
-  return ch05::Bisection(f, m.K, S0, {1e-12, 1e-10 * S0, 400}).x;
+  const double spot_threshold = Ex20Threshold(m);
+  return ch05::Bisection(f, m.strike, spot_threshold,
+                         {1e-12, 1e-10 * spot_threshold, 400})
+      .x;
 }
 
 }  // namespace p4mfe::ch08::ex

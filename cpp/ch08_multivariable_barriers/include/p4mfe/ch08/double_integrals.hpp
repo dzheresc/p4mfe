@@ -31,10 +31,10 @@ using Point2 = std::array<double, 2>;
 // ---------------------------------------------------------------- 8.2 ------
 // integral_a^b integral_c^d f(x, y) dy dx.
 template <std::invocable<double, double> F>
-[[nodiscard]] double double_integral(F&& f, double a, double b, double c,
-                                     double d, std::size_t nx = 200,
-                                     std::size_t ny = 200,
-                                     ch02::Rule rule = ch02::Rule::kSimpson) {
+[[nodiscard]] double DoubleIntegral(F&& f, double a, double b, double c,
+                                    double d, std::size_t nx = 200,
+                                    std::size_t ny = 200,
+                                    ch02::Rule rule = ch02::Rule::kSimpson) {
   return ch02::Integrate(
       [&](double x) {
         return ch02::Integrate([&](double y) { return f(x, y); }, c, d, ny,
@@ -46,7 +46,7 @@ template <std::invocable<double, double> F>
 // integral_a^b integral_{y_lo(x)}^{y_hi(x)} f(x, y) dy dx.
 template <std::invocable<double, double> F, std::invocable<double> Lo,
           std::invocable<double> Hi>
-[[nodiscard]] double double_integral_region(
+[[nodiscard]] double DoubleIntegralRegion(
     F&& f, double a, double b, Lo&& y_lo, Hi&& y_hi, std::size_t nx = 200,
     std::size_t ny = 200, ch02::Rule rule = ch02::Rule::kSimpson) {
   return ch02::Integrate(
@@ -60,7 +60,7 @@ template <std::invocable<double, double> F, std::invocable<double> Lo,
 // ---------------------------------------------------------------- 8.3 ------
 // |det J_T(u, v)| by central differences.
 template <std::invocable<double, double> T>
-[[nodiscard]] double jacobian_determinant(T&& map, double u, double v) {
+[[nodiscard]] double JacobianDeterminant(T&& map, double u, double v) {
   const double hu = 1e-6 * std::max(1.0, std::abs(u));
   const double hv = 1e-6 * std::max(1.0, std::abs(v));
   const Point2 pu = map(u + hu, v), mu = map(u - hu, v);
@@ -72,35 +72,34 @@ template <std::invocable<double, double> T>
 
 // integral over [u0, u1] x [v0, v1] of f(T(u, v)) |det J_T(u, v)| du dv.
 template <std::invocable<double, double> F, std::invocable<double, double> T>
-[[nodiscard]] double change_of_variables_integral(F&& f, T&& map, double u0,
-                                                  double u1, double v0,
-                                                  double v1,
-                                                  std::size_t nu = 200,
-                                                  std::size_t nv = 200) {
-  return double_integral(
+[[nodiscard]] double ChangeOfVariablesIntegral(F&& f, T&& map, double u0,
+                                               double u1, double v0, double v1,
+                                               std::size_t nu = 200,
+                                               std::size_t nv = 200) {
+  return DoubleIntegral(
       [&](double u, double v) {
         const Point2 p = map(u, v);
-        return f(p[0], p[1]) * jacobian_determinant(map, u, v);
+        return f(p[0], p[1]) * JacobianDeterminant(map, u, v);
       },
       u0, u1, v0, v1, nu, nv);
 }
 
 // -------------------------------------------------------------- 8.3.1 ------
-[[nodiscard]] inline Point2 from_polar(double r, double theta) noexcept {
+[[nodiscard]] inline Point2 FromPolar(double r, double theta) noexcept {
   return {r * std::cos(theta), r * std::sin(theta)};
 }
 
 // integral_{theta0}^{theta1} integral_{r0}^{r1} f(r cos theta, r sin theta) r
 // dr dtheta.
 template <std::invocable<double, double> F>
-[[nodiscard]] double polar_integral(F&& f, double r0, double r1,
-                                    double theta0 = 0.0,
-                                    double theta1 = 2.0 * std::numbers::pi,
-                                    std::size_t nr = 200,
-                                    std::size_t ntheta = 200) {
-  return double_integral(
+[[nodiscard]] double PolarIntegral(F&& f, double r0, double r1,
+                                   double theta0 = 0.0,
+                                   double theta1 = 2.0 * std::numbers::pi,
+                                   std::size_t nr = 200,
+                                   std::size_t ntheta = 200) {
+  return DoubleIntegral(
       [&](double r, double theta) {
-        const Point2 p = from_polar(r, theta);
+        const Point2 p = FromPolar(r, theta);
         return f(p[0], p[1]) * r;
       },
       r0, r1, theta0, theta1, nr, ntheta);
@@ -109,17 +108,17 @@ template <std::invocable<double, double> F>
 // ---------------------------------------------------------------- 8.6 ------
 // Closed form of the polar integral of e^(-(x^2+y^2)/2) over the disk of radius
 // R.
-[[nodiscard]] inline double gaussian_disk_integral(double R) noexcept {
-  return 2.0 * std::numbers::pi * -std::expm1(-0.5 * R * R);
+[[nodiscard]] inline double GaussianDiskIntegral(double radius) noexcept {
+  return 2.0 * std::numbers::pi * -std::expm1(-0.5 * radius * radius);
 }
 
 // integral over [-R, R]^2 of e^(-(x^2+y^2)/2) = (integral_{-R}^R e^(-x^2/2)
 // dx)^2.
-[[nodiscard]] inline double gaussian_square_integral(double R,
-                                                     std::size_t n = 400) {
-  const double I = ch02::SimpsonRule(
-      [](double x) { return std::exp(-0.5 * x * x); }, -R, R, n);
-  return I * I;
+[[nodiscard]] inline double GaussianSquareIntegral(double radius,
+                                                   std::size_t n = 400) {
+  const double integral = ch02::SimpsonRule(
+      [](double x) { return std::exp(-0.5 * x * x); }, -radius, radius, n);
+  return integral * integral;
 }
 
 }  // namespace p4mfe::ch08

@@ -52,19 +52,19 @@ def test_chain_rule_gradient_jacobian():
     def f(v):
         return v[0] * v[1]
 
-    def G(p):
+    def polar_map(p):
         return np.array([p[0] * math.cos(p[1]), p[0] * math.sin(p[1])])
 
     x = [1.5, 0.4]
-    grad = chain_rule_gradient(f, G, x)
+    grad = chain_rule_gradient(f, polar_map, x)
     assert grad[0] == pytest.approx(x[0] * math.sin(2 * x[1]), abs=1e-7)
     assert grad[1] == pytest.approx(x[0] ** 2 * math.cos(2 * x[1]), abs=1e-7)
-    J = chain_rule_jacobian(
+    jacobian = chain_rule_jacobian(
         lambda v: np.array([math.hypot(v[0], v[1]), math.atan2(v[1], v[0])]),
-        G,
+        polar_map,
         x,
     )
-    assert J == pytest.approx(np.eye(2), abs=1e-7)
+    assert jacobian == pytest.approx(np.eye(2), abs=1e-7)
 
 
 # 8.2 -----------------------------------------------------------------------
@@ -112,14 +112,16 @@ def test_change_of_variables():
 
 
 # 8.6 -----------------------------------------------------------------------
-@pytest.mark.parametrize("R", [0.5, 1.0, 3.0])
-def test_normal_density_integral(R):
-    disk = polar_integral(lambda x, y: np.exp(-0.5 * (x * x + y * y)), 0, R)
-    assert disk == pytest.approx(gaussian_disk_integral(R), abs=1e-8)
+@pytest.mark.parametrize("radius", [0.5, 1.0, 3.0])
+def test_normal_density_integral(radius):
+    disk = polar_integral(
+        lambda x, y: np.exp(-0.5 * (x * x + y * y)), 0, radius
+    )
+    assert disk == pytest.approx(gaussian_disk_integral(radius), abs=1e-8)
     assert (
-        gaussian_disk_integral(R)
-        < gaussian_square_integral(R)
-        < gaussian_disk_integral(R * math.sqrt(2))
+        gaussian_disk_integral(radius)
+        < gaussian_square_integral(radius)
+        < gaussian_disk_integral(radius * math.sqrt(2))
     )
 
 

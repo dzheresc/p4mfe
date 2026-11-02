@@ -22,27 +22,27 @@ class Ex08Check:
 
 
 def ex08_check(
-    u: Callable, v: Callable, M: float, X: float, n: int = 2000
+    u: Callable, v: Callable, m: float, x_end: float, n: int = 2000
 ) -> Ex08Check:
-    x = np.linspace(0.0, X, n + 1)
-    h = X / n
+    x = np.linspace(0.0, x_end, n + 1)
+    h = x_end / n
     ux, vx = np.array([u(t) for t in x]), np.array([v(t) for t in x])
-    W = M + np.concatenate(
+    w_sum = m + np.concatenate(
         ([0.0], np.cumsum(0.5 * h * (ux[1:] * vx[1:] + ux[:-1] * vx[:-1])))
     )
-    V = np.concatenate(([0.0], np.cumsum(0.5 * h * (vx[1:] + vx[:-1]))))
-    g = W * np.exp(-V)
-    bound = M * np.exp(V)
+    v_sum = np.concatenate(([0.0], np.cumsum(0.5 * h * (vx[1:] + vx[:-1]))))
+    g = w_sum * np.exp(-v_sum)
+    bound = m * np.exp(v_sum)
     return Ex08Check(
-        float(np.max(ux - W)),
+        float(np.max(ux - w_sum)),
         float(np.max((ux - bound) / bound)),
-        float(np.max(np.diff(g)) / M),
+        float(np.max(np.diff(g)) / m),
     )
 
 
-def ex08_v(t: float) -> float:
+def ex08_integrand(t: float) -> float:
     return 1.0 + math.sin(t)
 
 
-def ex08_V(x: float) -> float:
+def ex08_integral(x: float) -> float:
     return x + 1.0 - math.cos(x)

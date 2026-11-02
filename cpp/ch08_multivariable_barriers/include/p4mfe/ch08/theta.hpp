@@ -23,24 +23,25 @@ namespace p4mfe::ch08 {
 // ---------------------------------------------------------------- 8.5 ------
 // Theta = -dV/dtau for a value given as a function of tau.
 template <std::invocable<double> V>
-[[nodiscard]] double theta_from_maturity(V&& v_of_tau, double tau) {
+[[nodiscard]] double ThetaFromMaturity(V&& v_of_tau, double tau) {
   return -ch01::Derivative(v_of_tau, tau);
 }
 
 // Theta of the European derivative with payoff h, by differentiating the
 // risk-neutral integral under the integral sign in tau.
 template <std::invocable<double> Payoff>
-[[nodiscard]] double theta_by_integral(Payoff&& h, double S, double T,
-                                       double sigma, double r, double q = 0.0,
-                                       double tol = 1e-7) {
+[[nodiscard]] double ThetaByIntegral(Payoff&& h, double spot, double maturity,
+                                     double sigma, double r, double q = 0.0,
+                                     double tol = 1e-7) {
   const auto integrand = [&](double z, double tau) {
     const double p = norm_pdf(z);
-    return p == 0.0 ? 0.0
-                    : std::exp(-r * tau) *
-                          h(ch04::PriceFromNormal(z, S, tau, sigma, r, q)) * p;
+    return p == 0.0
+               ? 0.0
+               : std::exp(-r * tau) *
+                     h(ch04::PriceFromNormal(z, spot, tau, sigma, r, q)) * p;
   };
   return -ch02::ImproperIntegralDerivative(integrand, -ch02::kInfinity,
-                                           ch02::kInfinity, T, tol);
+                                           ch02::kInfinity, maturity, tol);
 }
 
 }  // namespace p4mfe::ch08

@@ -23,21 +23,22 @@ namespace p4mfe::ch08::ex {
 // f(S) - [K (1 - e^(-rT)) - S (1 - e^(-qT))] -> 0: f tends to K (1 - e^(-rT))
 // for q = 0 (exercise 19) and to -infinity for q > 0 (exercise 20).
 struct Ex15Market {
-  double K = 40.0, T = 0.5, sigma = 0.3, r = 0.05, q = 0.0;
+  double strike = 40.0, maturity = 0.5, sigma = 0.3, r = 0.05, q = 0.0;
 };
 
-[[nodiscard]] inline double ex15_time_value(double S,
-                                            const Ex15Market& m = {}) {
-  return ch03::BsCall(S, m.K, m.T, m.sigma, m.r, m.q) - std::max(S - m.K, 0.0);
+[[nodiscard]] inline double Ex15TimeValue(double spot,
+                                          const Ex15Market& m = {}) {
+  return ch03::BsCall(spot, m.strike, m.maturity, m.sigma, m.r, m.q) -
+         std::max(spot - m.strike, 0.0);
 }
 
 // f'(S) away from S = K.
-[[nodiscard]] inline double ex15_derivative(double S,
-                                            const Ex15Market& m = {}) {
-  const double delta =
-      ch03::BsGreeks(ch03::OptionType::kCall, S, m.K, m.T, m.sigma, m.r, m.q)
-          .delta;
-  return S < m.K ? delta : delta - 1.0;
+[[nodiscard]] inline double Ex15Derivative(double spot,
+                                           const Ex15Market& m = {}) {
+  const double delta = ch03::BsGreeks(ch03::OptionType::kCall, spot, m.strike,
+                                      m.maturity, m.sigma, m.r, m.q)
+                           .delta;
+  return spot < m.strike ? delta : delta - 1.0;
 }
 
 }  // namespace p4mfe::ch08::ex

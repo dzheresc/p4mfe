@@ -20,44 +20,50 @@ class DocGreeks:
 
 
 def ex18_greeks(
-    S: float,
-    K: float,
-    B: float,
-    T: float,
+    spot: float,
+    strike: float,
+    barrier: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> DocGreeks:
     p = 2 * (r - q) / sigma**2 - 1
-    g = (B / S) ** p
-    X = B * B / S
-    gs = bs_greeks(OptionType.CALL, S, K, T, sigma, r, q)
-    gx = bs_greeks(OptionType.CALL, X, K, T, sigma, r, q)
-    cx = bs_call(X, K, T, sigma, r, q)
+    g = (barrier / spot) ** p
+    reflected_spot = barrier * barrier / spot
+    gs = bs_greeks(OptionType.CALL, spot, strike, maturity, sigma, r, q)
+    gx = bs_greeks(
+        OptionType.CALL, reflected_spot, strike, maturity, sigma, r, q
+    )
+    cx = bs_call(reflected_spot, strike, maturity, sigma, r, q)
     return DocGreeks(
-        gs.delta + g / S * (p * cx + X * gx.delta),
+        gs.delta + g / spot * (p * cx + reflected_spot * gx.delta),
         gs.gamma
         - g
-        / S**2
-        * (p * (p + 1) * cx + 2 * (p + 1) * X * gx.delta + X * X * gx.gamma),
+        / spot**2
+        * (
+            p * (p + 1) * cx
+            + 2 * (p + 1) * reflected_spot * gx.delta
+            + reflected_spot * reflected_spot * gx.gamma
+        ),
     )
 
 
 def ex18_greeks_fd(
-    S: float,
-    K: float,
-    B: float,
-    T: float,
+    spot: float,
+    strike: float,
+    barrier: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
     h: float = 2e-4,
 ) -> DocGreeks:
     def v(s):
-        return down_and_out_call(s, K, B, T, sigma, r, q)
+        return down_and_out_call(s, strike, barrier, maturity, sigma, r, q)
 
-    hs = h * S
+    hs = h * spot
     return DocGreeks(
-        (v(S + hs) - v(S - hs)) / (2 * hs),
-        (v(S + hs) - 2 * v(S) + v(S - hs)) / (hs * hs),
+        (v(spot + hs) - v(spot - hs)) / (2 * hs),
+        (v(spot + hs) - 2 * v(spot) + v(spot - hs)) / (hs * hs),
     )

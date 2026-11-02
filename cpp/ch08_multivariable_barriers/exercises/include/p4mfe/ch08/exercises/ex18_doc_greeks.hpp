@@ -42,31 +42,36 @@ struct DocGreeks {
   double gamma;
 };
 
-[[nodiscard]] inline DocGreeks ex18_greeks(double S, double K, double B,
-                                           double T, double sigma, double r,
-                                           double q = 0.0) {
+[[nodiscard]] inline DocGreeks Ex18Greeks(double spot, double strike,
+                                          double barrier, double maturity,
+                                          double sigma, double r,
+                                          double q = 0.0) {
   const double p = 2.0 * (r - q) / (sigma * sigma) - 1.0;
-  const double g = std::pow(B / S, p);
-  const double X = B * B / S;
-  const auto gs = ch03::BsGreeks(ch03::OptionType::kCall, S, K, T, sigma, r, q);
-  const auto gx = ch03::BsGreeks(ch03::OptionType::kCall, X, K, T, sigma, r, q);
-  const double cx = ch03::BsCall(X, K, T, sigma, r, q);
-  return {gs.delta + g / S * (p * cx + X * gx.delta),
-          gs.gamma - g / (S * S) *
-                         (p * (p + 1.0) * cx + 2.0 * (p + 1.0) * X * gx.delta +
-                          X * X * gx.gamma)};
+  const double g = std::pow(barrier / spot, p);
+  const double reflected_spot = barrier * barrier / spot;
+  const auto gs = ch03::BsGreeks(ch03::OptionType::kCall, spot, strike,
+                                 maturity, sigma, r, q);
+  const auto gx = ch03::BsGreeks(ch03::OptionType::kCall, reflected_spot,
+                                 strike, maturity, sigma, r, q);
+  const double cx = ch03::BsCall(reflected_spot, strike, maturity, sigma, r, q);
+  return {gs.delta + g / spot * (p * cx + reflected_spot * gx.delta),
+          gs.gamma - g / (spot * spot) *
+                         (p * (p + 1.0) * cx +
+                          2.0 * (p + 1.0) * reflected_spot * gx.delta +
+                          reflected_spot * reflected_spot * gx.gamma)};
 }
 
 // Central finite differences of the library's down_and_out_call, for checking.
-[[nodiscard]] inline DocGreeks ex18_greeks_fd(double S, double K, double B,
-                                              double T, double sigma, double r,
-                                              double q = 0.0, double h = 2e-4) {
+[[nodiscard]] inline DocGreeks Ex18GreeksFd(double spot, double strike,
+                                            double barrier, double maturity,
+                                            double sigma, double r,
+                                            double q = 0.0, double h = 2e-4) {
   const auto v = [&](double s) {
-    return down_and_out_call(s, K, B, T, sigma, r, q);
+    return DownAndOutCall(s, strike, barrier, maturity, sigma, r, q);
   };
-  const double hs = h * S;
-  return {(v(S + hs) - v(S - hs)) / (2.0 * hs),
-          (v(S + hs) - 2.0 * v(S) + v(S - hs)) / (hs * hs)};
+  const double hs = h * spot;
+  return {(v(spot + hs) - v(spot - hs)) / (2.0 * hs),
+          (v(spot + hs) - 2.0 * v(spot) + v(spot - hs)) / (hs * hs)};
 }
 
 }  // namespace p4mfe::ch08::ex

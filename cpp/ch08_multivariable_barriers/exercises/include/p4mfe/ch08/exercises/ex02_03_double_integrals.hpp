@@ -25,22 +25,22 @@ namespace p4mfe::ch08::ex {
 // interval [-s, s]. Equivalently: D is symmetric under x <-> y and the
 // integrand changes sign, so the integral is 0. (The integrand is bounded,
 // |x - y| <= x + y on D, so the integral exists despite the corner at 0.)
-[[nodiscard]] inline double ex02_integrand(double x, double y) {
+[[nodiscard]] inline double Ex02Integrand(double x, double y) {
   return x + y > 0.0 ? (x - y) / (x + y) : 0.0;
 }
 
-inline constexpr double ex02_exact = 0.0;
+inline constexpr double kEx02Exact = 0.0;
 
 // Directly over D: 0 <= x <= 1, 0 <= y <= 1 - x.
-[[nodiscard]] inline double ex02_direct(std::size_t n = 200) {
-  return double_integral_region(
-      ex02_integrand, 0.0, 1.0, [](double) { return 0.0; },
+[[nodiscard]] inline double Ex02Direct(std::size_t n = 200) {
+  return DoubleIntegralRegion(
+      Ex02Integrand, 0.0, 1.0, [](double) { return 0.0; },
       [](double x) { return 1.0 - x; }, n, n);
 }
 
 // In (s, t): integral_0^1 integral_{-s}^{s} (t/s) |det J| dt ds, |det J| = 1/2.
-[[nodiscard]] inline double ex02_change_of_variables(std::size_t n = 200) {
-  return double_integral_region(
+[[nodiscard]] inline double Ex02ChangeOfVariables(std::size_t n = 200) {
+  return DoubleIntegralRegion(
       [](double s, double t) { return s > 0.0 ? 0.5 * t / s : 0.0; }, 0.0, 1.0,
       [](double s) { return -s; }, [](double s) { return s; }, n, n);
 }
@@ -48,9 +48,9 @@ inline constexpr double ex02_exact = 0.0;
 // The integral of |x - y|/(x + y) over D, which is not 0: by the same change
 // of variables it is integral_0^1 (1/(2s)) * s^2 ds = 1/4. A check that the
 // quadrature resolves the integrand and not just the symmetry.
-inline constexpr double ex02_abs_exact = 0.25;
-[[nodiscard]] inline double ex02_abs_direct(std::size_t n = 200) {
-  return double_integral_region(
+inline constexpr double kEx02AbsExact = 0.25;
+[[nodiscard]] inline double Ex02AbsDirect(std::size_t n = 200) {
+  return DoubleIntegralRegion(
       [](double x, double y) {
         return x + y > 0.0 ? std::abs(x - y) / (x + y) : 0.0;
       },
@@ -76,18 +76,18 @@ inline constexpr double ex02_abs_exact = 0.25;
 //   integral_1^2 (7x^3 - 21x^2 + 14x) dx = [7x^4/4 - 7x^3 + 7x^2]_1^2
 //     = (28 - 56 + 28) - (7/4 - 7 + 7) = -7/4.
 // The answer is -7/4 = -1.75.
-[[nodiscard]] inline double ex03_integrand(double x, double y) {
+[[nodiscard]] inline double Ex03Integrand(double x, double y) {
   return x * x - 2.0 * y;
 }
-[[nodiscard]] inline double ex03_inner(double x) {
+[[nodiscard]] inline double Ex03Inner(double x) {
   return 7.0 * x * x * x - 21.0 * x * x + 14.0 * x;
 }
 
-inline constexpr double ex03_exact = -1.75;
+inline constexpr double kEx03Exact = -1.75;
 
-[[nodiscard]] inline double ex03_numeric(std::size_t n = 100) {
-  return double_integral_region(
-      ex03_integrand, 1.0, 2.0, [](double x) { return (x + 1.0) * (x + 1.0); },
+[[nodiscard]] inline double Ex03Numeric(std::size_t n = 100) {
+  return DoubleIntegralRegion(
+      Ex03Integrand, 1.0, 2.0, [](double x) { return (x + 1.0) * (x + 1.0); },
       [](double x) { return 5.0 * x - 1.0; }, n, n);
 }
 

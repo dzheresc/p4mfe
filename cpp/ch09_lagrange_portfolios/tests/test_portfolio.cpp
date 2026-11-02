@@ -67,7 +67,7 @@ TEST(Ch09Portfolio, MinimumVariance) {
         lagrange_stationary_point(var, cons, {1.0 / 3, 1.0 / 3, 1.0 / 3});
     for (std::size_t i = 0; i < 3; ++i) EXPECT_NEAR(r.x[i], w[i], 1e-7);
     EXPECT_EQ(classify_constrained(var, cons, r.x, r.lambda),
-              CriticalPointType::Minimum);
+              CriticalPointType::kMinimum);
   }
   // Two-fund separation: frontier portfolios are affine in the target mean.
   const auto w1 = min_variance_portfolio(mu, Sigma, 0.1),
@@ -122,7 +122,7 @@ TEST(Ch09Portfolio, MaximumReturn) {
     const auto r = lagrange_stationary_point(ret, cons, start);
     EXPECT_NEAR(ret(r.x), m, 1e-8);
     EXPECT_EQ(classify_constrained(ret, cons, r.x, r.lambda),
-              CriticalPointType::Maximum);
+              CriticalPointType::kMaximum);
   }
   EXPECT_THROW((void)max_return_for_std_dev(mu, Sigma, 0.5 / std::sqrt(A)),
                std::invalid_argument);

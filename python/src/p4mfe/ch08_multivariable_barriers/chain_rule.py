@@ -28,13 +28,13 @@ def chain_rule_derivative(
     return float(np.dot(gradient(f, g(t)), curve_derivative(g, t)))
 
 
-def chain_rule_gradient(f: Callable, G: Callable, x) -> np.ndarray:
-    J = finite_difference_jacobian(G, x, 1e-6, Difference.CENTRAL)
-    return J.T @ gradient(f, np.asarray(G(np.asarray(x, float))))
+def chain_rule_gradient(f: Callable, g: Callable, x) -> np.ndarray:
+    jacobian = finite_difference_jacobian(g, x, 1e-6, Difference.CENTRAL)
+    return jacobian.T @ gradient(f, np.asarray(g(np.asarray(x, float))))
 
 
-def chain_rule_jacobian(F: Callable, G: Callable, x) -> np.ndarray:
+def chain_rule_jacobian(f: Callable, g: Callable, x) -> np.ndarray:
     x = np.asarray(x, float)
     return finite_difference_jacobian(
-        F, np.asarray(G(x)), 1e-6, Difference.CENTRAL
-    ) @ finite_difference_jacobian(G, x, 1e-6, Difference.CENTRAL)
+        f, np.asarray(g(x)), 1e-6, Difference.CENTRAL
+    ) @ finite_difference_jacobian(g, x, 1e-6, Difference.CENTRAL)

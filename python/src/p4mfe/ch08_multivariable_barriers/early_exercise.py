@@ -28,18 +28,18 @@ _TINY = sys.float_info.min
 # 8.10 ----------------------------------------------------------------------
 def binomial_price(
     option_type: OptionType,
-    S: float,
-    K: float,
-    T: float,
+    spot: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float,
     n: int,
     style: ExerciseStyle,
 ) -> float:
-    if n < 1 or not (T > 0 and sigma > 0):
+    if n < 1 or not (maturity > 0 and sigma > 0):
         raise ValueError("need n >= 1, T, sigma > 0")
-    dt = T / n
+    dt = maturity / n
     u = math.exp(sigma * math.sqrt(dt))
     d = 1 / u
     p = (math.exp((r - q) * dt) - d) / (u - d)
@@ -48,9 +48,9 @@ def binomial_price(
     disc = math.exp(-r * dt)
     pu = disc * p
     pd = disc * (1 - p)
-    # spot[n + k] = S u^k for k = -n..n; row i of the tree uses k = -i, -i+2, ..., i.
-    spot = S * u ** np.arange(-n, n + 1, dtype=float)
-    v = payoff(option_type, spot[::2], K)
+    # spots[n + k] = S u^k for k = -n..n; row i of the tree uses k = -i, -i+2, ..., i.
+    spots = spot * u ** np.arange(-n, n + 1, dtype=float)
+    v = payoff(option_type, spots[::2], strike)
     # Values far out of the money decay geometrically down the tree and reach
     # the subnormal range after about a thousand steps, where each operation
     # is very slow on Intel CPUs. Values below the smallest normal double
@@ -60,7 +60,9 @@ def binomial_price(
             v = pu * v[1:] + pd * v[:-1]
             v[v < _TINY] = 0.0
             np.maximum(
-                v, payoff(option_type, spot[n - i : n + i + 1 : 2], K), out=v
+                v,
+                payoff(option_type, spots[n - i : n + i + 1 : 2], strike),
+                out=v,
             )
         return float(v[0])
     # European: only nodes in [lo, hi] are nonzero (a put's zeros are at the
@@ -87,28 +89,44 @@ def binomial_price(
 
 def early_exercise_premium(
     option_type: OptionType,
-    S: float,
-    K: float,
-    T: float,
+    spot: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float,
     n: int = 500,
 ) -> float:
     return binomial_price(
-        option_type, S, K, T, sigma, r, q, n, ExerciseStyle.AMERICAN
+        option_type,
+        spot,
+        strike,
+        maturity,
+        sigma,
+        r,
+        q,
+        n,
+        ExerciseStyle.AMERICAN,
     ) - binomial_price(
-        option_type, S, K, T, sigma, r, q, n, ExerciseStyle.EUROPEAN
+        option_type,
+        spot,
+        strike,
+        maturity,
+        sigma,
+        r,
+        q,
+        n,
+        ExerciseStyle.EUROPEAN,
     )
 
 
 def call_exercise_loss(
-    S: float, K: float, tau: float, sigma: float, r: float
+    spot: float, strike: float, tau: float, sigma: float, r: float
 ) -> float:
     """C - (S - K) for q = 0."""
-    return bs_call(S, K, tau, sigma, r) - (S - K)
+    return bs_call(spot, strike, tau, sigma, r) - (spot - strike)
 
 
-def call_exercise_loss_bound(K: float, tau: float, r: float) -> float:
+def call_exercise_loss_bound(strike: float, tau: float, r: float) -> float:
     """K (1 - e^(-r tau))."""
-    return -K * math.expm1(-r * tau)
+    return -strike * math.expm1(-r * tau)

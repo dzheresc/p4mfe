@@ -31,46 +31,46 @@ def ex09_coefficients(
     return Ex09Coefficients(k - 0.5, (k + 0.5) ** 2 + 2 * q / sigma**2)
 
 
-def ex09_call_u0(x: float, K: float, a: float) -> float:
-    return K * math.exp(a * x) * max(math.exp(x) - 1.0, 0.0)
+def ex09_call_u0(x: float, strike: float, a: float) -> float:
+    return strike * math.exp(a * x) * max(math.exp(x) - 1.0, 0.0)
 
 
-def ex09_put_u0(x: float, K: float, a: float) -> float:
-    return K * math.exp(a * x) * max(1.0 - math.exp(x), 0.0)
+def ex09_put_u0(x: float, strike: float, a: float) -> float:
+    return strike * math.exp(a * x) * max(1.0 - math.exp(x), 0.0)
 
 
 def ex09_u(
     option_type: OptionType,
     x: float,
     tau: float,
-    K: float,
+    strike: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> float:
     c = ex09_coefficients(sigma, r, q)
-    S = K * math.exp(x)
+    spot = strike * math.exp(x)
     ttm = 2 * tau / sigma**2
-    V = (
-        bs_price(option_type, S, K, ttm, sigma, r, q)
+    value = (
+        bs_price(option_type, spot, strike, ttm, sigma, r, q)
         if ttm > 0
-        else float(payoff(option_type, S, K))
+        else float(payoff(option_type, spot, strike))
     )
-    return math.exp(c.a * x + c.b * tau) * V
+    return math.exp(c.a * x + c.b * tau) * value
 
 
 def ex09_heat_residual(
     option_type: OptionType,
     x: float,
     tau: float,
-    K: float,
+    strike: float,
     sigma: float,
     r: float,
     q: float = 0.0,
     h: float = 1e-4,
 ) -> float:
     def u(xx, tt):
-        return ex09_u(option_type, xx, tt, K, sigma, r, q)
+        return ex09_u(option_type, xx, tt, strike, sigma, r, q)
 
     u_tau = (u(x, tau + h) - u(x, tau - h)) / (2 * h)
     u_xx = (u(x + h, tau) - 2 * u(x, tau) + u(x - h, tau)) / (h * h)

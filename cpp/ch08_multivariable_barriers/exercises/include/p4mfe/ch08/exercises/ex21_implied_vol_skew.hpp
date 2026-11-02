@@ -33,44 +33,51 @@ namespace p4mfe::ch08::ex {
 // Check: generate prices from a known smile sigma(K), compute C'(K) by central
 // differences in K, and compare the right side with sigma'(K).
 struct SmileMarket {
-  double S = 100.0, T = 0.75, r = 0.04, q = 0.01;
+  double spot = 100.0, maturity = 0.75, r = 0.04, q = 0.01;
 };
 
-[[nodiscard]] inline double ex21_dsigma_dK(double K, double sigma_imp,
-                                           double dC_dK,
-                                           const SmileMarket& m = {}) {
-  const auto [d1, d2] = ch03::BsD1D2(m.S, K, m.T, sigma_imp, m.r, m.q);
-  return (dC_dK + std::exp(-m.r * m.T) * norm_cdf(d2)) /
-         (m.S * std::exp(-m.q * m.T) * std::sqrt(m.T) * norm_pdf(d1));
+[[nodiscard]] inline double Ex21DsigmaDK(double strike, double sigma_imp,
+                                         double d_call_d_strike,
+                                         const SmileMarket& m = {}) {
+  const auto [d1, d2] =
+      ch03::BsD1D2(m.spot, strike, m.maturity, sigma_imp, m.r, m.q);
+  return (d_call_d_strike + std::exp(-m.r * m.maturity) * norm_cdf(d2)) /
+         (m.spot * std::exp(-m.q * m.maturity) * std::sqrt(m.maturity) *
+          norm_pdf(d1));
 }
 
 // A smooth skewed smile for the checks: sigma(K) = 0.2 - 0.1 k + 0.15 k^2, k =
 // ln(K/S).
-[[nodiscard]] inline double ex21_smile(double K, const SmileMarket& m = {}) {
-  const double k = std::log(K / m.S);
+[[nodiscard]] inline double Ex21Smile(double strike,
+                                      const SmileMarket& m = {}) {
+  const double k = std::log(strike / m.spot);
   return 0.2 - 0.1 * k + 0.15 * k * k;
 }
-[[nodiscard]] inline double ex21_smile_slope(double K,
-                                             const SmileMarket& m = {}) {
-  const double k = std::log(K / m.S);
-  return (-0.1 + 0.3 * k) / K;
+[[nodiscard]] inline double Ex21SmileSlope(double strike,
+                                           const SmileMarket& m = {}) {
+  const double k = std::log(strike / m.spot);
+  return (-0.1 + 0.3 * k) / strike;
 }
-[[nodiscard]] inline double ex21_price(double K, const SmileMarket& m = {}) {
-  return ch03::BsCall(m.S, K, m.T, ex21_smile(K, m), m.r, m.q);
+[[nodiscard]] inline double Ex21Price(double strike,
+                                      const SmileMarket& m = {}) {
+  return ch03::BsCall(m.spot, strike, m.maturity, Ex21Smile(strike, m), m.r,
+                      m.q);
 }
 
 // sigma_imp'(K) from prices only: implied vol by Newton (chapter 3) and C'(K)
 // by central differences with step h K.
 template <std::invocable<double> Price>
-[[nodiscard]] double ex21_slope_from_prices(Price&& C, double K,
-                                            const SmileMarket& m = {},
-                                            double h = 1e-4) {
-  const double sigma = ch03::ImpliedVolNewton(ch03::OptionType::kCall, C(K),
-                                              m.S, K, m.T, m.r, m.q, 1e-12)
-                           .sigma;
-  const double dK = h * K;
-  const double dC = (C(K + dK) - C(K - dK)) / (2.0 * dK);
-  return ex21_dsigma_dK(K, sigma, dC, m);
+[[nodiscard]] double Ex21SlopeFromPrices(Price&& call, double strike,
+                                         const SmileMarket& m = {},
+                                         double h = 1e-4) {
+  const double sigma =
+      ch03::ImpliedVolNewton(ch03::OptionType::kCall, call(strike), m.spot,
+                             strike, m.maturity, m.r, m.q, 1e-12)
+          .sigma;
+  const double d_strike = h * strike;
+  const double d_call =
+      (call(strike + d_strike) - call(strike - d_strike)) / (2.0 * d_strike);
+  return Ex21DsigmaDK(strike, sigma, d_call, m);
 }
 
 }  // namespace p4mfe::ch08::ex

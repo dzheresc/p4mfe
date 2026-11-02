@@ -24,18 +24,21 @@ namespace p4mfe::ch08::ex {
 // The barrier knocks 0.455 (about 12%) off the vanilla value; the down-and-in
 // call is worth 0.455067.
 struct Ex16Market {
-  double S = 40.0, K = 40.0, B = 35.0, T = 0.5, sigma = 0.3, r = 0.05, q = 0.0;
+  double spot = 40.0, strike = 40.0, barrier = 35.0, maturity = 0.5,
+         sigma = 0.3, r = 0.05, q = 0.0;
 };
 
-[[nodiscard]] inline double ex16_formula_846(const Ex16Market& m = {}) {
+[[nodiscard]] inline double Ex16Formula846(const Ex16Market& m = {}) {
   const double p = 2.0 * (m.r - m.q) / (m.sigma * m.sigma) - 1.0;
-  return ch03::BsCall(m.S, m.K, m.T, m.sigma, m.r, m.q) -
-         std::pow(m.B / m.S, p) *
-             ch03::BsCall(m.B * m.B / m.S, m.K, m.T, m.sigma, m.r, m.q);
+  return ch03::BsCall(m.spot, m.strike, m.maturity, m.sigma, m.r, m.q) -
+         std::pow(m.barrier / m.spot, p) *
+             ch03::BsCall(m.barrier * m.barrier / m.spot, m.strike, m.maturity,
+                          m.sigma, m.r, m.q);
 }
 
-[[nodiscard]] inline double ex16_value(const Ex16Market& m = {}) {
-  return down_and_out_call(m.S, m.K, m.B, m.T, m.sigma, m.r, m.q);
+[[nodiscard]] inline double Ex16Value(const Ex16Market& m = {}) {
+  return DownAndOutCall(m.spot, m.strike, m.barrier, m.maturity, m.sigma, m.r,
+                        m.q);
 }
 
 // ----------------------------------------------------------- Exercise 17 ---
@@ -62,19 +65,25 @@ struct Ex16Market {
 //
 // The same holds for any r, q: (B/S)^p C(B^2/S) <= (B/S)^p (B^2/S) e^(-qT)
 // N(d1) and N(d1) decays like phi(d1), faster than any power of B.
-[[nodiscard]] inline double ex17_bracket(double S, double K, double B, double T,
-                                         double sigma) {
-  const double st = sigma * std::sqrt(T);
-  const double d1 = (std::log(B * B / (S * K)) + 0.5 * sigma * sigma * T) / st;
-  return B * norm_cdf(d1) - S * K / B * norm_cdf(d1 - st);
+[[nodiscard]] inline double Ex17Bracket(double spot, double strike,
+                                        double barrier, double maturity,
+                                        double sigma) {
+  const double st = sigma * std::sqrt(maturity);
+  const double d1 = (std::log(barrier * barrier / (spot * strike)) +
+                     0.5 * sigma * sigma * maturity) /
+                    st;
+  return barrier * norm_cdf(d1) - spot * strike / barrier * norm_cdf(d1 - st);
 }
 
 // (1/B) N(d2), the term the hint asks about.
-[[nodiscard]] inline double ex17_n_d2_over_b(double S, double K, double B,
-                                             double T, double sigma) {
-  const double st = sigma * std::sqrt(T);
-  const double d2 = (std::log(B * B / (S * K)) - 0.5 * sigma * sigma * T) / st;
-  return norm_cdf(d2) / B;
+[[nodiscard]] inline double Ex17ND2OverB(double spot, double strike,
+                                         double barrier, double maturity,
+                                         double sigma) {
+  const double st = sigma * std::sqrt(maturity);
+  const double d2 = (std::log(barrier * barrier / (spot * strike)) -
+                     0.5 * sigma * sigma * maturity) /
+                    st;
+  return norm_cdf(d2) / barrier;
 }
 
 }  // namespace p4mfe::ch08::ex

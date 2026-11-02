@@ -15,29 +15,31 @@ from p4mfe.ch03_probability_black_scholes.black_scholes import OptionType, bs_d1
 
 @dataclass(frozen=True)
 class Ex01Market:
-    K: float = 50.0
-    T: float = 0.5
+    strike: float = 50.0
+    maturity: float = 0.5
     sigma: float = 0.3
     r: float = 0.05
 
 
-def ex01_gamma(S: float, m: Ex01Market = Ex01Market()) -> float:
-    return bs_greeks(OptionType.CALL, S, m.K, m.T, m.sigma, m.r, 0.0).gamma
+def ex01_gamma(spot: float, m: Ex01Market = Ex01Market()) -> float:
+    return bs_greeks(
+        OptionType.CALL, spot, m.strike, m.maturity, m.sigma, m.r, 0.0
+    ).gamma
 
 
 def ex01_argmax(m: Ex01Market = Ex01Market()) -> float:
-    return m.K * math.exp(-(m.r + 1.5 * m.sigma**2) * m.T)
+    return m.strike * math.exp(-(m.r + 1.5 * m.sigma**2) * m.maturity)
 
 
 def ex01_max_gamma(m: Ex01Market = Ex01Market()) -> float:
     s = ex01_argmax(m)
-    return math.exp(-0.5 * m.sigma**2 * m.T) / (
-        s * m.sigma * math.sqrt(2 * math.pi * m.T)
+    return math.exp(-0.5 * m.sigma**2 * m.maturity) / (
+        s * m.sigma * math.sqrt(2 * math.pi * m.maturity)
     )
 
 
-def ex01_log_derivative(S: float, m: Ex01Market = Ex01Market()) -> float:
+def ex01_log_derivative(spot: float, m: Ex01Market = Ex01Market()) -> float:
     """d/dS ln Gamma = -(sigma sqrt(T) + d1) / (S sigma sqrt(T))."""
-    st = m.sigma * math.sqrt(m.T)
-    d1, _ = bs_d1_d2(S, m.K, m.T, m.sigma, m.r, 0.0)
-    return -(st + d1) / (S * st)
+    st = m.sigma * math.sqrt(m.maturity)
+    d1, _ = bs_d1_d2(spot, m.strike, m.maturity, m.sigma, m.r, 0.0)
+    return -(st + d1) / (spot * st)

@@ -24,80 +24,82 @@
 
 namespace p4mfe::ch08 {
 
-enum class CriticalPointType { Minimum, Maximum, Saddle, Degenerate };
+enum class CriticalPointType { kMinimum, kMaximum, kSaddle, kDegenerate };
 
 // Determinant by Gaussian elimination with partial pivoting.
-[[nodiscard]] inline double determinant(ch01::Matrix A) {
-  const std::size_t n = A.size();
+[[nodiscard]] inline double Determinant(ch01::Matrix matrix) {
+  const std::size_t n = matrix.size();
   double det = 1.0;
   for (std::size_t k = 0; k < n; ++k) {
     std::size_t p = k;
     for (std::size_t i = k + 1; i < n; ++i)
-      if (std::abs(A[i][k]) > std::abs(A[p][k])) p = i;
-    if (A[p][k] == 0.0) return 0.0;
+      if (std::abs(matrix[i][k]) > std::abs(matrix[p][k])) p = i;
+    if (matrix[p][k] == 0.0) return 0.0;
     if (p != k) {
-      std::swap(A[p], A[k]);
+      std::swap(matrix[p], matrix[k]);
       det = -det;
     }
-    det *= A[k][k];
+    det *= matrix[k][k];
     for (std::size_t i = k + 1; i < n; ++i) {
-      const double m = A[i][k] / A[k][k];
-      for (std::size_t j = k; j < n; ++j) A[i][j] -= m * A[k][j];
+      const double m = matrix[i][k] / matrix[k][k];
+      for (std::size_t j = k; j < n; ++j) matrix[i][j] -= m * matrix[k][j];
     }
   }
   return det;
 }
 
 // D_1, ..., D_n: determinants of the upper-left k x k blocks.
-[[nodiscard]] inline std::vector<double> leading_principal_minors(
-    const ch01::Matrix& H) {
-  std::vector<double> D;
-  for (std::size_t k = 1; k <= H.size(); ++k) {
-    ch01::Matrix B(k, ch01::Vector(k));
+[[nodiscard]] inline std::vector<double> LeadingPrincipalMinors(
+    const ch01::Matrix& hessian) {
+  std::vector<double> minors;
+  for (std::size_t k = 1; k <= hessian.size(); ++k) {
+    ch01::Matrix block(k, ch01::Vector(k));
     for (std::size_t i = 0; i < k; ++i)
-      for (std::size_t j = 0; j < k; ++j) B[i][j] = H[i][j];
-    D.push_back(determinant(std::move(B)));
+      for (std::size_t j = 0; j < k; ++j) block[i][j] = hessian[i][j];
+    minors.push_back(Determinant(std::move(block)));
   }
-  return D;
+  return minors;
 }
 
 // ---------------------------------------------------------------- 8.4 ------
 // `tol` treats |D_k| <= tol as zero (Hessians from finite differences are
 // only accurate to ~1e-7).
-[[nodiscard]] inline CriticalPointType classify_hessian(const ch01::Matrix& H,
-                                                        double tol = 1e-6) {
-  if (H.empty()) throw std::invalid_argument("classify_hessian: empty matrix");
-  const auto D = leading_principal_minors(H);
-  if (std::abs(D.back()) <= tol) return CriticalPointType::Degenerate;
+[[nodiscard]] inline CriticalPointType ClassifyHessian(
+    const ch01::Matrix& hessian, double tol = 1e-6) {
+  if (hessian.empty())
+    throw std::invalid_argument("classify_hessian: empty matrix");
+  const auto minors = LeadingPrincipalMinors(hessian);
+  if (std::abs(minors.back()) <= tol) return CriticalPointType::kDegenerate;
   bool pos = true, neg = true;
-  for (std::size_t k = 0; k < D.size(); ++k) {
-    pos = pos && D[k] > tol;
-    neg = neg && (k % 2 == 0 ? D[k] < -tol : D[k] > tol);
+  for (std::size_t k = 0; k < minors.size(); ++k) {
+    pos = pos && minors[k] > tol;
+    neg = neg && (k % 2 == 0 ? minors[k] < -tol : minors[k] > tol);
   }
-  if (pos) return CriticalPointType::Minimum;
-  if (neg) return CriticalPointType::Maximum;
-  return CriticalPointType::Saddle;
+  if (pos) return CriticalPointType::kMinimum;
+  if (neg) return CriticalPointType::kMaximum;
+  return CriticalPointType::kSaddle;
 }
 
 template <class F>
-[[nodiscard]] CriticalPointType classify_critical_point(F&& f,
-                                                        const ch01::Vector& x,
-                                                        double tol = 1e-6) {
-  return classify_hessian(ch01::Hessian(f, x), tol);
+[[nodiscard]] CriticalPointType ClassifyCriticalPoint(F&& f,
+                                                      const ch01::Vector& x,
+                                                      double tol = 1e-6) {
+  return ClassifyHessian(ch01::Hessian(f, x), tol);
 }
 
 // Solves grad f(x) = 0 by Newton's method from x0.
 template <class F>
-[[nodiscard]] ch01::Vector find_critical_point(F&& f, ch01::Vector x0,
-                                               const ch05::Tolerances& tol = {
-                                                   1e-8, 1e-10, 100}) {
+[[nodiscard]] ch01::Vector FindCriticalPoint(F&& f, ch01::Vector x0,
+                                             const ch05::Tolerances& tol = {
+                                                 1e-8, 1e-10, 100}) {
   const auto grad = [&](const ch05::Vector& x) { return ch01::Gradient(f, x); };
   const auto hess = [&](const ch05::Vector& x) {
-    const auto H = ch01::Hessian(f, x);
-    ch05::Matrix M(H.size(), H.size());
-    for (std::size_t i = 0; i < H.size(); ++i)
-      for (std::size_t j = 0; j < H.size(); ++j) M(i, j) = H[i][j];
-    return M;
+    const auto hessian = ch01::Hessian(f, x);
+    ch05::Matrix hessian_matrix(hessian.size(), hessian.size());
+    for (std::size_t i = 0; i < hessian.size(); ++i)
+      for (std::size_t j = 0; j < hessian.size(); ++j)
+        hessian_matrix(i, j) = hessian[i][j];
+    return hessian_matrix;
   };
   return ch05::NewtonNd(grad, hess, std::move(x0), tol).x;
 }

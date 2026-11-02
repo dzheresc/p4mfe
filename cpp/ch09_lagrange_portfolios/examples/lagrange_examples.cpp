@@ -7,10 +7,10 @@
 namespace {
 const char* name(p4mfe::ch09::CriticalPointType t) {
   using T = p4mfe::ch09::CriticalPointType;
-  return t == T::Minimum   ? "minimum"
-         : t == T::Maximum ? "maximum"
-         : t == T::Saddle  ? "saddle"
-                           : "degenerate";
+  return t == T::kMinimum   ? "minimum"
+         : t == T::kMaximum ? "maximum"
+         : t == T::kSaddle  ? "saddle"
+                            : "degenerate";
 }
 }  // namespace
 

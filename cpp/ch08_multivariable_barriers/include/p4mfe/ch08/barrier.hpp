@@ -26,56 +26,63 @@ namespace p4mfe::ch08 {
 using ch01::OptionType;
 
 // ---------------------------------------------------------------- 8.9 ------
-[[nodiscard]] inline double image_exponent(double sigma, double r,
-                                           double q = 0.0) noexcept {
+[[nodiscard]] inline double ImageExponent(double sigma, double r,
+                                          double q = 0.0) noexcept {
   return 2.0 * (r - q) / (sigma * sigma) - 1.0;
 }
 
 // V*(S) = (B/S)^(k1 - 1) V(B^2/S).
 template <std::invocable<double> V>
-[[nodiscard]] double barrier_image(V&& v, double S, double B, double sigma,
-                                   double r, double q = 0.0) {
-  return std::pow(B / S, image_exponent(sigma, r, q)) * v(B * B / S);
+[[nodiscard]] double BarrierImage(V&& v, double spot, double barrier,
+                                  double sigma, double r, double q = 0.0) {
+  return std::pow(barrier / spot, ImageExponent(sigma, r, q)) *
+         v(barrier * barrier / spot);
 }
 
-[[nodiscard]] inline double down_and_out_call(double S, double K, double B,
-                                              double T, double sigma, double r,
-                                              double q = 0.0) {
-  if (S <= B) return 0.0;
-  const auto W = [&](double s) {
-    if (B <= K) return ch03::BsCall(s, K, T, sigma, r, q);
-    return ch03::BsCall(s, B, T, sigma, r, q) +
-           (B - K) *
-               ch04::CashOrNothing(OptionType::kCall, s, B, T, sigma, r, q);
-  };
-  return W(S) - barrier_image(W, S, B, sigma, r, q);
-}
-
-[[nodiscard]] inline double down_and_in_call(double S, double K, double B,
-                                             double T, double sigma, double r,
-                                             double q = 0.0) {
-  return ch03::BsCall(S, K, T, sigma, r, q) -
-         down_and_out_call(S, K, B, T, sigma, r, q);
-}
-
-[[nodiscard]] inline double up_and_out_put(double S, double K, double B,
-                                           double T, double sigma, double r,
+[[nodiscard]] inline double DownAndOutCall(double spot, double strike,
+                                           double barrier, double maturity,
+                                           double sigma, double r,
                                            double q = 0.0) {
-  if (S >= B) return 0.0;
-  const auto W = [&](double s) {
-    if (B >= K) return ch03::BsPut(s, K, T, sigma, r, q);
-    return ch03::BsPut(s, B, T, sigma, r, q) +
-           (K - B) *
-               ch04::CashOrNothing(OptionType::kPut, s, B, T, sigma, r, q);
+  if (spot <= barrier) return 0.0;
+  const auto vanilla = [&](double s) {
+    if (barrier <= strike)
+      return ch03::BsCall(s, strike, maturity, sigma, r, q);
+    return ch03::BsCall(s, barrier, maturity, sigma, r, q) +
+           (barrier - strike) * ch04::CashOrNothing(OptionType::kCall, s,
+                                                    barrier, maturity, sigma, r,
+                                                    q);
   };
-  return W(S) - barrier_image(W, S, B, sigma, r, q);
+  return vanilla(spot) - BarrierImage(vanilla, spot, barrier, sigma, r, q);
 }
 
-[[nodiscard]] inline double up_and_in_put(double S, double K, double B,
-                                          double T, double sigma, double r,
+[[nodiscard]] inline double DownAndInCall(double spot, double strike,
+                                          double barrier, double maturity,
+                                          double sigma, double r,
                                           double q = 0.0) {
-  return ch03::BsPut(S, K, T, sigma, r, q) -
-         up_and_out_put(S, K, B, T, sigma, r, q);
+  return ch03::BsCall(spot, strike, maturity, sigma, r, q) -
+         DownAndOutCall(spot, strike, barrier, maturity, sigma, r, q);
+}
+
+[[nodiscard]] inline double UpAndOutPut(double spot, double strike,
+                                        double barrier, double maturity,
+                                        double sigma, double r,
+                                        double q = 0.0) {
+  if (spot >= barrier) return 0.0;
+  const auto vanilla = [&](double s) {
+    if (barrier >= strike) return ch03::BsPut(s, strike, maturity, sigma, r, q);
+    return ch03::BsPut(s, barrier, maturity, sigma, r, q) +
+           (strike - barrier) * ch04::CashOrNothing(OptionType::kPut, s,
+                                                    barrier, maturity, sigma, r,
+                                                    q);
+  };
+  return vanilla(spot) - BarrierImage(vanilla, spot, barrier, sigma, r, q);
+}
+
+[[nodiscard]] inline double UpAndInPut(double spot, double strike,
+                                       double barrier, double maturity,
+                                       double sigma, double r, double q = 0.0) {
+  return ch03::BsPut(spot, strike, maturity, sigma, r, q) -
+         UpAndOutPut(spot, strike, barrier, maturity, sigma, r, q);
 }
 
 }  // namespace p4mfe::ch08

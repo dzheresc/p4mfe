@@ -29,7 +29,7 @@ namespace ch08 = p4mfe::ch08;
 using p4mfe::bench::check;
 using p4mfe::bench::set_items;
 
-void BM_box_muller_inverse(benchmark::State& state) {
+void BmBoxMullerInverse(benchmark::State& state) {
   const std::size_t n =
       p4mfe::bench::by_tier<std::size_t>(10'000, 1'000'000, 10'000'000);
   std::mt19937_64 rng(42);
@@ -42,7 +42,7 @@ void BM_box_muller_inverse(benchmark::State& state) {
   for (auto _ : state) {
     double sum = 0.0;
     for (std::size_t i = 0; i < n; ++i) {
-      const auto [u1, u2] = ch08::box_muller_inverse(z1[i], z2[i]);
+      const auto [u1, u2] = ch08::BoxMullerInverse(z1[i], z2[i]);
       sum += u1 + u2;
     }
     benchmark::DoNotOptimize(sum);
@@ -50,84 +50,89 @@ void BM_box_muller_inverse(benchmark::State& state) {
   set_items(state, n, "pairs");
 }
 
-void BM_chain_rule(benchmark::State& state) {
+void BmChainRule(benchmark::State& state) {
   // f: R^10 -> R, G: R^10 -> R^10, g: R -> R^10.
-  constexpr std::size_t n = 10;
+  constexpr std::size_t kN = 10;
   const auto f = [](const ch08::Vector& x) {
     double s = 0.0;
     for (std::size_t i = 0; i < x.size(); ++i)
       s += std::sin(x[i]) * static_cast<double>(i + 1);
     return s;
   };
-  const auto Fv = [](const ch08::Vector& x) {
+  const auto f_vec = [](const ch08::Vector& x) {
     ch08::Vector y(x.size());
     for (std::size_t i = 0; i < x.size(); ++i)
       y[i] = x[i] * x[(i + 1) % x.size()];
     return y;
   };
-  const auto G = [](const ch08::Vector& x) {
+  const auto g_vec = [](const ch08::Vector& x) {
     ch08::Vector y(x.size());
     for (std::size_t i = 0; i < x.size(); ++i) y[i] = std::exp(0.1 * x[i]);
     return y;
   };
   const auto g = [](double t) {
-    ch08::Vector y(n);
-    for (std::size_t i = 0; i < n; ++i)
+    ch08::Vector y(kN);
+    for (std::size_t i = 0; i < kN; ++i)
       y[i] = std::cos(t * static_cast<double>(i + 1));
     return y;
   };
-  const ch08::Vector x(n, 0.3);
+  const ch08::Vector x(kN, 0.3);
   // d/dt f(g(t)) by the chain rule against a direct difference.
   const double direct =
       p4mfe::ch01::Derivative([&](double t) { return f(g(t)); }, 0.4);
   if (!check(state,
-             std::abs(ch08::chain_rule_derivative(f, g, 0.4) - direct) < 1e-5,
+             std::abs(ch08::ChainRuleDerivative(f, g, 0.4) - direct) < 1e-5,
              "chain rule is off"))
     return;
   for (auto _ : state) {
-    auto d = ch08::curve_derivative(g, 0.4);
-    auto c = ch08::chain_rule_derivative(f, g, 0.4);
-    auto gr = ch08::chain_rule_gradient(f, G, x);
-    auto J = ch08::chain_rule_jacobian(Fv, G, x);
-    auto JJ = ch08::multiply(J, J);
+    auto d = ch08::CurveDerivative(g, 0.4);
+    auto c = ch08::ChainRuleDerivative(f, g, 0.4);
+    auto gr = ch08::ChainRuleGradient(f, g_vec, x);
+    auto jacobian = ch08::ChainRuleJacobian(f_vec, g_vec, x);
+    auto jacobian_sq = ch08::Multiply(jacobian, jacobian);
     benchmark::DoNotOptimize(d);
     benchmark::DoNotOptimize(c);
     benchmark::DoNotOptimize(gr);
-    benchmark::DoNotOptimize(JJ);
+    benchmark::DoNotOptimize(jacobian_sq);
   }
-  set_items(state, n, "dimensions");
+  set_items(state, kN, "dimensions");
 }
 
-void BM_double_integrals(benchmark::State& state) {
+void BmDoubleIntegrals(benchmark::State& state) {
   const auto gauss = [](double x, double y) {
     return std::exp(-0.5 * (x * x + y * y));
   };
   const auto polar = [](double r, double t) {
     return ch08::Point2{r * std::cos(t), r * std::sin(t)};
   };
-  const double R = 4.0;
-  const double disk = ch08::change_of_variables_integral(
-      gauss, polar, 0.0, R, 0.0, 2.0 * std::numbers::pi, 100, 100);
-  const double exact = 2.0 * std::numbers::pi * (1.0 - std::exp(-0.5 * R * R));
+  const double radius = 4.0;
+  const double disk = ch08::ChangeOfVariablesIntegral(
+      gauss, polar, 0.0, radius, 0.0, 2.0 * std::numbers::pi, 100, 100);
+  const double exact =
+      2.0 * std::numbers::pi * (1.0 - std::exp(-0.5 * radius * radius));
   if (!check(state, std::abs(disk - exact) < 1e-6,
              "change of variables integral is off"))
     return;
   for (auto _ : state) {
-    double sum = ch08::change_of_variables_integral(
-        gauss, polar, 0.0, R, 0.0, 2.0 * std::numbers::pi, 100, 100);
+    double sum = ch08::ChangeOfVariablesIntegral(
+        gauss, polar, 0.0, radius, 0.0, 2.0 * std::numbers::pi, 100, 100);
     // The disk again as a region: y between -sqrt(R^2 - x^2) and +sqrt(R^2 -
     // x^2).
-    sum += ch08::double_integral_region(
-        gauss, -R, R,
-        [R](double x) { return -std::sqrt(std::max(R * R - x * x, 0.0)); },
-        [R](double x) { return std::sqrt(std::max(R * R - x * x, 0.0)); });
-    sum += ch08::gaussian_square_integral(R) +
-           ch08::jacobian_determinant(polar, 1.0, 0.5);
+    sum += ch08::DoubleIntegralRegion(
+        gauss, -radius, radius,
+        [radius](double x) {
+          return -std::sqrt(std::max(radius * radius - x * x, 0.0));
+        },
+        [radius](double x) {
+          return std::sqrt(std::max(radius * radius - x * x, 0.0));
+        });
+    sum += ch08::GaussianSquareIntegral(radius) +
+           ch08::JacobianDeterminant(polar, 1.0, 0.5);
     benchmark::DoNotOptimize(sum);
   }
 }
 
-void BM_critical_points(benchmark::State& state) {
+void BmCriticalPoints(benchmark::State& state) {
   // A convex 5-asset mean-variance objective and a saddle.
   const auto bowl = [](const p4mfe::ch01::Vector& w) {
     double s = 0.0;
@@ -139,70 +144,70 @@ void BM_critical_points(benchmark::State& state) {
     return v[0] * v[0] - v[1] * v[1];
   };
   const p4mfe::ch01::Vector x0(5, 0.0);
-  const auto xs = ch08::find_critical_point(bowl, x0);
+  const auto xs = ch08::FindCriticalPoint(bowl, x0);
   if (!check(state,
-             ch08::classify_critical_point(bowl, xs) ==
-                     ch08::CriticalPointType::Minimum &&
-                 ch08::classify_critical_point(saddle, {0.0, 0.0}) ==
-                     ch08::CriticalPointType::Saddle,
+             ch08::ClassifyCriticalPoint(bowl, xs) ==
+                     ch08::CriticalPointType::kMinimum &&
+                 ch08::ClassifyCriticalPoint(saddle, {0.0, 0.0}) ==
+                     ch08::CriticalPointType::kSaddle,
              "critical points misclassified"))
     return;
   for (auto _ : state) {
-    auto x = ch08::find_critical_point(bowl, x0);
-    auto t = ch08::classify_critical_point(bowl, x);
+    auto x = ch08::FindCriticalPoint(bowl, x0);
+    auto t = ch08::ClassifyCriticalPoint(bowl, x);
     benchmark::DoNotOptimize(x);
     benchmark::DoNotOptimize(t);
   }
 }
 
-void BM_exercise_and_heat(benchmark::State& state) {
+void BmExerciseAndHeat(benchmark::State& state) {
   const auto spec = p4mfe::bench::chain_spec_for_tier();
   const auto chain = p4mfe::bench::make_option_chain(spec);
   const auto& o = chain[chain.size() / 2];
-  const auto payoff = [K = o.K](double s) { return std::max(s - K, 0.0); };
+  const auto payoff = [strike = o.K](double s) {
+    return std::max(s - strike, 0.0);
+  };
   const double bs = ch03::BsPrice(p4mfe::ch01::OptionType::kCall, o.S, o.K, o.T,
                                   o.sigma, spec.r, spec.q);
   if (!check(state,
-             std::abs(ch08::bs_price_via_heat(payoff, o.S, o.K, o.T, o.sigma,
-                                              spec.r, spec.q) -
+             std::abs(ch08::BsPriceViaHeat(payoff, o.S, o.K, o.T, o.sigma,
+                                           spec.r, spec.q) -
                       bs) < 1e-4 * bs,
              "heat-equation price differs from Black-Scholes"))
     return;
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& c : chain) {
-      sum += ch08::call_exercise_loss(c.S, c.K, c.T, c.sigma, spec.r);
-      sum += ch08::call_exercise_loss_bound(c.K, c.T, spec.r);
-      sum += ch08::to_heat_variables(c.S, c.K, c.T, c.sigma).tau;
+      sum += ch08::CallExerciseLoss(c.S, c.K, c.T, c.sigma, spec.r);
+      sum += ch08::CallExerciseLossBound(c.K, c.T, spec.r);
+      sum += ch08::ToHeatVariables(c.S, c.K, c.T, c.sigma).tau;
     }
-    sum +=
-        ch08::bs_price_via_heat(payoff, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
-    sum += ch08::heat_solution([](double x) { return std::exp(-x * x); }, 0.1,
-                               0.05);
-    sum += ch08::theta_from_maturity(
+    sum += ch08::BsPriceViaHeat(payoff, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
+    sum += ch08::HeatSolution([](double x) { return std::exp(-x * x); }, 0.1,
+                              0.05);
+    sum += ch08::ThetaFromMaturity(
         [&](double tau) {
           return ch03::BsPrice(p4mfe::ch01::OptionType::kCall, o.S, o.K, tau,
                                o.sigma, spec.r, spec.q);
         },
         o.T);
-    sum += ch08::theta_by_integral(payoff, o.S, o.T, o.sigma, spec.r, spec.q);
+    sum += ch08::ThetaByIntegral(payoff, o.S, o.T, o.sigma, spec.r, spec.q);
     benchmark::DoNotOptimize(sum);
   }
   set_items(state, chain.size(), "options");
 }
 
-const bool registered = [] {
-  benchmark::RegisterBenchmark("W5/ch08/box_muller_inverse",
-                               BM_box_muller_inverse)
+const bool kRegistered = [] {
+  benchmark::RegisterBenchmark("W5/ch08/box_muller_inverse", BmBoxMullerInverse)
       ->Unit(benchmark::kMillisecond);
-  benchmark::RegisterBenchmark("W6/ch08/chain_rule_10d", BM_chain_rule)
+  benchmark::RegisterBenchmark("W6/ch08/chain_rule_10d", BmChainRule)
       ->Unit(benchmark::kMicrosecond);
-  benchmark::RegisterBenchmark("W4/ch08/double_integrals", BM_double_integrals)
+  benchmark::RegisterBenchmark("W4/ch08/double_integrals", BmDoubleIntegrals)
       ->Unit(benchmark::kMillisecond);
-  benchmark::RegisterBenchmark("W6/ch08/critical_points", BM_critical_points)
+  benchmark::RegisterBenchmark("W6/ch08/critical_points", BmCriticalPoints)
       ->Unit(benchmark::kMicrosecond);
   benchmark::RegisterBenchmark("W1/ch08/exercise_loss+heat+theta",
-                               BM_exercise_and_heat)
+                               BmExerciseAndHeat)
       ->Unit(benchmark::kMillisecond);
   return true;
 }();

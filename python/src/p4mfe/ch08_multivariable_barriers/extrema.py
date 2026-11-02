@@ -24,25 +24,29 @@ class CriticalPointType(Enum):
     DEGENERATE = "degenerate"
 
 
-def determinant(A) -> float:
-    return float(np.linalg.det(np.asarray(A, float)))
+def determinant(matrix) -> float:
+    return float(np.linalg.det(np.asarray(matrix, float)))
 
 
-def leading_principal_minors(H) -> list[float]:
-    H = np.asarray(H, float)
-    return [determinant(H[:k, :k]) for k in range(1, H.shape[0] + 1)]
+def leading_principal_minors(hessian) -> list[float]:
+    hessian = np.asarray(hessian, float)
+    return [
+        determinant(hessian[:k, :k]) for k in range(1, hessian.shape[0] + 1)
+    ]
 
 
 # 8.4 -----------------------------------------------------------------------
-def classify_hessian(H, tol: float = 1e-6) -> CriticalPointType:
-    D = leading_principal_minors(H)
-    if not D:
+def classify_hessian(hessian, tol: float = 1e-6) -> CriticalPointType:
+    minors = leading_principal_minors(hessian)
+    if not minors:
         raise ValueError("empty matrix")
-    if abs(D[-1]) <= tol:
+    if abs(minors[-1]) <= tol:
         return CriticalPointType.DEGENERATE
-    if all(d > tol for d in D):
+    if all(d > tol for d in minors):
         return CriticalPointType.MINIMUM
-    if all((d < -tol) if k % 2 == 0 else (d > tol) for k, d in enumerate(D)):
+    if all(
+        (d < -tol) if k % 2 == 0 else (d > tol) for k, d in enumerate(minors)
+    ):
         return CriticalPointType.MAXIMUM
     return CriticalPointType.SADDLE
 
