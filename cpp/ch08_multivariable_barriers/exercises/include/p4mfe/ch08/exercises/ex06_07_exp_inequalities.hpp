@@ -17,11 +17,9 @@ namespace p4mfe::ch08::ex {
 // Numerically e^pi = 23.140693 and pi^e = 22.459158.
 // (More generally, for e <= a < b: a^b > b^a, since f is decreasing on [e,
 // inf).)
-[[nodiscard]] inline double ex06_f(double x) { return std::log(x) / x; }
-[[nodiscard]] inline double ex06_e_pow_pi() {
-  return std::exp(std::numbers::pi);
-}
-[[nodiscard]] inline double ex06_pi_pow_e() {
+[[nodiscard]] inline double Ex06F(double x) { return std::log(x) / x; }
+[[nodiscard]] inline double Ex06EPowPi() { return std::exp(std::numbers::pi); }
+[[nodiscard]] inline double Ex06PiPowE() {
   return std::pow(std::numbers::pi, std::numbers::e);
 }
 
@@ -35,13 +33,13 @@ namespace p4mfe::ch08::ex {
 // midpoint is at most the average of its values at x and y.
 // The gap is (e^(x/2) - e^(y/2))^2 / 2; ex07_gap computes it in this form so it
 // is accurate even when x and y are close.
-[[nodiscard]] inline double ex07_lhs(double x, double y) {
+[[nodiscard]] inline double Ex07Lhs(double x, double y) {
   return 0.5 * (std::exp(x) + std::exp(y));
 }
-[[nodiscard]] inline double ex07_rhs(double x, double y) {
+[[nodiscard]] inline double Ex07Rhs(double x, double y) {
   return std::exp(0.5 * (x + y));
 }
-[[nodiscard]] inline double ex07_gap(double x, double y) {
+[[nodiscard]] inline double Ex07Gap(double x, double y) {
   const double d = std::exp(0.5 * x) - std::exp(0.5 * y);
   return 0.5 * d * d;
 }

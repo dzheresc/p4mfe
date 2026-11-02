@@ -18,43 +18,61 @@ from p4mfe.normal import norm_cdf, norm_pdf
 
 @dataclass(frozen=True)
 class SmileMarket:
-    S: float = 100.0
-    T: float = 0.75
+    spot: float = 100.0
+    maturity: float = 0.75
     r: float = 0.04
     q: float = 0.01
 
 
-def ex21_dsigma_dK(
-    K: float, sigma_imp: float, dC_dK: float, m: SmileMarket = SmileMarket()
+def ex21_dsigma_dk(
+    strike: float,
+    sigma_imp: float,
+    d_call_d_strike: float,
+    m: SmileMarket = SmileMarket(),
 ) -> float:
-    d1, d2 = bs_d1_d2(m.S, K, m.T, sigma_imp, m.r, m.q)
-    return (dC_dK + math.exp(-m.r * m.T) * norm_cdf(d2)) / (
-        m.S * math.exp(-m.q * m.T) * math.sqrt(m.T) * norm_pdf(d1)
+    d1, d2 = bs_d1_d2(m.spot, strike, m.maturity, sigma_imp, m.r, m.q)
+    return (d_call_d_strike + math.exp(-m.r * m.maturity) * norm_cdf(d2)) / (
+        m.spot
+        * math.exp(-m.q * m.maturity)
+        * math.sqrt(m.maturity)
+        * norm_pdf(d1)
     )
 
 
-def ex21_smile(K: float, m: SmileMarket = SmileMarket()) -> float:
-    k = math.log(K / m.S)
+def ex21_smile(strike: float, m: SmileMarket = SmileMarket()) -> float:
+    k = math.log(strike / m.spot)
     return 0.2 - 0.1 * k + 0.15 * k * k
 
 
-def ex21_smile_slope(K: float, m: SmileMarket = SmileMarket()) -> float:
-    k = math.log(K / m.S)
-    return (-0.1 + 0.3 * k) / K
+def ex21_smile_slope(strike: float, m: SmileMarket = SmileMarket()) -> float:
+    k = math.log(strike / m.spot)
+    return (-0.1 + 0.3 * k) / strike
 
 
-def ex21_price(K: float, m: SmileMarket = SmileMarket()) -> float:
-    return bs_call(m.S, K, m.T, ex21_smile(K, m), m.r, m.q)
+def ex21_price(strike: float, m: SmileMarket = SmileMarket()) -> float:
+    return bs_call(m.spot, strike, m.maturity, ex21_smile(strike, m), m.r, m.q)
 
 
 def ex21_slope_from_prices(
-    C: Callable[[float], float],
-    K: float,
+    call: Callable[[float], float],
+    strike: float,
     m: SmileMarket = SmileMarket(),
     h: float = 1e-4,
 ) -> float:
     sigma = implied_vol_newton(
-        OptionType.CALL, C(K), m.S, K, m.T, m.r, m.q, 1e-12
+        OptionType.CALL,
+        call(strike),
+        m.spot,
+        strike,
+        m.maturity,
+        m.r,
+        m.q,
+        1e-12,
     ).sigma
-    dK = h * K
-    return ex21_dsigma_dK(K, sigma, (C(K + dK) - C(K - dK)) / (2 * dK), m)
+    d_strike = h * strike
+    return ex21_dsigma_dk(
+        strike,
+        sigma,
+        (call(strike + d_strike) - call(strike - d_strike)) / (2 * d_strike),
+        m,
+    )

@@ -190,7 +190,7 @@ template <class F, ch05::VectorFunction G>
       for (std::size_t r = 0; r < x.size(); ++r)
         for (std::size_t c = 0; c < x.size(); ++c)
           R[a][b] += Z[a][r] * H[r][c] * Z[b][c];
-  return ch08::classify_hessian(R, tol);
+  return ch08::ClassifyHessian(R, tol);
 }
 
 }  // namespace p4mfe::ch09

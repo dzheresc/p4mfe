@@ -22,17 +22,17 @@ def _one(x, y):
     return np.ones_like(np.asarray(y, float))
 
 
-def ex04_disk_area_polar(R: float, n: int = 50) -> float:
-    return polar_integral(_one, 0.0, R, 0.0, 2 * math.pi, n, n)
+def ex04_disk_area_polar(radius: float, n: int = 50) -> float:
+    return polar_integral(_one, 0.0, radius, 0.0, 2 * math.pi, n, n)
 
 
-def ex04_disk_area_cartesian(R: float, n: int = 2000) -> float:
+def ex04_disk_area_cartesian(radius: float, n: int = 2000) -> float:
     return double_integral_region(
         _one,
-        -R,
-        R,
-        lambda x: -math.sqrt(max(R * R - x * x, 0.0)),
-        lambda x: math.sqrt(max(R * R - x * x, 0.0)),
+        -radius,
+        radius,
+        lambda x: -math.sqrt(max(radius * radius - x * x, 0.0)),
+        lambda x: math.sqrt(max(radius * radius - x * x, 0.0)),
         n,
         2,
     )

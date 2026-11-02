@@ -42,50 +42,59 @@ namespace p4mfe::ch08::ex {
 // The tests check by finite differences that F solves the PDE for F and that
 // V(S, I, t) = F(y, t) solves (8.52).
 struct AsianMarket {
-  double K = 50.0, T = 1.0, sigma = 0.3, r = 0.05;
+  double strike = 50.0, maturity = 1.0, sigma = 0.3, r = 0.05;
 };
 
-[[nodiscard]] inline double ex12_y(double S, double I, double t, double T) {
-  return (I + (T - t) * std::log(S)) / T;
+[[nodiscard]] inline double Ex12Y(double spot, double integral, double t,
+                                  double maturity) {
+  return (integral + (maturity - t) * std::log(spot)) / maturity;
 }
 
-[[nodiscard]] inline double ex12_geometric_asian_call(
-    double y, double t, const AsianMarket& m = {}) {
-  const double tau = m.T - t;
-  if (tau <= 0.0) return std::max(std::exp(y) - m.K, 0.0);
+[[nodiscard]] inline double Ex12GeometricAsianCall(double y, double t,
+                                                   const AsianMarket& m = {}) {
+  const double tau = m.maturity - t;
+  if (tau <= 0.0) return std::max(std::exp(y) - m.strike, 0.0);
   const double s2 = m.sigma * m.sigma;
-  const double mean = y + (m.r - 0.5 * s2) * tau * tau / (2.0 * m.T);
-  const double sd = std::sqrt(s2 * tau * tau * tau / (3.0 * m.T * m.T));
-  const double d2 = (mean - std::log(m.K)) / sd;
+  const double mean = y + (m.r - 0.5 * s2) * tau * tau / (2.0 * m.maturity);
+  const double sd =
+      std::sqrt(s2 * tau * tau * tau / (3.0 * m.maturity * m.maturity));
+  const double d2 = (mean - std::log(m.strike)) / sd;
   return std::exp(-m.r * tau) *
          (std::exp(mean + 0.5 * sd * sd) * norm_cdf(d2 + sd) -
-          m.K * norm_cdf(d2));
+          m.strike * norm_cdf(d2));
 }
 
 // Left side of the PDE for F, by central differences in y and t.
 template <std::invocable<double, double> F>
-[[nodiscard]] double ex12_F_residual(F&& f, double y, double t, double T,
-                                     double sigma, double r, double h = 1e-4) {
-  const double Ft = (f(y, t + h) - f(y, t - h)) / (2.0 * h);
-  const double Fy = (f(y + h, t) - f(y - h, t)) / (2.0 * h);
-  const double Fyy = (f(y + h, t) - 2.0 * f(y, t) + f(y - h, t)) / (h * h);
-  const double w = (T - t) / T;
-  return Ft + 0.5 * sigma * sigma * w * w * Fyy +
-         (r - 0.5 * sigma * sigma) * w * Fy - r * f(y, t);
+[[nodiscard]] double Ex12FResidual(F&& f, double y, double t, double maturity,
+                                   double sigma, double r, double h = 1e-4) {
+  const double f_t = (f(y, t + h) - f(y, t - h)) / (2.0 * h);
+  const double f_y = (f(y + h, t) - f(y - h, t)) / (2.0 * h);
+  const double f_yy = (f(y + h, t) - 2.0 * f(y, t) + f(y - h, t)) / (h * h);
+  const double w = (maturity - t) / maturity;
+  return f_t + 0.5 * sigma * sigma * w * w * f_yy +
+         (r - 0.5 * sigma * sigma) * w * f_y - r * f(y, t);
 }
 
 // Left side of (8.52), by central differences (relative step h in S).
 template <std::invocable<double, double, double> V>
-[[nodiscard]] double ex12_V_residual(V&& v, double S, double I, double t,
-                                     double sigma, double r, double h = 1e-4) {
-  const double hS = h * S;
-  const double Vt = (v(S, I, t + h) - v(S, I, t - h)) / (2.0 * h);
-  const double VI = (v(S, I + h, t) - v(S, I - h, t)) / (2.0 * h);
-  const double VS = (v(S + hS, I, t) - v(S - hS, I, t)) / (2.0 * hS);
-  const double VSS =
-      (v(S + hS, I, t) - 2.0 * v(S, I, t) + v(S - hS, I, t)) / (hS * hS);
-  return Vt + std::log(S) * VI + 0.5 * sigma * sigma * S * S * VSS +
-         r * S * VS - r * v(S, I, t);
+[[nodiscard]] double Ex12VResidual(V&& v, double spot, double integral,
+                                   double t, double sigma, double r,
+                                   double h = 1e-4) {
+  const double step_s = h * spot;
+  const double v_t =
+      (v(spot, integral, t + h) - v(spot, integral, t - h)) / (2.0 * h);
+  const double v_i =
+      (v(spot, integral + h, t) - v(spot, integral - h, t)) / (2.0 * h);
+  const double v_s =
+      (v(spot + step_s, integral, t) - v(spot - step_s, integral, t)) /
+      (2.0 * step_s);
+  const double v_ss =
+      (v(spot + step_s, integral, t) - 2.0 * v(spot, integral, t) +
+       v(spot - step_s, integral, t)) /
+      (step_s * step_s);
+  return v_t + std::log(spot) * v_i + 0.5 * sigma * sigma * spot * spot * v_ss +
+         r * spot * v_s - r * v(spot, integral, t);
 }
 
 // ----------------------------------------------------------- Exercise 13 ---
@@ -112,33 +121,46 @@ template <std::invocable<double, double, double> V>
 // I_T = integral_0^T S(u) du.
 // The tests check (8.53) for this V, (8.55) for this H, and the identity
 // residual_(8.53)(S H(I/S, t)) = S * residual_(8.55)(H) for a generic smooth H.
-[[nodiscard]] inline double ex13_H_linear(double R, double t, double T,
-                                          double r) {
-  const double beta = std::exp(-r * (T - t));
-  return (1.0 - beta) / r + beta * R;
+[[nodiscard]] inline double Ex13HLinear(double ratio, double t, double maturity,
+                                        double r) {
+  const double beta = std::exp(-r * (maturity - t));
+  return (1.0 - beta) / r + beta * ratio;
 }
 
 template <std::invocable<double, double> H>
-[[nodiscard]] double ex13_H_residual(H&& f, double R, double t, double sigma,
-                                     double r, double h = 1e-4) {
-  const double hR = h * std::max(1.0, std::abs(R));
-  const double Ht = (f(R, t + h) - f(R, t - h)) / (2.0 * h);
-  const double HR = (f(R + hR, t) - f(R - hR, t)) / (2.0 * hR);
-  const double HRR = (f(R + hR, t) - 2.0 * f(R, t) + f(R - hR, t)) / (hR * hR);
-  return Ht + 0.5 * sigma * sigma * R * R * HRR + (1.0 - r * R) * HR;
+[[nodiscard]] double Ex13HResidual(H&& f, double ratio, double t, double sigma,
+                                   double r, double h = 1e-4) {
+  const double step_r = h * std::max(1.0, std::abs(ratio));
+  const double h_t = (f(ratio, t + h) - f(ratio, t - h)) / (2.0 * h);
+  const double h_r =
+      (f(ratio + step_r, t) - f(ratio - step_r, t)) / (2.0 * step_r);
+  const double h_rr =
+      (f(ratio + step_r, t) - 2.0 * f(ratio, t) + f(ratio - step_r, t)) /
+      (step_r * step_r);
+  return h_t + 0.5 * sigma * sigma * ratio * ratio * h_rr +
+         (1.0 - r * ratio) * h_r;
 }
 
 template <std::invocable<double, double, double> V>
-[[nodiscard]] double ex13_V_residual(V&& v, double S, double I, double t,
-                                     double sigma, double r, double h = 1e-4) {
-  const double hS = h * S, hI = h * std::max(1.0, std::abs(I));
-  const double Vt = (v(S, I, t + h) - v(S, I, t - h)) / (2.0 * h);
-  const double VI = (v(S, I + hI, t) - v(S, I - hI, t)) / (2.0 * hI);
-  const double VS = (v(S + hS, I, t) - v(S - hS, I, t)) / (2.0 * hS);
-  const double VSS =
-      (v(S + hS, I, t) - 2.0 * v(S, I, t) + v(S - hS, I, t)) / (hS * hS);
-  return Vt + S * VI + 0.5 * sigma * sigma * S * S * VSS + r * S * VS -
-         r * v(S, I, t);
+[[nodiscard]] double Ex13VResidual(V&& v, double spot, double integral,
+                                   double t, double sigma, double r,
+                                   double h = 1e-4) {
+  const double step_s = h * spot,
+               step_i = h * std::max(1.0, std::abs(integral));
+  const double v_t =
+      (v(spot, integral, t + h) - v(spot, integral, t - h)) / (2.0 * h);
+  const double v_i =
+      (v(spot, integral + step_i, t) - v(spot, integral - step_i, t)) /
+      (2.0 * step_i);
+  const double v_s =
+      (v(spot + step_s, integral, t) - v(spot - step_s, integral, t)) /
+      (2.0 * step_s);
+  const double v_ss =
+      (v(spot + step_s, integral, t) - 2.0 * v(spot, integral, t) +
+       v(spot - step_s, integral, t)) /
+      (step_s * step_s);
+  return v_t + spot * v_i + 0.5 * sigma * sigma * spot * spot * v_ss +
+         r * spot * v_s - r * v(spot, integral, t);
 }
 
 }  // namespace p4mfe::ch08::ex

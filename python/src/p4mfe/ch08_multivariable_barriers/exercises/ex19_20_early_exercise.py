@@ -16,30 +16,33 @@ from p4mfe.ch05_newton_bootstrapping.solvers import Tolerances, bisection
 
 @dataclass(frozen=True)
 class CallMarket:
-    K: float = 40.0
-    T: float = 1.0
+    strike: float = 40.0
+    maturity: float = 1.0
     sigma: float = 0.3
     r: float = 0.05
     q: float = 0.0
 
 
-def ex19_time_value(S: float, m: CallMarket = CallMarket()) -> float:
-    return bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - max(S - m.K, 0.0)
+def ex19_time_value(spot: float, m: CallMarket = CallMarket()) -> float:
+    return bs_call(spot, m.strike, m.maturity, m.sigma, m.r, m.q) - max(
+        spot - m.strike, 0.0
+    )
 
 
 def ex19_lower_bound_gap(m: CallMarket = CallMarket()) -> float:
-    return -m.K * math.expm1(-m.r * m.T)
+    return -m.strike * math.expm1(-m.r * m.maturity)
 
 
 def ex20_threshold(m: CallMarket) -> float:
-    return m.K / -math.expm1(-m.q * m.T)
+    return m.strike / -math.expm1(-m.q * m.maturity)
 
 
 def ex20_crossover(m: CallMarket) -> float:
-    S0 = ex20_threshold(m)
+    spot_threshold = ex20_threshold(m)
     return bisection(
-        lambda S: bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - (S - m.K),
-        m.K,
-        S0,
-        Tolerances(1e-12, 1e-10 * S0, 400),
+        lambda spot: bs_call(spot, m.strike, m.maturity, m.sigma, m.r, m.q)
+        - (spot - m.strike),
+        m.strike,
+        spot_threshold,
+        Tolerances(1e-12, 1e-10 * spot_threshold, 400),
     ).x

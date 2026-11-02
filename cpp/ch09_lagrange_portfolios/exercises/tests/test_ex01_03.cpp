@@ -20,10 +20,10 @@ TEST(Ch09Ex01, FourStationaryPointsInSymmetricPairs) {
   EXPECT_NEAR(pts[1].value, 3.434511, 1e-5);
   EXPECT_NEAR(pts[2].value, -3.434511, 1e-5);
   EXPECT_NEAR(pts[3].value, -12.761255, 1e-5);
-  EXPECT_EQ(pts[0].type, CriticalPointType::Maximum);
-  EXPECT_EQ(pts[1].type, CriticalPointType::Saddle);
-  EXPECT_EQ(pts[2].type, CriticalPointType::Saddle);
-  EXPECT_EQ(pts[3].type, CriticalPointType::Minimum);
+  EXPECT_EQ(pts[0].type, CriticalPointType::kMaximum);
+  EXPECT_EQ(pts[1].type, CriticalPointType::kSaddle);
+  EXPECT_EQ(pts[2].type, CriticalPointType::kSaddle);
+  EXPECT_EQ(pts[3].type, CriticalPointType::kMinimum);
   // x -> -x, lambda -> -lambda maps the maximum to the minimum.
   for (std::size_t i = 0; i < 4; ++i)
     EXPECT_NEAR(pts[0].x[i], -pts[3].x[i], 1e-7);
@@ -104,7 +104,7 @@ TEST(Ch09Ex02, LagrangeMaximizerIsTheEqualVector) {
   const auto r = ex02_lagrange_max({1.0, 1.8, 2.2, 1.2, 1.3}, a);
   for (double v : r.x) EXPECT_NEAR(v, a, 1e-8);
   EXPECT_NEAR(r.lambda[0], -1.0 / a, 1e-8);
-  EXPECT_EQ(ex02_classify(r, a), CriticalPointType::Maximum);
+  EXPECT_EQ(ex02_classify(r, a), CriticalPointType::kMaximum);
 }
 
 // ------------------------------------------------------------ Exercise 3 ---
@@ -114,7 +114,7 @@ TEST(Ch09Ex03, CorrelationIsPositiveDefinite) {
     ch01::Matrix M(k, ch01::Vector(k));
     for (std::size_t i = 0; i < k; ++i)
       for (std::size_t j = 0; j < k; ++j) M[i][j] = d.corr(i, j);
-    EXPECT_GT(ch08::determinant(M), 0.0) << k;
+    EXPECT_GT(ch08::Determinant(M), 0.0) << k;
   }
 }
 
@@ -165,7 +165,7 @@ TEST(Ch09Ex03, GeneralLagrangeSolverAgrees) {
     const auto p = ex03_min_variance();
     for (std::size_t i = 0; i < 5; ++i) EXPECT_NEAR(r.x[i], p.w[i], 1e-6);
     EXPECT_EQ(classify_constrained(f, g, r.x, r.lambda),
-              CriticalPointType::Minimum);
+              CriticalPointType::kMinimum);
   }
   // (ii) max mu.w s.t. w'Sw = 0.25^2, sum w = 1, from the answer to (i).
   {
@@ -177,6 +177,6 @@ TEST(Ch09Ex03, GeneralLagrangeSolverAgrees) {
     const auto p = ex03_max_return();
     for (std::size_t i = 0; i < 5; ++i) EXPECT_NEAR(r.x[i], p.w[i], 1e-6);
     EXPECT_EQ(classify_constrained(f, g, r.x, r.lambda),
-              CriticalPointType::Maximum);
+              CriticalPointType::kMaximum);
   }
 }

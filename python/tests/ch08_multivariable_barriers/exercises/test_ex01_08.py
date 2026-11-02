@@ -37,7 +37,7 @@ from p4mfe.ch08_multivariable_barriers.exercises.ex06_07_exp_inequalities import
     ex07_lhs,
     ex07_rhs,
 )
-from p4mfe.ch08_multivariable_barriers.exercises.ex08_gronwall import ex08_check, ex08_v, ex08_V
+from p4mfe.ch08_multivariable_barriers.exercises.ex08_gronwall import ex08_check, ex08_integrand, ex08_integral
 
 
 @pytest.mark.parametrize(
@@ -51,17 +51,17 @@ from p4mfe.ch08_multivariable_barriers.exercises.ex08_gronwall import ex08_check
 def test_ex01_gamma_rises_then_falls(m):
     s = ex01_argmax(m)
     assert ex01_gamma(s, m) == pytest.approx(ex01_max_gamma(m), rel=1e-12)
-    assert bs_d1_d2(s, m.K, m.T, m.sigma, m.r)[0] == pytest.approx(
-        -m.sigma * math.sqrt(m.T), abs=1e-12
+    assert bs_d1_d2(s, m.strike, m.maturity, m.sigma, m.r)[0] == pytest.approx(
+        -m.sigma * math.sqrt(m.maturity), abs=1e-12
     )
-    up = [ex01_gamma(S, m) for S in np.linspace(0.2 * s, s, 81)]
-    down = [ex01_gamma(S, m) for S in np.linspace(s, 5 * s, 401)]
+    up = [ex01_gamma(spot, m) for spot in np.linspace(0.2 * s, s, 81)]
+    down = [ex01_gamma(spot, m) for spot in np.linspace(s, 5 * s, 401)]
     assert np.all(np.diff(up) > 0) and np.all(np.diff(down) < 0)
     assert ex01_log_derivative(0.9 * s, m) > 0 > ex01_log_derivative(1.1 * s, m)
-    grid = m.K * np.exp(np.linspace(math.log(1e-3), math.log(1e3), 300))
-    assert max(ex01_gamma(S, m) for S in grid) <= ex01_max_gamma(m)
-    assert ex01_gamma(1e-3 * m.K, m) < 1e-6 * ex01_max_gamma(m)
-    assert ex01_gamma(1e3 * m.K, m) < 1e-6 * ex01_max_gamma(m)
+    grid = m.strike * np.exp(np.linspace(math.log(1e-3), math.log(1e3), 300))
+    assert max(ex01_gamma(spot, m) for spot in grid) <= ex01_max_gamma(m)
+    assert ex01_gamma(1e-3 * m.strike, m) < 1e-6 * ex01_max_gamma(m)
+    assert ex01_gamma(1e3 * m.strike, m) < 1e-6 * ex01_max_gamma(m)
 
 
 def test_ex02_integral_is_zero():
@@ -82,11 +82,13 @@ def test_ex03_parabola_and_line():
     )
 
 
-@pytest.mark.parametrize("R", [0.5, 1.0, 3.0])
-def test_ex04_disk_area(R):
-    assert ex04_disk_area_polar(R) == pytest.approx(math.pi * R * R, rel=1e-10)
-    assert ex04_disk_area_cartesian(R) == pytest.approx(
-        math.pi * R * R, rel=1e-4
+@pytest.mark.parametrize("radius", [0.5, 1.0, 3.0])
+def test_ex04_disk_area(radius):
+    assert ex04_disk_area_polar(radius) == pytest.approx(
+        math.pi * radius * radius, rel=1e-10
+    )
+    assert ex04_disk_area_cartesian(radius) == pytest.approx(
+        math.pi * radius * radius, rel=1e-4
     )
 
 
@@ -119,20 +121,37 @@ def test_ex07():
 
 
 def test_ex08_gronwall():
-    M, X = 2.0, 6.0
-    c1 = ex08_check(lambda x: M * math.exp(0.5 * ex08_V(x)), ex08_v, M, X)
+    bound, x_end = 2.0, 6.0
+    c1 = ex08_check(
+        lambda x: bound * math.exp(0.5 * ex08_integral(x)),
+        ex08_integrand,
+        bound,
+        x_end,
+    )
     assert (
         c1.hypothesis_gap <= 0.0
         and c1.conclusion_gap <= 1e-12
         and c1.g_increase < 1e-6
     )
-    c2 = ex08_check(lambda x: M * (1 + 0.5 * ex08_V(x)), ex08_v, M, X)
+    c2 = ex08_check(
+        lambda x: bound * (1 + 0.5 * ex08_integral(x)),
+        ex08_integrand,
+        bound,
+        x_end,
+    )
     assert (
         c2.hypothesis_gap <= 1e-9
         and c2.conclusion_gap <= 1e-12
         and c2.g_increase < 1e-6
     )
-    c3 = ex08_check(lambda x: M * math.exp(ex08_V(x)), ex08_v, M, X)
+    c3 = ex08_check(
+        lambda x: bound * math.exp(ex08_integral(x)),
+        ex08_integrand,
+        bound,
+        x_end,
+    )
     assert abs(c3.conclusion_gap) < 1e-5
-    assert abs(c3.hypothesis_gap) < 1e-3 * M * math.exp(ex08_V(X))
+    assert abs(c3.hypothesis_gap) < 1e-3 * bound * math.exp(
+        ex08_integral(x_end)
+    )
     assert c3.g_increase < 1e-5

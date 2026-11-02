@@ -20,83 +20,85 @@ def image_exponent(sigma: float, r: float, q: float = 0.0) -> float:
 
 
 def barrier_image(
-    V: Callable[[float], float],
-    S: float,
-    B: float,
+    v: Callable[[float], float],
+    spot: float,
+    barrier: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> float:
-    return (B / S) ** image_exponent(sigma, r, q) * V(B * B / S)
+    return (barrier / spot) ** image_exponent(sigma, r, q) * v(
+        barrier * barrier / spot
+    )
 
 
 def down_and_out_call(
-    S: float,
-    K: float,
-    B: float,
-    T: float,
+    spot: float,
+    strike: float,
+    barrier: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> float:
-    if S <= B:
+    if spot <= barrier:
         return 0.0
 
-    def W(s):
-        if B <= K:
-            return bs_call(s, K, T, sigma, r, q)
-        return bs_call(s, B, T, sigma, r, q) + (B - K) * cash_or_nothing(
-            OptionType.CALL, s, B, T, sigma, r, q
-        )
+    def vanilla(s):
+        if barrier <= strike:
+            return bs_call(s, strike, maturity, sigma, r, q)
+        return bs_call(s, barrier, maturity, sigma, r, q) + (
+            barrier - strike
+        ) * cash_or_nothing(OptionType.CALL, s, barrier, maturity, sigma, r, q)
 
-    return W(S) - barrier_image(W, S, B, sigma, r, q)
+    return vanilla(spot) - barrier_image(vanilla, spot, barrier, sigma, r, q)
 
 
 def down_and_in_call(
-    S: float,
-    K: float,
-    B: float,
-    T: float,
+    spot: float,
+    strike: float,
+    barrier: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> float:
-    return bs_call(S, K, T, sigma, r, q) - down_and_out_call(
-        S, K, B, T, sigma, r, q
+    return bs_call(spot, strike, maturity, sigma, r, q) - down_and_out_call(
+        spot, strike, barrier, maturity, sigma, r, q
     )
 
 
 def up_and_out_put(
-    S: float,
-    K: float,
-    B: float,
-    T: float,
+    spot: float,
+    strike: float,
+    barrier: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> float:
-    if S >= B:
+    if spot >= barrier:
         return 0.0
 
-    def W(s):
-        if B >= K:
-            return bs_put(s, K, T, sigma, r, q)
-        return bs_put(s, B, T, sigma, r, q) + (K - B) * cash_or_nothing(
-            OptionType.PUT, s, B, T, sigma, r, q
-        )
+    def vanilla(s):
+        if barrier >= strike:
+            return bs_put(s, strike, maturity, sigma, r, q)
+        return bs_put(s, barrier, maturity, sigma, r, q) + (
+            strike - barrier
+        ) * cash_or_nothing(OptionType.PUT, s, barrier, maturity, sigma, r, q)
 
-    return W(S) - barrier_image(W, S, B, sigma, r, q)
+    return vanilla(spot) - barrier_image(vanilla, spot, barrier, sigma, r, q)
 
 
 def up_and_in_put(
-    S: float,
-    K: float,
-    B: float,
-    T: float,
+    spot: float,
+    strike: float,
+    barrier: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> float:
-    return bs_put(S, K, T, sigma, r, q) - up_and_out_put(
-        S, K, B, T, sigma, r, q
+    return bs_put(spot, strike, maturity, sigma, r, q) - up_and_out_put(
+        spot, strike, barrier, maturity, sigma, r, q
     )

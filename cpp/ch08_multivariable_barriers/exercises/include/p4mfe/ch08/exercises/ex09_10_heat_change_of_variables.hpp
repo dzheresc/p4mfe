@@ -19,8 +19,9 @@ struct Ex09Coefficients {
   double a;
   double b;
 };
-[[nodiscard]] inline Ex09Coefficients ex09_coefficients(double sigma, double r,
-                                                        double q = 0.0) {
+[[nodiscard]] inline Ex09Coefficients Ex09ComputeCoefficients(double sigma,
+                                                              double r,
+                                                              double q = 0.0) {
   const double k = (r - q) / (sigma * sigma);
   return {k - 0.5, (k + 0.5) * (k + 0.5) + 2.0 * q / (sigma * sigma)};
 }
@@ -40,33 +41,33 @@ struct Ex09Coefficients {
 // Check: u(x, tau) = e^(ax + b tau) V(K e^x, t) with T - t = 2 tau/sigma^2 must
 // solve the heat equation u_tau = u_xx (exercise 10 shows why), and must reduce
 // to the formulas above at tau = 0.
-[[nodiscard]] inline double ex09_call_u0(double x, double K, double a) {
-  return K * std::exp(a * x) * std::max(std::exp(x) - 1.0, 0.0);
+[[nodiscard]] inline double Ex09CallU0(double x, double strike, double a) {
+  return strike * std::exp(a * x) * std::max(std::exp(x) - 1.0, 0.0);
 }
-[[nodiscard]] inline double ex09_put_u0(double x, double K, double a) {
-  return K * std::exp(a * x) * std::max(1.0 - std::exp(x), 0.0);
+[[nodiscard]] inline double Ex09PutU0(double x, double strike, double a) {
+  return strike * std::exp(a * x) * std::max(1.0 - std::exp(x), 0.0);
 }
 
 // u(x, tau) from the Black-Scholes price; tau = 0 uses the payoff.
-[[nodiscard]] inline double ex09_u(ch03::OptionType type, double x, double tau,
-                                   double K, double sigma, double r,
-                                   double q = 0.0) {
-  const auto c = ex09_coefficients(sigma, r, q);
-  const double S = K * std::exp(x);
+[[nodiscard]] inline double Ex09U(ch03::OptionType type, double x, double tau,
+                                  double strike, double sigma, double r,
+                                  double q = 0.0) {
+  const auto c = Ex09ComputeCoefficients(sigma, r, q);
+  const double spot = strike * std::exp(x);
   const double ttm = 2.0 * tau / (sigma * sigma);  // T - t
-  const double V = ttm > 0.0 ? ch03::BsPrice(type, S, K, ttm, sigma, r, q)
-                             : ch01::Payoff(type, S, K);
-  return std::exp(c.a * x + c.b * tau) * V;
+  const double value = ttm > 0.0
+                           ? ch03::BsPrice(type, spot, strike, ttm, sigma, r, q)
+                           : ch01::Payoff(type, spot, strike);
+  return std::exp(c.a * x + c.b * tau) * value;
 }
 
 // u_tau - u_xx by central differences (step h in x and in tau).
-[[nodiscard]] inline double ex09_heat_residual(ch03::OptionType type, double x,
-                                               double tau, double K,
-                                               double sigma, double r,
-                                               double q = 0.0,
-                                               double h = 1e-4) {
+[[nodiscard]] inline double Ex09HeatResidual(ch03::OptionType type, double x,
+                                             double tau, double strike,
+                                             double sigma, double r,
+                                             double q = 0.0, double h = 1e-4) {
   const auto u = [&](double xx, double tt) {
-    return ex09_u(type, xx, tt, K, sigma, r, q);
+    return Ex09U(type, xx, tt, strike, sigma, r, q);
   };
   const double u_tau = (u(x, tau + h) - u(x, tau - h)) / (2.0 * h);
   const double u_xx =
@@ -105,22 +106,22 @@ struct Ex10Residuals {
   double first;
   double second;
 };
-[[nodiscard]] inline Ex10Residuals ex10_residuals(double a, double b,
-                                                  double sigma, double r,
-                                                  double q = 0.0) {
+[[nodiscard]] inline Ex10Residuals Ex10ComputeResiduals(double a, double b,
+                                                        double sigma, double r,
+                                                        double q = 0.0) {
   const double s2 = sigma * sigma;
   return {2.0 * a + 1.0 - 2.0 * (r - q) / s2,
           b + a * a + a * (1.0 - 2.0 * (r - q) / s2) - 2.0 * r / s2};
 }
-[[nodiscard]] inline Ex09Coefficients ex10_solve(double sigma, double r,
-                                                 double q = 0.0) {
+[[nodiscard]] inline Ex09Coefficients Ex10Solve(double sigma, double r,
+                                                double q = 0.0) {
   const double s2 = sigma * sigma;
   const double a = (r - q) / s2 - 0.5;
   return {a, a * a + 2.0 * r / s2};
 }
 // The b printed in the exercise (correct for q = 0).
-[[nodiscard]] inline double ex10_printed_b(double sigma, double r,
-                                           double q = 0.0) {
+[[nodiscard]] inline double Ex10PrintedB(double sigma, double r,
+                                         double q = 0.0) {
   const double k = (r - q) / (sigma * sigma);
   return (k + 0.5) * (k + 0.5);
 }

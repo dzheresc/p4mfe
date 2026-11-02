@@ -20,14 +20,14 @@ _INV_SQRT_2PI = 1 / math.sqrt(2 * math.pi)
 
 
 # 8.5 -----------------------------------------------------------------------
-def theta_from_maturity(V: Callable[[float], float], tau: float) -> float:
-    return -derivative(V, tau)
+def theta_from_maturity(v: Callable[[float], float], tau: float) -> float:
+    return -derivative(v, tau)
 
 
 def theta_by_integral(
     h: Callable,
-    S: float,
-    T: float,
+    spot: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
@@ -42,8 +42,10 @@ def theta_by_integral(
                 p == 0.0,
                 0.0,
                 math.exp(-r * tau)
-                * h(price_from_normal(z, S, tau, sigma, r, q))
+                * h(price_from_normal(z, spot, tau, sigma, r, q))
                 * p,
             )
 
-    return -improper_integral_derivative(integrand, -math.inf, math.inf, T, tol)
+    return -improper_integral_derivative(
+        integrand, -math.inf, math.inf, maturity, tol
+    )

@@ -16,8 +16,8 @@ EX14_S, EX14_SIGMA, EX14_R = 40.0, 0.3, 0.05
 
 @dataclass(frozen=True)
 class Ex14Row:
-    K: float
-    T: float
+    strike: float
+    maturity: float
     value: float
     intrinsic: float
     intrinsic_larger: bool
@@ -25,7 +25,7 @@ class Ex14Row:
 
 def ex14_table() -> list[Ex14Row]:
     rows = []
-    for K, T in [
+    for strike, maturity in [
         (45, 0.5),
         (45, 0.25),
         (48, 0.5),
@@ -33,7 +33,9 @@ def ex14_table() -> list[Ex14Row]:
         (51, 0.5),
         (51, 0.25),
     ]:
-        v = bs_put(EX14_S, K, T, EX14_SIGMA, EX14_R)
-        intrinsic = max(K - EX14_S, 0.0)
-        rows.append(Ex14Row(float(K), T, v, intrinsic, intrinsic > v))
+        v = bs_put(EX14_S, strike, maturity, EX14_SIGMA, EX14_R)
+        intrinsic = max(strike - EX14_S, 0.0)
+        rows.append(
+            Ex14Row(float(strike), maturity, v, intrinsic, intrinsic > v)
+        )
     return rows

@@ -13,17 +13,21 @@ from p4mfe.ch03_probability_black_scholes.black_scholes import OptionType, bs_ca
 
 @dataclass(frozen=True)
 class Ex15Market:
-    K: float = 40.0
-    T: float = 0.5
+    strike: float = 40.0
+    maturity: float = 0.5
     sigma: float = 0.3
     r: float = 0.05
     q: float = 0.0
 
 
-def ex15_time_value(S: float, m: Ex15Market = Ex15Market()) -> float:
-    return bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - max(S - m.K, 0.0)
+def ex15_time_value(spot: float, m: Ex15Market = Ex15Market()) -> float:
+    return bs_call(spot, m.strike, m.maturity, m.sigma, m.r, m.q) - max(
+        spot - m.strike, 0.0
+    )
 
 
-def ex15_derivative(S: float, m: Ex15Market = Ex15Market()) -> float:
-    delta = bs_greeks(OptionType.CALL, S, m.K, m.T, m.sigma, m.r, m.q).delta
-    return delta if S < m.K else delta - 1.0
+def ex15_derivative(spot: float, m: Ex15Market = Ex15Market()) -> float:
+    delta = bs_greeks(
+        OptionType.CALL, spot, m.strike, m.maturity, m.sigma, m.r, m.q
+    ).delta
+    return delta if spot < m.strike else delta - 1.0

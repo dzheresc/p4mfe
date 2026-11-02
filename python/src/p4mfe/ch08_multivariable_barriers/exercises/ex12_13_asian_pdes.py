@@ -17,105 +17,126 @@ from p4mfe.normal import norm_cdf
 
 @dataclass(frozen=True)
 class AsianMarket:
-    K: float = 50.0
-    T: float = 1.0
+    strike: float = 50.0
+    maturity: float = 1.0
     sigma: float = 0.3
     r: float = 0.05
 
 
-def ex12_y(S: float, I: float, t: float, T: float) -> float:
-    return (I + (T - t) * math.log(S)) / T
+def ex12_y(spot: float, integral: float, t: float, maturity: float) -> float:
+    return (integral + (maturity - t) * math.log(spot)) / maturity
 
 
 def ex12_geometric_asian_call(
     y: float, t: float, m: AsianMarket = AsianMarket()
 ) -> float:
-    tau = m.T - t
+    tau = m.maturity - t
     if tau <= 0:
-        return max(math.exp(y) - m.K, 0.0)
+        return max(math.exp(y) - m.strike, 0.0)
     s2 = m.sigma**2
-    mean = y + (m.r - 0.5 * s2) * tau * tau / (2 * m.T)
-    sd = math.sqrt(s2 * tau**3 / (3 * m.T**2))
-    d2 = (mean - math.log(m.K)) / sd
+    mean = y + (m.r - 0.5 * s2) * tau * tau / (2 * m.maturity)
+    sd = math.sqrt(s2 * tau**3 / (3 * m.maturity**2))
+    d2 = (mean - math.log(m.strike)) / sd
     return math.exp(-m.r * tau) * (
-        math.exp(mean + 0.5 * sd * sd) * norm_cdf(d2 + sd) - m.K * norm_cdf(d2)
+        math.exp(mean + 0.5 * sd * sd) * norm_cdf(d2 + sd)
+        - m.strike * norm_cdf(d2)
     )
 
 
-def ex12_F_residual(
+def ex12_f_residual(
     f: Callable,
     y: float,
     t: float,
-    T: float,
+    maturity: float,
     sigma: float,
     r: float,
     h: float = 1e-4,
 ) -> float:
-    Ft = (f(y, t + h) - f(y, t - h)) / (2 * h)
-    Fy = (f(y + h, t) - f(y - h, t)) / (2 * h)
-    Fyy = (f(y + h, t) - 2 * f(y, t) + f(y - h, t)) / (h * h)
-    w = (T - t) / T
+    f_t = (f(y, t + h) - f(y, t - h)) / (2 * h)
+    f_y = (f(y + h, t) - f(y - h, t)) / (2 * h)
+    f_yy = (f(y + h, t) - 2 * f(y, t) + f(y - h, t)) / (h * h)
+    w = (maturity - t) / maturity
     return (
-        Ft
-        + 0.5 * sigma**2 * w * w * Fyy
-        + (r - 0.5 * sigma**2) * w * Fy
+        f_t
+        + 0.5 * sigma**2 * w * w * f_yy
+        + (r - 0.5 * sigma**2) * w * f_y
         - r * f(y, t)
     )
 
 
-def ex12_V_residual(
+def ex12_v_residual(
     v: Callable,
-    S: float,
-    I: float,
+    spot: float,
+    integral: float,
     t: float,
     sigma: float,
     r: float,
     h: float = 1e-4,
 ) -> float:
-    hS = h * S
-    Vt = (v(S, I, t + h) - v(S, I, t - h)) / (2 * h)
-    VI = (v(S, I + h, t) - v(S, I - h, t)) / (2 * h)
-    VS = (v(S + hS, I, t) - v(S - hS, I, t)) / (2 * hS)
-    VSS = (v(S + hS, I, t) - 2 * v(S, I, t) + v(S - hS, I, t)) / (hS * hS)
+    step_s = h * spot
+    v_t = (v(spot, integral, t + h) - v(spot, integral, t - h)) / (2 * h)
+    v_i = (v(spot, integral + h, t) - v(spot, integral - h, t)) / (2 * h)
+    v_s = (v(spot + step_s, integral, t) - v(spot - step_s, integral, t)) / (
+        2 * step_s
+    )
+    v_ss = (
+        v(spot + step_s, integral, t)
+        - 2 * v(spot, integral, t)
+        + v(spot - step_s, integral, t)
+    ) / (step_s * step_s)
     return (
-        Vt
-        + math.log(S) * VI
-        + 0.5 * sigma**2 * S * S * VSS
-        + r * S * VS
-        - r * v(S, I, t)
+        v_t
+        + math.log(spot) * v_i
+        + 0.5 * sigma**2 * spot * spot * v_ss
+        + r * spot * v_s
+        - r * v(spot, integral, t)
     )
 
 
-def ex13_H_linear(R: float, t: float, T: float, r: float) -> float:
+def ex13_h_linear(ratio: float, t: float, maturity: float, r: float) -> float:
     """H = (1 - e^(-r(T-t)))/r + e^(-r(T-t)) R, an exact solution of (8.55)."""
-    beta = math.exp(-r * (T - t))
-    return (1 - beta) / r + beta * R
+    beta = math.exp(-r * (maturity - t))
+    return (1 - beta) / r + beta * ratio
 
 
-def ex13_H_residual(
-    f: Callable, R: float, t: float, sigma: float, r: float, h: float = 1e-4
+def ex13_h_residual(
+    f: Callable, ratio: float, t: float, sigma: float, r: float, h: float = 1e-4
 ) -> float:
-    hR = h * max(1.0, abs(R))
-    Ht = (f(R, t + h) - f(R, t - h)) / (2 * h)
-    HR = (f(R + hR, t) - f(R - hR, t)) / (2 * hR)
-    HRR = (f(R + hR, t) - 2 * f(R, t) + f(R - hR, t)) / (hR * hR)
-    return Ht + 0.5 * sigma**2 * R * R * HRR + (1 - r * R) * HR
+    step_r = h * max(1.0, abs(ratio))
+    h_t = (f(ratio, t + h) - f(ratio, t - h)) / (2 * h)
+    h_r = (f(ratio + step_r, t) - f(ratio - step_r, t)) / (2 * step_r)
+    h_rr = (f(ratio + step_r, t) - 2 * f(ratio, t) + f(ratio - step_r, t)) / (
+        step_r * step_r
+    )
+    return h_t + 0.5 * sigma**2 * ratio * ratio * h_rr + (1 - r * ratio) * h_r
 
 
-def ex13_V_residual(
+def ex13_v_residual(
     v: Callable,
-    S: float,
-    I: float,
+    spot: float,
+    integral: float,
     t: float,
     sigma: float,
     r: float,
     h: float = 1e-4,
 ) -> float:
-    hS, hI = h * S, h * max(1.0, abs(I))
-    Vt = (v(S, I, t + h) - v(S, I, t - h)) / (2 * h)
-    VI = (v(S, I + hI, t) - v(S, I - hI, t)) / (2 * hI)
-    VS = (v(S + hS, I, t) - v(S - hS, I, t)) / (2 * hS)
-    VSS = (v(S + hS, I, t) - 2 * v(S, I, t) + v(S - hS, I, t)) / (hS * hS)
+    step_s, step_i = h * spot, h * max(1.0, abs(integral))
+    v_t = (v(spot, integral, t + h) - v(spot, integral, t - h)) / (2 * h)
+    v_i = (v(spot, integral + step_i, t) - v(spot, integral - step_i, t)) / (
+        2 * step_i
+    )
+    v_s = (v(spot + step_s, integral, t) - v(spot - step_s, integral, t)) / (
+        2 * step_s
+    )
+    v_ss = (
+        v(spot + step_s, integral, t)
+        - 2 * v(spot, integral, t)
+        + v(spot - step_s, integral, t)
+    ) / (step_s * step_s)
     return (
-        Vt + S * VI + 0.5 * sigma**2 * S * S * VSS + r * S * VS - r * v(S, I, t)
+        v_t
+        + spot * v_i
+        + 0.5 * sigma**2 * spot * spot * v_ss
+        + r * spot * v_s
+        - r * v(spot, integral, t)
     )

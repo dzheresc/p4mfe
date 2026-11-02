@@ -43,8 +43,8 @@ struct HeatTransform {
   double b;
 };
 
-[[nodiscard]] inline HeatTransform heat_transform(double sigma, double r,
-                                                  double q = 0.0) {
+[[nodiscard]] inline HeatTransform MakeHeatTransform(double sigma, double r,
+                                                     double q = 0.0) {
   if (!(sigma > 0.0))
     throw std::invalid_argument("heat_transform: need sigma > 0");
   const double k1 = 2.0 * (r - q) / (sigma * sigma);
@@ -58,45 +58,47 @@ struct HeatPoint {
   double x;
   double tau;
 };
-[[nodiscard]] inline HeatPoint to_heat_variables(double S, double K,
-                                                 double time_to_maturity,
-                                                 double sigma) {
-  return {std::log(S / K), 0.5 * sigma * sigma * time_to_maturity};
+[[nodiscard]] inline HeatPoint ToHeatVariables(double spot, double strike,
+                                               double time_to_maturity,
+                                               double sigma) {
+  return {std::log(spot / strike), 0.5 * sigma * sigma * time_to_maturity};
 }
 
 // V = K e^(a x + b tau) u and its inverse.
-[[nodiscard]] inline double bs_from_heat(double u, double x, double tau,
-                                         double K,
-                                         const HeatTransform& c) noexcept {
-  return K * std::exp(c.a * x + c.b * tau) * u;
+[[nodiscard]] inline double BsFromHeat(double u, double x, double tau,
+                                       double strike,
+                                       const HeatTransform& c) noexcept {
+  return strike * std::exp(c.a * x + c.b * tau) * u;
 }
-[[nodiscard]] inline double heat_from_bs(double V, double x, double tau,
-                                         double K,
-                                         const HeatTransform& c) noexcept {
-  return V / (K * std::exp(c.a * x + c.b * tau));
+[[nodiscard]] inline double HeatFromBs(double value, double x, double tau,
+                                       double strike,
+                                       const HeatTransform& c) noexcept {
+  return value / (strike * std::exp(c.a * x + c.b * tau));
 }
 
 // u(x, tau) = E[u0(x + sqrt(2 tau) Z)], the heat kernel solution.
 template <std::invocable<double> U0>
-[[nodiscard]] double heat_solution(U0&& u0, double x, double tau,
-                                   double tol = 1e-9) {
+[[nodiscard]] double HeatSolution(U0&& u0, double x, double tau,
+                                  double tol = 1e-9) {
   if (tau == 0.0) return u0(x);
-  const ch03::ContinuousDistribution Z{[](double z) { return norm_pdf(z); },
-                                       -ch02::kInfinity, ch02::kInfinity};
+  const ch03::ContinuousDistribution std_normal{
+      [](double z) { return norm_pdf(z); }, -ch02::kInfinity, ch02::kInfinity};
   const double s = std::sqrt(2.0 * tau);
-  return ch03::ExpectedValue(Z, [&](double z) { return u0(x + s * z); }, tol);
+  return ch03::ExpectedValue(
+      std_normal, [&](double z) { return u0(x + s * z); }, tol);
 }
 
 // European price of payoff h by solving the heat equation in closed form.
 template <std::invocable<double> Payoff>
-[[nodiscard]] double bs_price_via_heat(Payoff&& h, double S, double K, double T,
-                                       double sigma, double r, double q = 0.0) {
-  const auto c = heat_transform(sigma, r, q);
-  const auto [x, tau] = to_heat_variables(S, K, T, sigma);
+[[nodiscard]] double BsPriceViaHeat(Payoff&& h, double spot, double strike,
+                                    double maturity, double sigma, double r,
+                                    double q = 0.0) {
+  const auto c = MakeHeatTransform(sigma, r, q);
+  const auto [x, tau] = ToHeatVariables(spot, strike, maturity, sigma);
   const auto u0 = [&](double y) {
-    return std::exp(-c.a * y) * h(K * std::exp(y)) / K;
+    return std::exp(-c.a * y) * h(strike * std::exp(y)) / strike;
   };
-  return bs_from_heat(heat_solution(u0, x, tau), x, tau, K, c);
+  return BsFromHeat(HeatSolution(u0, x, tau), x, tau, strike, c);
 }
 
 // Explicit finite differences for u_tau = u_xx on [x_min, x_max] x [0,
@@ -109,10 +111,10 @@ struct HeatGrid {
 
 template <std::invocable<double> U0, std::invocable<double> L,
           std::invocable<double> R>
-[[nodiscard]] HeatGrid solve_heat_explicit(U0&& u0, L&& left, R&& right,
-                                           double x_min, double x_max,
-                                           double tau_final, std::size_t nx,
-                                           std::size_t nt) {
+[[nodiscard]] HeatGrid SolveHeatExplicit(U0&& u0, L&& left, R&& right,
+                                         double x_min, double x_max,
+                                         double tau_final, std::size_t nx,
+                                         std::size_t nt) {
   if (nx < 2 || nt < 1 || !(x_max > x_min))
     throw std::invalid_argument("solve_heat_explicit: bad grid");
   const double dx = (x_max - x_min) / static_cast<double>(nx);
@@ -136,7 +138,7 @@ template <std::invocable<double> U0, std::invocable<double> L,
 }
 
 // Linear interpolation of grid values at x.
-[[nodiscard]] inline double interpolate(const std::vector<double>& xs,
+[[nodiscard]] inline double Interpolate(const std::vector<double>& xs,
                                         const std::vector<double>& ys,
                                         double x) {
   if (x <= xs.front()) return ys.front();
@@ -153,55 +155,60 @@ template <std::invocable<double> U0, std::invocable<double> L,
 // alpha ~ 0.45.
 template <std::invocable<double> Payoff, std::invocable<double> VL,
           std::invocable<double> VR>
-[[nodiscard]] double bs_heat_fd(Payoff&& h, VL&& V_left, VR&& V_right, double S,
-                                double K, double T, double sigma, double r,
-                                double q, double S_min, double S_max,
-                                std::size_t nx, std::size_t nt = 0) {
-  const auto c = heat_transform(sigma, r, q);
-  const double x_min = std::log(S_min / K), x_max = std::log(S_max / K);
-  const double tau_final = 0.5 * sigma * sigma * T;
+[[nodiscard]] double BsHeatFd(Payoff&& h, VL&& v_left, VR&& v_right,
+                              double spot, double strike, double maturity,
+                              double sigma, double r, double q, double spot_min,
+                              double spot_max, std::size_t nx,
+                              std::size_t nt = 0) {
+  const auto c = MakeHeatTransform(sigma, r, q);
+  const double x_min = std::log(spot_min / strike),
+               x_max = std::log(spot_max / strike);
+  const double tau_final = 0.5 * sigma * sigma * maturity;
   if (nt == 0) {
     const double dx = (x_max - x_min) / static_cast<double>(nx);
     nt = static_cast<std::size_t>(std::ceil(tau_final / (0.45 * dx * dx)));
   }
   const auto u0 = [&](double x) {
-    return heat_from_bs(h(K * std::exp(x)), x, 0.0, K, c);
+    return HeatFromBs(h(strike * std::exp(x)), x, 0.0, strike, c);
   };
   const auto theta = [&](double tau) { return 2.0 * tau / (sigma * sigma); };
   const auto left = [&](double tau) {
-    return heat_from_bs(V_left(theta(tau)), x_min, tau, K, c);
+    return HeatFromBs(v_left(theta(tau)), x_min, tau, strike, c);
   };
   const auto right = [&](double tau) {
-    return heat_from_bs(V_right(theta(tau)), x_max, tau, K, c);
+    return HeatFromBs(v_right(theta(tau)), x_max, tau, strike, c);
   };
   const auto g =
-      solve_heat_explicit(u0, left, right, x_min, x_max, tau_final, nx, nt);
-  const double x = std::log(S / K);
-  return bs_from_heat(interpolate(g.x, g.u, x), x, tau_final, K, c);
+      SolveHeatExplicit(u0, left, right, x_min, x_max, tau_final, nx, nt);
+  const double x = std::log(spot / strike);
+  return BsFromHeat(Interpolate(g.x, g.u, x), x, tau_final, strike, c);
 }
 
 // Calls and puts, on [K e^(-L), K e^L] with L = |ln(S/K)| + 6 sigma sqrt(T).
-[[nodiscard]] inline double european_heat_fd(OptionType type, double S,
-                                             double K, double T, double sigma,
-                                             double r, double q = 0.0,
-                                             std::size_t nx = 400,
-                                             std::size_t nt = 0) {
-  const double L = std::abs(std::log(S / K)) + 6.0 * sigma * std::sqrt(T);
-  const double S_min = K * std::exp(-L), S_max = K * std::exp(L);
-  const auto h = [&](double s) { return ch01::Payoff(type, s, K); };
+[[nodiscard]] inline double EuropeanHeatFd(OptionType type, double spot,
+                                           double strike, double maturity,
+                                           double sigma, double r,
+                                           double q = 0.0, std::size_t nx = 400,
+                                           std::size_t nt = 0) {
+  const double half_width =
+      std::abs(std::log(spot / strike)) + 6.0 * sigma * std::sqrt(maturity);
+  const double spot_min = strike * std::exp(-half_width),
+               spot_max = strike * std::exp(half_width);
+  const auto h = [&](double s) { return ch01::Payoff(type, s, strike); };
   if (type == OptionType::kCall)
-    return bs_heat_fd(
+    return BsHeatFd(
         h, [](double) { return 0.0; },
         [&](double th) {
-          return S_max * std::exp(-q * th) - K * std::exp(-r * th);
+          return spot_max * std::exp(-q * th) - strike * std::exp(-r * th);
         },
-        S, K, T, sigma, r, q, S_min, S_max, nx, nt);
-  return bs_heat_fd(
+        spot, strike, maturity, sigma, r, q, spot_min, spot_max, nx, nt);
+  return BsHeatFd(
       h,
       [&](double th) {
-        return K * std::exp(-r * th) - S_min * std::exp(-q * th);
+        return strike * std::exp(-r * th) - spot_min * std::exp(-q * th);
       },
-      [](double) { return 0.0; }, S, K, T, sigma, r, q, S_min, S_max, nx, nt);
+      [](double) { return 0.0; }, spot, strike, maturity, sigma, r, q, spot_min,
+      spot_max, nx, nt);
 }
 
 }  // namespace p4mfe::ch08

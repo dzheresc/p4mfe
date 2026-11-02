@@ -40,17 +40,17 @@ def heat_transform(sigma: float, r: float, q: float = 0.0) -> HeatTransform:
 
 
 def to_heat_variables(
-    S: float, K: float, time_to_maturity: float, sigma: float
+    spot: float, strike: float, time_to_maturity: float, sigma: float
 ) -> tuple[float, float]:
-    return math.log(S / K), 0.5 * sigma * sigma * time_to_maturity
+    return math.log(spot / strike), 0.5 * sigma * sigma * time_to_maturity
 
 
-def bs_from_heat(u, x, tau, K: float, c: HeatTransform):
-    return K * np.exp(c.a * x + c.b * tau) * u
+def bs_from_heat(u, x, tau, strike: float, c: HeatTransform):
+    return strike * np.exp(c.a * x + c.b * tau) * u
 
 
-def heat_from_bs(V, x, tau, K: float, c: HeatTransform):
-    return V / (K * np.exp(c.a * x + c.b * tau))
+def heat_from_bs(value, x, tau, strike: float, c: HeatTransform):
+    return value / (strike * np.exp(c.a * x + c.b * tau))
 
 
 def heat_solution(
@@ -65,23 +65,25 @@ def heat_solution(
 
 def bs_price_via_heat(
     h: Callable,
-    S: float,
-    K: float,
-    T: float,
+    spot: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> float:
     c = heat_transform(sigma, r, q)
-    x, tau = to_heat_variables(S, K, T, sigma)
+    x, tau = to_heat_variables(spot, strike, maturity, sigma)
     return float(
         bs_from_heat(
             heat_solution(
-                lambda y: np.exp(-c.a * y) * h(K * np.exp(y)) / K, x, tau
+                lambda y: np.exp(-c.a * y) * h(strike * np.exp(y)) / strike,
+                x,
+                tau,
             ),
             x,
             tau,
-            K,
+            strike,
             c,
         )
     )
@@ -119,23 +121,23 @@ def solve_heat_explicit(
 
 def bs_heat_fd(
     h: Callable,
-    V_left: Callable[[float], float],
-    V_right: Callable[[float], float],
-    S: float,
-    K: float,
-    T: float,
+    v_left: Callable[[float], float],
+    v_right: Callable[[float], float],
+    spot: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float,
-    S_min: float,
-    S_max: float,
+    spot_min: float,
+    spot_max: float,
     nx: int,
     nt: int = 0,
 ) -> float:
     """European price of payoff h on [S_min, S_max]; V_left/V_right take years to maturity."""
     c = heat_transform(sigma, r, q)
-    x_min, x_max = math.log(S_min / K), math.log(S_max / K)
-    tau_final = 0.5 * sigma * sigma * T
+    x_min, x_max = math.log(spot_min / strike), math.log(spot_max / strike)
+    tau_final = 0.5 * sigma * sigma * maturity
     if nt == 0:
         nt = math.ceil(tau_final / (0.45 * ((x_max - x_min) / nx) ** 2))
 
@@ -143,64 +145,67 @@ def bs_heat_fd(
         return 2 * tau / sigma**2
 
     g = solve_heat_explicit(
-        lambda x: heat_from_bs(h(K * np.exp(x)), x, 0.0, K, c),
-        lambda tau: heat_from_bs(V_left(theta(tau)), x_min, tau, K, c),
-        lambda tau: heat_from_bs(V_right(theta(tau)), x_max, tau, K, c),
+        lambda x: heat_from_bs(h(strike * np.exp(x)), x, 0.0, strike, c),
+        lambda tau: heat_from_bs(v_left(theta(tau)), x_min, tau, strike, c),
+        lambda tau: heat_from_bs(v_right(theta(tau)), x_max, tau, strike, c),
         x_min,
         x_max,
         tau_final,
         nx,
         nt,
     )
-    x = math.log(S / K)
-    return float(bs_from_heat(np.interp(x, g.x, g.u), x, tau_final, K, c))
+    x = math.log(spot / strike)
+    return float(bs_from_heat(np.interp(x, g.x, g.u), x, tau_final, strike, c))
 
 
 def european_heat_fd(
     option_type: OptionType,
-    S: float,
-    K: float,
-    T: float,
+    spot: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
     nx: int = 400,
     nt: int = 0,
 ) -> float:
-    L = abs(math.log(S / K)) + 6 * sigma * math.sqrt(T)
-    S_min, S_max = K * math.exp(-L), K * math.exp(L)
+    half_width = abs(math.log(spot / strike)) + 6 * sigma * math.sqrt(maturity)
+    spot_min, spot_max = strike * math.exp(-half_width), strike * math.exp(
+        half_width
+    )
 
     def h(s):
-        return payoff(option_type, s, K)
+        return payoff(option_type, s, strike)
 
     if option_type is OptionType.CALL:
         return bs_heat_fd(
             h,
             lambda th: 0.0,
-            lambda th: S_max * math.exp(-q * th) - K * math.exp(-r * th),
-            S,
-            K,
-            T,
+            lambda th: spot_max * math.exp(-q * th)
+            - strike * math.exp(-r * th),
+            spot,
+            strike,
+            maturity,
             sigma,
             r,
             q,
-            S_min,
-            S_max,
+            spot_min,
+            spot_max,
             nx,
             nt,
         )
     return bs_heat_fd(
         h,
-        lambda th: K * math.exp(-r * th) - S_min * math.exp(-q * th),
+        lambda th: strike * math.exp(-r * th) - spot_min * math.exp(-q * th),
         lambda th: 0.0,
-        S,
-        K,
-        T,
+        spot,
+        strike,
+        maturity,
         sigma,
         r,
         q,
-        S_min,
-        S_max,
+        spot_min,
+        spot_max,
         nx,
         nt,
     )

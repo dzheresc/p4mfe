@@ -65,12 +65,12 @@ def double_integral_region(
 
 
 # 8.3 -----------------------------------------------------------------------
-def jacobian_determinant(T: Callable, u, v):
+def jacobian_determinant(maturity: Callable, u, v):
     """|det J_T(u, v)| by central differences (u, v may be arrays)."""
     hu = 1e-6 * np.maximum(1.0, np.abs(u))
     hv = 1e-6 * np.maximum(1.0, np.abs(v))
-    pu, mu = T(u + hu, v), T(u - hu, v)
-    pv, mv = T(u, v + hv), T(u, v - hv)
+    pu, mu = maturity(u + hu, v), maturity(u - hu, v)
+    pv, mv = maturity(u, v + hv), maturity(u, v - hv)
     xu, yu = (pu[0] - mu[0]) / (2 * hu), (pu[1] - mu[1]) / (2 * hu)
     xv, yv = (pv[0] - mv[0]) / (2 * hv), (pv[1] - mv[1]) / (2 * hv)
     return np.abs(xu * yv - xv * yu)
@@ -78,7 +78,7 @@ def jacobian_determinant(T: Callable, u, v):
 
 def change_of_variables_integral(
     f: Fn2,
-    T: Callable,
+    maturity: Callable,
     u0: float,
     u1: float,
     v0: float,
@@ -87,8 +87,8 @@ def change_of_variables_integral(
     nv: int = 200,
 ) -> float:
     def g(u, v):
-        x, y = T(u, v)
-        return f(x, y) * jacobian_determinant(T, u, v)
+        x, y = maturity(u, v)
+        return f(x, y) * jacobian_determinant(maturity, u, v)
 
     return double_integral(g, u0, u1, v0, v1, nu, nv)
 
@@ -117,11 +117,11 @@ def polar_integral(
 
 
 # 8.6 -----------------------------------------------------------------------
-def gaussian_disk_integral(R: float) -> float:
+def gaussian_disk_integral(radius: float) -> float:
     """Integral of e^(-(x^2+y^2)/2) over the disk of radius R: 2 pi (1 - e^(-R^2/2))."""
-    return -2 * math.pi * math.expm1(-0.5 * R * R)
+    return -2 * math.pi * math.expm1(-0.5 * radius * radius)
 
 
-def gaussian_square_integral(R: float, n: int = 400) -> float:
+def gaussian_square_integral(radius: float, n: int = 400) -> float:
     """Integral over [-R, R]^2 = (int_{-R}^R e^(-x^2/2) dx)^2."""
-    return simpson_rule(lambda x: np.exp(-0.5 * x * x), -R, R, n) ** 2
+    return simpson_rule(lambda x: np.exp(-0.5 * x * x), -radius, radius, n) ** 2

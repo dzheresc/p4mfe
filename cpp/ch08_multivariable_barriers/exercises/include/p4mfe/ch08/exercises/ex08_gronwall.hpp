@@ -40,23 +40,24 @@ struct Ex08Check {
 };
 
 template <std::invocable<double> U, std::invocable<double> Vf>
-[[nodiscard]] Ex08Check ex08_check(U&& u, Vf&& v, double M, double X,
-                                   std::size_t n = 2000) {
-  const double h = X / static_cast<double>(n);
-  double W = M, V = 0.0;
+[[nodiscard]] Ex08Check Ex08ComputeCheck(U&& u, Vf&& v, double m, double x_end,
+                                         std::size_t n = 2000) {
+  const double h = x_end / static_cast<double>(n);
+  double w_sum = m, v_sum = 0.0;
   double ux = u(0.0), vx = v(0.0);
-  Ex08Check c{ux - W, (ux - M) / M, -std::numeric_limits<double>::infinity()};
-  double g = M;
+  Ex08Check c{ux - w_sum, (ux - m) / m,
+              -std::numeric_limits<double>::infinity()};
+  double g = m;
   for (std::size_t i = 1; i <= n; ++i) {
     const double xn = static_cast<double>(i) * h;
     const double un = u(xn), vn = v(xn);
-    W += 0.5 * h * (ux * vx + un * vn);
-    V += 0.5 * h * (vx + vn);
-    const double gn = W * std::exp(-V);
-    const double bound = M * std::exp(V);
-    c.hypothesis_gap = std::max(c.hypothesis_gap, un - W);
+    w_sum += 0.5 * h * (ux * vx + un * vn);
+    v_sum += 0.5 * h * (vx + vn);
+    const double gn = w_sum * std::exp(-v_sum);
+    const double bound = m * std::exp(v_sum);
+    c.hypothesis_gap = std::max(c.hypothesis_gap, un - w_sum);
     c.conclusion_gap = std::max(c.conclusion_gap, (un - bound) / bound);
-    c.g_increase = std::max(c.g_increase, (gn - g) / M);
+    c.g_increase = std::max(c.g_increase, (gn - g) / m);
     ux = un;
     vx = vn;
     g = gn;
@@ -65,7 +66,11 @@ template <std::invocable<double> U, std::invocable<double> Vf>
 }
 
 // Test functions on [0, inf): v(t) = 1 + sin t, V(x) = x + 1 - cos x.
-[[nodiscard]] inline double ex08_v(double t) { return 1.0 + std::sin(t); }
-[[nodiscard]] inline double ex08_V(double x) { return x + 1.0 - std::cos(x); }
+[[nodiscard]] inline double Ex08Integrand(double t) {
+  return 1.0 + std::sin(t);
+}
+[[nodiscard]] inline double Ex08Integral(double x) {
+  return x + 1.0 - std::cos(x);
+}
 
 }  // namespace p4mfe::ch08::ex

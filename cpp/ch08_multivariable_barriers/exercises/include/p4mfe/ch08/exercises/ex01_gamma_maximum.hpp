@@ -40,31 +40,33 @@ namespace p4mfe::ch08::ex {
 // faster than any power of S.) In the variable L, Gamma is a Gaussian bump
 // times e^(-L), which is again a Gaussian bump: centered at ln S*.
 struct Ex01Market {
-  double K = 50.0, T = 0.5, sigma = 0.3, r = 0.05;
+  double strike = 50.0, maturity = 0.5, sigma = 0.3, r = 0.05;
 };
 
-[[nodiscard]] inline double ex01_gamma(double S, const Ex01Market& m = {}) {
-  return ch03::BsGreeks(ch03::OptionType::kCall, S, m.K, m.T, m.sigma, m.r, 0.0)
+[[nodiscard]] inline double Ex01Gamma(double spot, const Ex01Market& m = {}) {
+  return ch03::BsGreeks(ch03::OptionType::kCall, spot, m.strike, m.maturity,
+                        m.sigma, m.r, 0.0)
       .gamma;
 }
 
 // S* = K exp(-(r + 3 sigma^2/2) T), where d1 = -sigma sqrt(T).
-[[nodiscard]] inline double ex01_argmax(const Ex01Market& m = {}) {
-  return m.K * std::exp(-(m.r + 1.5 * m.sigma * m.sigma) * m.T);
+[[nodiscard]] inline double Ex01Argmax(const Ex01Market& m = {}) {
+  return m.strike * std::exp(-(m.r + 1.5 * m.sigma * m.sigma) * m.maturity);
 }
 
-[[nodiscard]] inline double ex01_max_gamma(const Ex01Market& m = {}) {
-  const double s = ex01_argmax(m);
-  return std::exp(-0.5 * m.sigma * m.sigma * m.T) /
-         (s * m.sigma * std::sqrt(2.0 * std::numbers::pi * m.T));
+[[nodiscard]] inline double Ex01MaxGamma(const Ex01Market& m = {}) {
+  const double s = Ex01Argmax(m);
+  return std::exp(-0.5 * m.sigma * m.sigma * m.maturity) /
+         (s * m.sigma * std::sqrt(2.0 * std::numbers::pi * m.maturity));
 }
 
 // d/dS ln Gamma = -(sigma sqrt(T) + d1) / (S sigma sqrt(T)).
-[[nodiscard]] inline double ex01_log_derivative(double S,
-                                                const Ex01Market& m = {}) {
-  const double st = m.sigma * std::sqrt(m.T);
-  const double d1 = ch03::BsD1D2(S, m.K, m.T, m.sigma, m.r, 0.0).d1;
-  return -(st + d1) / (S * st);
+[[nodiscard]] inline double Ex01LogDerivative(double spot,
+                                              const Ex01Market& m = {}) {
+  const double st = m.sigma * std::sqrt(m.maturity);
+  const double d1 =
+      ch03::BsD1D2(spot, m.strike, m.maturity, m.sigma, m.r, 0.0).d1;
+  return -(st + d1) / (spot * st);
 }
 
 }  // namespace p4mfe::ch08::ex

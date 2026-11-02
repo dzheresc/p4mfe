@@ -21,20 +21,26 @@ namespace p4mfe::ch08::ex {
 // By the change of variables formula (8.3),
 //   integral_{D(0,R)} 1 dx dy = integral_0^{2 pi} integral_0^R r dr dtheta
 //                             = integral_0^{2 pi} R^2/2 dtheta = pi R^2.
-[[nodiscard]] inline double ex04_disk_area_polar(double R, std::size_t n = 50) {
-  return polar_integral([](double, double) { return 1.0; }, 0.0, R, 0.0,
-                        2.0 * std::numbers::pi, n, n);
+[[nodiscard]] inline double Ex04DiskAreaPolar(double radius,
+                                              std::size_t n = 50) {
+  return PolarIntegral([](double, double) { return 1.0; }, 0.0, radius, 0.0,
+                       2.0 * std::numbers::pi, n, n);
 }
 
 // The same area as an x-y integral: integral_{-R}^R 2 sqrt(R^2 - x^2) dx.
 // The square-root endpoints make Simpson's rule converge only like n^(-3/2),
 // which is why polar coordinates are the better choice here.
-[[nodiscard]] inline double ex04_disk_area_cartesian(double R,
-                                                     std::size_t n = 2000) {
-  return double_integral_region(
-      [](double, double) { return 1.0; }, -R, R,
-      [R](double x) { return -std::sqrt(std::max(R * R - x * x, 0.0)); },
-      [R](double x) { return std::sqrt(std::max(R * R - x * x, 0.0)); }, n, 2);
+[[nodiscard]] inline double Ex04DiskAreaCartesian(double radius,
+                                                  std::size_t n = 2000) {
+  return DoubleIntegralRegion(
+      [](double, double) { return 1.0; }, -radius, radius,
+      [radius](double x) {
+        return -std::sqrt(std::max(radius * radius - x * x, 0.0));
+      },
+      [radius](double x) {
+        return std::sqrt(std::max(radius * radius - x * x, 0.0));
+      },
+      n, 2);
 }
 
 // ------------------------------------------------------------ Exercise 5 ---
@@ -48,21 +54,21 @@ namespace p4mfe::ch08::ex {
 //   area(D) = integral_0^{2 pi} integral_0^1 a b r dr dtheta = 2 pi a b / 2 =
 //   pi a b.
 // (For a = b = R this is exercise 4.)
-[[nodiscard]] inline Point2 ex05_map(double a, double b, double r,
-                                     double theta) {
+[[nodiscard]] inline Point2 Ex05Map(double a, double b, double r,
+                                    double theta) {
   return {a * r * std::cos(theta), b * r * std::sin(theta)};
 }
 
 // Uses the numerical Jacobian of the chapter's change_of_variables_integral.
-[[nodiscard]] inline double ex05_ellipse_area(double a, double b,
-                                              std::size_t n = 50) {
-  return change_of_variables_integral(
+[[nodiscard]] inline double Ex05EllipseArea(double a, double b,
+                                            std::size_t n = 50) {
+  return ChangeOfVariablesIntegral(
       [](double, double) { return 1.0; },
-      [a, b](double r, double th) { return ex05_map(a, b, r, th); }, 0.0, 1.0,
+      [a, b](double r, double th) { return Ex05Map(a, b, r, th); }, 0.0, 1.0,
       0.0, 2.0 * std::numbers::pi, n, n);
 }
 
-[[nodiscard]] inline double ex05_exact(double a, double b) {
+[[nodiscard]] inline double Ex05Exact(double a, double b) {
   return std::numbers::pi * a * b;
 }
 

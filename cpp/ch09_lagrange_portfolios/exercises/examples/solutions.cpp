@@ -16,11 +16,11 @@ void header(const char* title) { std::printf("\n== %s ==\n", title); }
 
 const char* name(CriticalPointType t) {
   switch (t) {
-    case CriticalPointType::Minimum:
+    case CriticalPointType::kMinimum:
       return "minimum";
-    case CriticalPointType::Maximum:
+    case CriticalPointType::kMaximum:
       return "maximum";
-    case CriticalPointType::Saddle:
+    case CriticalPointType::kSaddle:
       return "saddle";
     default:
       return "degenerate";
