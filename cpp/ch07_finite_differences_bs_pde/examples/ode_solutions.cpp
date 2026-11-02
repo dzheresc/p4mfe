@@ -15,18 +15,18 @@ int main() {
   std::printf("%6s  %12s  %12s  %12s\n", "n", "forward", "backward", "central");
   for (std::size_t n : {10, 20, 40, 80, 160, 320})
     std::printf("%6zu  %12.3e  %12.3e  %12.3e\n", n,
-                max_error(euler_forward(f, 0, 1, 2, n), exact),
-                max_error(euler_backward(f, 0, 1, 2, n), exact),
-                max_error(leapfrog(f, 0, 1, 2, n), exact));
+                MaxError(EulerForward(f, 0, 1, 2, n), exact),
+                MaxError(EulerBackward(f, 0, 1, 2, n), exact),
+                MaxError(Leapfrog(f, 0, 1, 2, n), exact));
 
   std::printf("\ny' = -20 y, y(0) = 1: y(3) = %.3e\n", std::exp(-60.0));
   std::printf("%6s  %12s  %12s  %12s\n", "n", "forward", "backward", "central");
   const auto decay = [](double, double y) { return -20 * y; };
   for (std::size_t n : {20, 40, 100, 1000})
     std::printf("%6zu  %12.3e  %12.3e  %12.3e\n", n,
-                euler_forward(decay, 0, 1, 3, n).y.back(),
-                euler_backward(decay, 0, 1, 3, n).y.back(),
-                leapfrog(decay, 0, 1, 3, n).y.back());
+                EulerForward(decay, 0, 1, 3, n).y.back(),
+                EulerBackward(decay, 0, 1, 3, n).y.back(),
+                Leapfrog(decay, 0, 1, 3, n).y.back());
 
   std::printf(
       "\ny'' - y = 0, y(0) = 0, y(1) = sinh(1); max error vs. sinh(x)\n");
@@ -34,9 +34,9 @@ int main() {
   double prev = 0;
   for (std::size_t n : {4, 8, 16, 32, 64}) {
     const auto sol =
-        solve_bvp([](double) { return 0.0; }, [](double) { return -1.0; },
-                  [](double) { return 0.0; }, 0, 1, 0, std::sinh(1.0), n);
-    const double e = max_error(sol, [](double x) { return std::sinh(x); });
+        SolveBvp([](double) { return 0.0; }, [](double) { return -1.0; },
+                 [](double) { return 0.0; }, 0, 1, 0, std::sinh(1.0), n);
+    const double e = MaxError(sol, [](double x) { return std::sinh(x); });
     std::printf("%6zu  %12.3e  %8.3f\n", n, e,
                 prev > 0 ? std::log2(prev / e) : 0.0);
     prev = e;

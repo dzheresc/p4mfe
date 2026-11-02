@@ -19,16 +19,16 @@ namespace ch07 = p4mfe::ch07;
 using p4mfe::bench::check;
 using p4mfe::bench::set_items;
 
-void BM_fd_study(benchmark::State& state) {
+void BmFdStudy(benchmark::State& state) {
   const auto f = [](double x) { return std::exp(x) * std::sin(x); };
   const auto df = [](double x) {
     return std::exp(x) * (std::sin(x) + std::cos(x));
   };
   const double p =
-      ch07::fd_observed_order(f, 0.5, df(0.5), ch07::FdScheme::Central, 1e-2);
+      ch07::FdObservedOrder(f, 0.5, df(0.5), ch07::FdScheme::kCentral, 1e-2);
   if (!check(
           state,
-          std::abs(p - ch07::truncation_order(ch07::FdScheme::Central)) < 0.1,
+          std::abs(p - ch07::TruncationOrder(ch07::FdScheme::kCentral)) < 0.1,
           "central order is not 2"))
     return;
   const std::size_t n = 1000;
@@ -37,22 +37,21 @@ void BM_fd_study(benchmark::State& state) {
     for (std::size_t i = 0; i < n; ++i) {
       const double a =
           -1.0 + 2.0 * static_cast<double>(i) / static_cast<double>(n);
-      for (const auto s : {ch07::FdScheme::Forward, ch07::FdScheme::Backward,
-                           ch07::FdScheme::Central}) {
-        const auto rows = ch07::fd_error_table(f, a, df(a), s, 0.1, 8);
-        sum +=
-            rows.back().error + ch07::fd_observed_order(f, a, df(a), s, 1e-3);
-        sum += ch07::optimal_step(s, 1, a) + ch07::truncation_order(s);
+      for (const auto s : {ch07::FdScheme::kForward, ch07::FdScheme::kBackward,
+                           ch07::FdScheme::kCentral}) {
+        const auto rows = ch07::FdErrorTable(f, a, df(a), s, 0.1, 8);
+        sum += rows.back().error + ch07::FdObservedOrder(f, a, df(a), s, 1e-3);
+        sum += ch07::OptimalStep(s, 1, a) + ch07::TruncationOrder(s);
       }
-      sum += ch07::backward_difference(
-          f, a, ch07::optimal_step(ch07::FdScheme::Backward, 2, a));
+      sum += ch07::BackwardDifference(
+          f, a, ch07::OptimalStep(ch07::FdScheme::kBackward, 2, a));
     }
     benchmark::DoNotOptimize(sum);
   }
   set_items(state, n, "points");
 }
 
-void BM_pde_solutions(benchmark::State& state) {
+void BmPdeSolutions(benchmark::State& state) {
   const auto spec = p4mfe::bench::chain_spec_for_tier();
   const auto chain = p4mfe::bench::make_option_chain(spec);
   std::vector<ch03::Greeks> gs;
@@ -63,34 +62,34 @@ void BM_pde_solutions(benchmark::State& state) {
     w.push_back(o.K > o.S ? 1.0 : -1.0);
   }
   const auto& o0 = chain.front();
-  const auto call = [&](double S, double t) {
-    return ch03::BsPrice(o0.type, S, o0.K, o0.T - t, o0.sigma, spec.r, spec.q);
+  const auto call = [&](double spot, double t) {
+    return ch03::BsPrice(o0.type, spot, o0.K, o0.T - t, o0.sigma, spec.r,
+                         spec.q);
   };
   if (!check(state,
-             std::abs(ch07::bs_pde_residual_fd(call, o0.S, 0.0, o0.sigma,
-                                               spec.r, spec.q)) < 1e-2,
+             std::abs(ch07::BsPdeResidualFd(call, o0.S, 0.0, o0.sigma, spec.r,
+                                            spec.q)) < 1e-2,
              "Black-Scholes price does not solve the PDE"))
     return;
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& o : chain) {
-      sum +=
-          ch07::power_solution(2.0, o.S, 0.0, o.sigma, spec.r, spec.q) * 1e-8;
-      sum += ch07::power_solution_rate(-1.0, o.sigma, spec.r, spec.q);
-      sum += ch07::forward_contract_value(o.S, 0.0, o.K, o.T, spec.r, spec.q);
+      sum += ch07::PowerSolution(2.0, o.S, 0.0, o.sigma, spec.r, spec.q) * 1e-8;
+      sum += ch07::PowerSolutionRate(-1.0, o.sigma, spec.r, spec.q);
+      sum += ch07::ForwardContractValue(o.S, 0.0, o.K, o.T, spec.r, spec.q);
     }
-    sum += ch07::bs_pde_residual_fd(call, o0.S, 0.0, o0.sigma, spec.r, spec.q);
-    const auto g = ch07::combine_greeks(w, gs);
+    sum += ch07::BsPdeResidualFd(call, o0.S, 0.0, o0.sigma, spec.r, spec.q);
+    const auto g = ch07::CombineGreeks(w, gs);
     benchmark::DoNotOptimize(sum + g.delta + g.gamma);
   }
   set_items(state, chain.size(), "options");
 }
 
-const bool registered = [] {
-  benchmark::RegisterBenchmark("W4/ch07/fd_accuracy_study", BM_fd_study)
+const bool kRegistered = [] {
+  benchmark::RegisterBenchmark("W4/ch07/fd_accuracy_study", BmFdStudy)
       ->Unit(benchmark::kMicrosecond);
   benchmark::RegisterBenchmark("W1/ch07/pde_closed_forms+combine_greeks",
-                               BM_pde_solutions)
+                               BmPdeSolutions)
       ->Unit(benchmark::kMicrosecond);
   return true;
 }();

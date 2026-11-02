@@ -24,22 +24,22 @@ from p4mfe.ch04_lognormal_risk_neutral.asset_model import price_from_normal
 
 # 7.4 -----------------------------------------------------------------------
 def bs_pde_residual_fd(
-    V: Callable[[float, float], float],
-    S: float,
+    v: Callable[[float, float], float],
+    spot: float,
     t: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> float:
     """PDE left-hand side for V(S, t), derivatives by central differences."""
-    theta = derivative(lambda u: V(S, u), t)
-    delta = derivative(lambda s: V(s, t), S)
-    gamma = second_derivative(lambda s: V(s, t), S)
+    theta = derivative(lambda u: v(spot, u), t)
+    delta = derivative(lambda s: v(s, t), spot)
+    gamma = second_derivative(lambda s: v(s, t), spot)
     return (
         theta
-        + 0.5 * sigma * sigma * S * S * gamma
-        + (r - q) * S * delta
-        - r * V(S, t)
+        + 0.5 * sigma * sigma * spot * spot * gamma
+        + (r - q) * spot * delta
+        - r * v(spot, t)
     )
 
 
@@ -51,26 +51,33 @@ def power_solution_rate(
 
 
 def power_solution(
-    a: float, S: float, t: float, sigma: float, r: float, q: float = 0.0
+    a: float, spot: float, t: float, sigma: float, r: float, q: float = 0.0
 ) -> float:
-    return S**a * math.exp(power_solution_rate(a, sigma, r, q) * t)
+    return spot**a * math.exp(power_solution_rate(a, sigma, r, q) * t)
 
 
 def forward_contract_value(
-    S: float, t: float, K: float, T: float, r: float, q: float = 0.0
+    spot: float,
+    t: float,
+    strike: float,
+    maturity: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
-    return S * math.exp(-q * (T - t)) - K * math.exp(-r * (T - t))
+    return spot * math.exp(-q * (maturity - t)) - strike * math.exp(
+        -r * (maturity - t)
+    )
 
 
 # 7.4.2 ---------------------------------------------------------------------
 def pde_residual(
-    V: float, g: Greeks, S: float, sigma: float, r: float, q: float = 0.0
+    value: float, g: Greeks, spot: float, sigma: float, r: float, q: float = 0.0
 ) -> float:
     return (
         g.theta
-        + 0.5 * sigma * sigma * S * S * g.gamma
-        + (r - q) * S * g.delta
-        - r * V
+        + 0.5 * sigma * sigma * spot * spot * g.gamma
+        + (r - q) * spot * g.delta
+        - r * value
     )
 
 
@@ -88,8 +95,8 @@ def combine_greeks(w: Sequence[float], gs: Sequence[Greeks]) -> Greeks:
 
 # 7.4.1 ---------------------------------------------------------------------
 def gbm_path(
-    S0: float,
-    T: float,
+    spot0: float,
+    maturity: float,
     sigma: float,
     mu: float,
     q: float,
@@ -99,15 +106,15 @@ def gbm_path(
     """S_0, S_h, ..., S_T on n equal steps with real-world drift mu."""
     if n < 1:
         raise ValueError("need n >= 1")
-    dt = T / n
+    dt = maturity / n
     steps = price_from_normal(rng.standard_normal(n), 1.0, dt, sigma, mu, q)
-    return S0 * np.concatenate(([1.0], np.cumprod(steps)))
+    return spot0 * np.concatenate(([1.0], np.cumprod(steps)))
 
 
 def delta_hedge_pnl(
     option_type: OptionType,
-    K: float,
-    T: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float,
@@ -118,21 +125,26 @@ def delta_hedge_pnl(
     n = len(path) - 1
     if n < 1:
         raise ValueError("need at least two prices")
-    dt = T / n
+    dt = maturity / n
     growth = math.exp(r * dt)
     carry = math.exp(q * dt) - 1
-    shares = bs_greeks(option_type, path[0], K, T, sigma, r, q).delta
-    cash = bs_price(option_type, path[0], K, T, sigma, r, q) - shares * path[0]
+    shares = bs_greeks(
+        option_type, path[0], strike, maturity, sigma, r, q
+    ).delta
+    cash = (
+        bs_price(option_type, path[0], strike, maturity, sigma, r, q)
+        - shares * path[0]
+    )
     for k in range(1, n + 1):
         cash = cash * growth + shares * path[k - 1] * carry
         if k == n:
             break
         new_shares = bs_greeks(
-            option_type, path[k], K, T - k * dt, sigma, r, q
+            option_type, path[k], strike, maturity - k * dt, sigma, r, q
         ).delta
         cash -= (new_shares - shares) * path[k]
         shares = new_shares
-    return float(cash + shares * path[n] - payoff(option_type, path[n], K))
+    return float(cash + shares * path[n] - payoff(option_type, path[n], strike))
 
 
 @dataclass(frozen=True)
@@ -143,9 +155,9 @@ class HedgeStats:
 
 def delta_hedge_stats(
     option_type: OptionType,
-    S0: float,
-    K: float,
-    T: float,
+    spot0: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float,
@@ -161,12 +173,12 @@ def delta_hedge_stats(
         [
             delta_hedge_pnl(
                 option_type,
-                K,
-                T,
+                strike,
+                maturity,
                 sigma,
                 r,
                 q,
-                gbm_path(S0, T, sigma, mu, q, n_steps, rng),
+                gbm_path(spot0, maturity, sigma, mu, q, n_steps, rng),
             )
             for _ in range(n_paths)
         ]

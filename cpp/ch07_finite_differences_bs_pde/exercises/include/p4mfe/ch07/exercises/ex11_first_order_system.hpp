@@ -26,60 +26,60 @@ namespace p4mfe::ch07::ex {
 // Y_{k+1} = Y_k + h f(x_k, Y_k), etc.) apply componentwise.
 using Vec2 = std::array<double, 2>;
 
-[[nodiscard]] constexpr Vec2 ex11_f(double x, const Vec2& Y) noexcept {
-  return {Y[1], -x * x * Y[0] + 2.0 * Y[1]};
+[[nodiscard]] constexpr Vec2 Ex11F(double x, const Vec2& y) noexcept {
+  return {y[1], -x * x * y[0] + 2.0 * y[1]};
 }
 
 struct Ex11Solution {
   std::vector<double> x;
-  std::vector<Vec2> Y;
+  std::vector<Vec2> y;
 };
 
 // Forward Euler for the system on [x0, x_end] (first order).
-[[nodiscard]] inline Ex11Solution ex11_euler(const Vec2& Y0, double x0,
-                                             double x_end, std::size_t n) {
+[[nodiscard]] inline Ex11Solution Ex11Euler(const Vec2& y0, double x0,
+                                            double x_end, std::size_t n) {
   if (n == 0) throw std::invalid_argument("ex11_euler: need n >= 1");
   const double h = (x_end - x0) / static_cast<double>(n);
   Ex11Solution s{std::vector<double>(n + 1), std::vector<Vec2>(n + 1)};
-  s.Y[0] = Y0;
+  s.y[0] = y0;
   for (std::size_t k = 0; k <= n; ++k) s.x[k] = x0 + static_cast<double>(k) * h;
   for (std::size_t k = 0; k < n; ++k) {
-    const Vec2 d = ex11_f(s.x[k], s.Y[k]);
-    s.Y[k + 1] = {s.Y[k][0] + h * d[0], s.Y[k][1] + h * d[1]};
+    const Vec2 d = Ex11F(s.x[k], s.y[k]);
+    s.y[k + 1] = {s.y[k][0] + h * d[0], s.y[k][1] + h * d[1]};
   }
   return s;
 }
 
 // Classical Runge-Kutta (fourth order), as an accurate reference.
-[[nodiscard]] inline Ex11Solution ex11_rk4(const Vec2& Y0, double x0,
-                                           double x_end, std::size_t n) {
+[[nodiscard]] inline Ex11Solution Ex11Rk4(const Vec2& y0, double x0,
+                                          double x_end, std::size_t n) {
   if (n == 0) throw std::invalid_argument("ex11_rk4: need n >= 1");
   const double h = (x_end - x0) / static_cast<double>(n);
-  const auto axpy = [](const Vec2& Y, double a, const Vec2& d) {
-    return Vec2{Y[0] + a * d[0], Y[1] + a * d[1]};
+  const auto axpy = [](const Vec2& y, double a, const Vec2& d) {
+    return Vec2{y[0] + a * d[0], y[1] + a * d[1]};
   };
   Ex11Solution s{std::vector<double>(n + 1), std::vector<Vec2>(n + 1)};
-  s.Y[0] = Y0;
+  s.y[0] = y0;
   for (std::size_t k = 0; k <= n; ++k) s.x[k] = x0 + static_cast<double>(k) * h;
   for (std::size_t k = 0; k < n; ++k) {
     const double x = s.x[k];
-    const Vec2& Y = s.Y[k];
-    const Vec2 k1 = ex11_f(x, Y);
-    const Vec2 k2 = ex11_f(x + 0.5 * h, axpy(Y, 0.5 * h, k1));
-    const Vec2 k3 = ex11_f(x + 0.5 * h, axpy(Y, 0.5 * h, k2));
-    const Vec2 k4 = ex11_f(x + h, axpy(Y, h, k3));
-    s.Y[k + 1] = {Y[0] + h / 6.0 * (k1[0] + 2.0 * k2[0] + 2.0 * k3[0] + k4[0]),
-                  Y[1] + h / 6.0 * (k1[1] + 2.0 * k2[1] + 2.0 * k3[1] + k4[1])};
+    const Vec2& y = s.y[k];
+    const Vec2 k1 = Ex11F(x, y);
+    const Vec2 k2 = Ex11F(x + 0.5 * h, axpy(y, 0.5 * h, k1));
+    const Vec2 k3 = Ex11F(x + 0.5 * h, axpy(y, 0.5 * h, k2));
+    const Vec2 k4 = Ex11F(x + h, axpy(y, h, k3));
+    s.y[k + 1] = {y[0] + h / 6.0 * (k1[0] + 2.0 * k2[0] + 2.0 * k3[0] + k4[0]),
+                  y[1] + h / 6.0 * (k1[1] + 2.0 * k2[1] + 2.0 * k3[1] + k4[1])};
   }
   return s;
 }
 
 // Residual y'' - 2y' + x^2 y at interior grid node k of a solution, with y'
 // and y'' by central differences of the first component (section 7.1).
-[[nodiscard]] inline double ex11_ode_residual(const Ex11Solution& s,
-                                              std::size_t k) {
+[[nodiscard]] inline double Ex11OdeResidual(const Ex11Solution& s,
+                                            std::size_t k) {
   const double h = s.x[1] - s.x[0];
-  const double ym = s.Y[k - 1][0], y = s.Y[k][0], yp = s.Y[k + 1][0];
+  const double ym = s.y[k - 1][0], y = s.y[k][0], yp = s.y[k + 1][0];
   const double d1 = (yp - ym) / (2.0 * h);
   const double d2 = (yp - 2.0 * y + ym) / (h * h);
   return d2 - 2.0 * d1 + s.x[k] * s.x[k] * y;

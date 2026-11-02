@@ -20,41 +20,45 @@ Pricer = Callable[[float, float, float, float], float]
 
 @dataclass(frozen=True)
 class FdSteps:
-    dS: float = 1e-2
-    dT: float = 1e-4
+    d_spot: float = 1e-2
+    d_t: float = 1e-4
     dsigma: float = 1e-4
     dr: float = 1e-4
 
 
 # 7.3 -----------------------------------------------------------------------
 def fd_greeks(
-    V: Pricer,
-    S: float,
-    T: float,
+    pricer: Pricer,
+    spot: float,
+    maturity: float,
     sigma: float,
     r: float,
     h: FdSteps = FdSteps(),
     scheme: FdScheme = FdScheme.CENTRAL,
 ) -> Greeks:
-    def in_S(s):
-        return V(s, T, sigma, r)
+    def in_spot(s):
+        return pricer(s, maturity, sigma, r)
 
     return Greeks(
-        delta=first_difference(in_S, S, h.dS, scheme),
-        gamma=second_central_difference(in_S, S, h.dS),
-        vega=first_difference(lambda v: V(S, T, v, r), sigma, h.dsigma, scheme),
-        theta=first_difference(
-            lambda t: V(S, T - t, sigma, r), 0.0, h.dT, scheme
+        delta=first_difference(in_spot, spot, h.d_spot, scheme),
+        gamma=second_central_difference(in_spot, spot, h.d_spot),
+        vega=first_difference(
+            lambda v: pricer(spot, maturity, v, r), sigma, h.dsigma, scheme
         ),
-        rho=first_difference(lambda x: V(S, T, sigma, x), r, h.dr, scheme),
+        theta=first_difference(
+            lambda t: pricer(spot, maturity - t, sigma, r), 0.0, h.d_t, scheme
+        ),
+        rho=first_difference(
+            lambda x: pricer(spot, maturity, sigma, x), r, h.dr, scheme
+        ),
     )
 
 
 def bs_fd_greeks(
     option_type: OptionType,
-    S: float,
-    K: float,
-    T: float,
+    spot: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
@@ -62,9 +66,9 @@ def bs_fd_greeks(
     scheme: FdScheme = FdScheme.CENTRAL,
 ) -> Greeks:
     return fd_greeks(
-        lambda s, t, v, x: bs_price(option_type, s, K, t, v, x, q),
-        S,
-        T,
+        lambda s, t, v, x: bs_price(option_type, s, strike, t, v, x, q),
+        spot,
+        maturity,
         sigma,
         r,
         h,

@@ -112,21 +112,21 @@ def test_ex05_points_a_minus_h_a_plus_2h():
     )
 
 
-@pytest.mark.parametrize("C", [0.5, 2.0, 3.0])
-def test_ex05_general_beta_gamma(C):
+@pytest.mark.parametrize("c", [0.5, 2.0, 3.0])
+def test_ex05_general_beta_gamma(c):
     a = 1.0
     f = lambda x: math.log(1 + x * x)  # noqa: E731
     f1, f2, f3 = 1.0, 0.0, -1.0
-    e1 = lambda k: ex05_first_derivative(f, a, a - C * k, a + k) - f1  # noqa: E731
-    e2 = lambda k: ex05_second_derivative(f, a, a - C * k, a + k) - f2  # noqa: E731
+    e1 = lambda k: ex05_first_derivative(f, a, a - c * k, a + k) - f1  # noqa: E731
+    e2 = lambda k: ex05_second_derivative(f, a, a - c * k, a + k) - f2  # noqa: E731
     assert ex_observed_order(e1, 0.02) == pytest.approx(2.0, abs=0.1)
     assert ex_observed_order(e2, 0.02) == pytest.approx(1.0, abs=0.1)
     k = 0.005
     assert e1(k) / ex05_first_leading_error(
-        a, a - C * k, a + k, f3
+        a, a - c * k, a + k, f3
     ) == pytest.approx(1.0, abs=0.05)
     assert e2(k) / ex05_second_leading_error(
-        a, a - C * k, a + k, f3
+        a, a - c * k, a + k, f3
     ) == pytest.approx(1.0, abs=0.05)
 
 

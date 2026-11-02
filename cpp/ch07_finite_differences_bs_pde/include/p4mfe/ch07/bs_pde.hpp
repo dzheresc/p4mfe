@@ -45,15 +45,15 @@ using ch03::OptionType;
 // Left-hand side of the PDE for V(S, t), all derivatives by central
 // differences (chapter 1's step choices). Zero up to O(h^2) iff V solves it.
 template <std::invocable<double, double> V>
-[[nodiscard]] double bs_pde_residual_fd(V&& v, double S, double t, double sigma,
-                                        double r, double q = 0.0) {
-  const auto in_S = [&](double s) { return v(s, t); };
-  const auto in_t = [&](double u) { return v(S, u); };
+[[nodiscard]] double BsPdeResidualFd(V&& v, double spot, double t, double sigma,
+                                     double r, double q = 0.0) {
+  const auto in_spot = [&](double s) { return v(s, t); };
+  const auto in_t = [&](double u) { return v(spot, u); };
   const double theta = ch01::Derivative(in_t, t);
-  const double delta = ch01::Derivative(in_S, S);
-  const double gamma = ch01::SecondDerivative(in_S, S);
-  return theta + 0.5 * sigma * sigma * S * S * gamma + (r - q) * S * delta -
-         r * v(S, t);
+  const double delta = ch01::Derivative(in_spot, spot);
+  const double gamma = ch01::SecondDerivative(in_spot, spot);
+  return theta + 0.5 * sigma * sigma * spot * spot * gamma +
+         (r - q) * spot * delta - r * v(spot, t);
 }
 
 // Elementary solutions V = S^a e^(c t), with c = r - a (r - q) - 1/2 sigma^2 a
@@ -61,37 +61,38 @@ template <std::invocable<double, double> V>
 //   a = 0: cash, e^(r t).   a = 1: the asset with dividends reinvested, S e^(q
 //   t).
 // European prices are superpositions of such solutions in disguise.
-[[nodiscard]] inline double power_solution_rate(double a, double sigma,
-                                                double r,
-                                                double q = 0.0) noexcept {
+[[nodiscard]] inline double PowerSolutionRate(double a, double sigma, double r,
+                                              double q = 0.0) noexcept {
   return r - a * (r - q) - 0.5 * sigma * sigma * a * (a - 1.0);
 }
-[[nodiscard]] inline double power_solution(double a, double S, double t,
-                                           double sigma, double r,
-                                           double q = 0.0) noexcept {
-  return std::pow(S, a) * std::exp(power_solution_rate(a, sigma, r, q) * t);
+[[nodiscard]] inline double PowerSolution(double a, double spot, double t,
+                                          double sigma, double r,
+                                          double q = 0.0) noexcept {
+  return std::pow(spot, a) * std::exp(PowerSolutionRate(a, sigma, r, q) * t);
 }
 
 // Value at time t of a long forward with delivery price K maturing at T:
 // S e^(-q (T - t)) - K e^(-r (T - t)). Solves the PDE (it is linear in S).
-[[nodiscard]] inline double forward_contract_value(double S, double t, double K,
-                                                   double T, double r,
-                                                   double q = 0.0) noexcept {
-  return S * std::exp(-q * (T - t)) - K * std::exp(-r * (T - t));
+[[nodiscard]] inline double ForwardContractValue(double spot, double t,
+                                                 double strike, double maturity,
+                                                 double r,
+                                                 double q = 0.0) noexcept {
+  return spot * std::exp(-q * (maturity - t)) -
+         strike * std::exp(-r * (maturity - t));
 }
 
 // -------------------------------------------------------------- 7.4.2 ------
 // The PDE in terms of a value and its Greeks (any portfolio on one asset).
-[[nodiscard]] constexpr double pde_residual(double V, const Greeks& g, double S,
-                                            double sigma, double r,
-                                            double q = 0.0) noexcept {
-  return g.theta + 0.5 * sigma * sigma * S * S * g.gamma +
-         (r - q) * S * g.delta - r * V;
+[[nodiscard]] constexpr double PdeResidual(double value, const Greeks& g,
+                                           double spot, double sigma, double r,
+                                           double q = 0.0) noexcept {
+  return g.theta + 0.5 * sigma * sigma * spot * spot * g.gamma +
+         (r - q) * spot * g.delta - r * value;
 }
 
 // Greeks of a portfolio sum(w_i * position_i) are the weighted sums.
-[[nodiscard]] inline Greeks combine_greeks(const std::vector<double>& w,
-                                           const std::vector<Greeks>& gs) {
+[[nodiscard]] inline Greeks CombineGreeks(const std::vector<double>& w,
+                                          const std::vector<Greeks>& gs) {
   if (w.size() != gs.size())
     throw std::invalid_argument("combine_greeks: size mismatch");
   Greeks out{};
@@ -109,14 +110,14 @@ template <std::invocable<double, double> V>
 // Lognormal path S_0, S_h, ..., S_T on n equal steps with real-world drift
 // mu (chapter 4's price_from_normal for each step).
 template <std::uniform_random_bit_generator G>
-[[nodiscard]] std::vector<double> gbm_path(double S0, double T, double sigma,
-                                           double mu, double q, std::size_t n,
-                                           G& rng) {
+[[nodiscard]] std::vector<double> GbmPath(double spot0, double maturity,
+                                          double sigma, double mu, double q,
+                                          std::size_t n, G& rng) {
   if (n == 0) throw std::invalid_argument("gbm_path: need n >= 1");
   std::normal_distribution<double> z;
-  const double dt = T / static_cast<double>(n);
+  const double dt = maturity / static_cast<double>(n);
   std::vector<double> path(n + 1);
-  path[0] = S0;
+  path[0] = spot0;
   for (std::size_t k = 0; k < n; ++k)
     path[k + 1] = ch04::PriceFromNormal(z(rng), path[k], dt, sigma, mu, q);
   return path;
@@ -126,31 +127,33 @@ template <std::uniform_random_bit_generator G>
 // rest in cash at r, receive dividends q S dt on the shares, and rebalance at
 // each point of `path` (equally spaced on [0, T]). Returns the final P&L:
 // cash + shares * S_T - payoff.
-[[nodiscard]] inline double delta_hedge_pnl(OptionType type, double K, double T,
-                                            double sigma, double r, double q,
-                                            const std::vector<double>& path) {
+[[nodiscard]] inline double DeltaHedgePnl(OptionType type, double strike,
+                                          double maturity, double sigma,
+                                          double r, double q,
+                                          const std::vector<double>& path) {
   if (path.size() < 2)
     throw std::invalid_argument("delta_hedge_pnl: need at least two prices");
   const std::size_t n = path.size() - 1;
-  const double dt = T / static_cast<double>(n);
+  const double dt = maturity / static_cast<double>(n);
   const double growth = std::exp(r * dt);
   const double carry =
       std::exp(q * dt) -
       1.0;  // dividends on one share over dt, per unit of price
-  double shares = ch03::BsGreeks(type, path[0], K, T, sigma, r, q).delta;
-  double cash =
-      ch03::BsPrice(type, path[0], K, T, sigma, r, q) - shares * path[0];
+  double shares =
+      ch03::BsGreeks(type, path[0], strike, maturity, sigma, r, q).delta;
+  double cash = ch03::BsPrice(type, path[0], strike, maturity, sigma, r, q) -
+                shares * path[0];
   for (std::size_t k = 1; k <= n; ++k) {
-    const double S = path[k];
+    const double spot = path[k];
     cash = cash * growth + shares * path[k - 1] * carry;
     if (k == n) break;
-    const double tau = T - static_cast<double>(k) * dt;
+    const double tau = maturity - static_cast<double>(k) * dt;
     const double new_shares =
-        ch03::BsGreeks(type, S, K, tau, sigma, r, q).delta;
-    cash -= (new_shares - shares) * S;
+        ch03::BsGreeks(type, spot, strike, tau, sigma, r, q).delta;
+    cash -= (new_shares - shares) * spot;
     shares = new_shares;
   }
-  return cash + shares * path[n] - ch01::Payoff(type, path[n], K);
+  return cash + shares * path[n] - ch01::Payoff(type, path[n], strike);
 }
 
 struct HedgeStats {
@@ -159,17 +162,18 @@ struct HedgeStats {
 };
 
 // P&L statistics of `delta_hedge_pnl` over n_paths paths with drift mu.
-[[nodiscard]] inline HedgeStats delta_hedge_stats(
-    OptionType type, double S0, double K, double T, double sigma, double r,
-    double q, double mu, std::size_t n_steps, std::size_t n_paths,
+[[nodiscard]] inline HedgeStats DeltaHedgeStats(
+    OptionType type, double spot0, double strike, double maturity, double sigma,
+    double r, double q, double mu, std::size_t n_steps, std::size_t n_paths,
     std::uint64_t seed = 42) {
   if (n_paths < 2)
     throw std::invalid_argument("delta_hedge_stats: need n_paths >= 2");
   std::mt19937_64 rng(seed);
   double sum = 0.0, sum2 = 0.0;
   for (std::size_t i = 0; i < n_paths; ++i) {
-    const double pnl = delta_hedge_pnl(
-        type, K, T, sigma, r, q, gbm_path(S0, T, sigma, mu, q, n_steps, rng));
+    const double pnl =
+        DeltaHedgePnl(type, strike, maturity, sigma, r, q,
+                      GbmPath(spot0, maturity, sigma, mu, q, n_steps, rng));
     sum += pnl;
     sum2 += pnl * pnl;
   }

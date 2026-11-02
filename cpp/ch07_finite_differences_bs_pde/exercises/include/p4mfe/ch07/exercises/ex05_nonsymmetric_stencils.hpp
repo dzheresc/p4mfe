@@ -56,38 +56,38 @@ namespace p4mfe::ch07::ex {
 //   f'''(a).
 // (ii) is only first order: a - h, a + 2h are not symmetric about a.
 template <std::invocable<double> F>
-[[nodiscard]] double ex05_first_derivative(F&& f, double a, double beta,
-                                           double gamma) {
+[[nodiscard]] double Ex05FirstDerivative(F&& f, double a, double beta,
+                                         double gamma) {
   const double u = a - beta, v = gamma - a;
   return (u * u * f(gamma) - v * v * f(beta) - (u * u - v * v) * f(a)) /
          (u * v * (gamma - beta));
 }
 template <std::invocable<double> F>
-[[nodiscard]] double ex05_second_derivative(F&& f, double a, double beta,
-                                            double gamma) {
+[[nodiscard]] double Ex05SecondDerivative(F&& f, double a, double beta,
+                                          double gamma) {
   const double u = a - beta, v = gamma - a;
   return 2.0 * (u * f(gamma) + v * f(beta) - (gamma - beta) * f(a)) /
          (u * v * (gamma - beta));
 }
 // Leading error terms (approximation minus exact) in terms of f'''(a).
-[[nodiscard]] constexpr double ex05_first_leading_error(double a, double beta,
-                                                        double gamma,
-                                                        double f3) noexcept {
+[[nodiscard]] constexpr double Ex05FirstLeadingError(double a, double beta,
+                                                     double gamma,
+                                                     double f3) noexcept {
   return (a - beta) * (gamma - a) / 6.0 * f3;
 }
-[[nodiscard]] constexpr double ex05_second_leading_error(double a, double beta,
-                                                         double gamma,
-                                                         double f3) noexcept {
+[[nodiscard]] constexpr double Ex05SecondLeadingError(double a, double beta,
+                                                      double gamma,
+                                                      double f3) noexcept {
   return (beta + gamma - 2.0 * a) / 3.0 * f3;
 }
 
 // (i) and (ii): the points a - h, a, a + 2h.
 template <std::invocable<double> F>
-[[nodiscard]] double ex05_first_derivative_h(F&& f, double a, double h) {
+[[nodiscard]] double Ex05FirstDerivativeH(F&& f, double a, double h) {
   return (3.0 * f(a) - 4.0 * f(a - h) + f(a + 2.0 * h)) / (6.0 * h);
 }
 template <std::invocable<double> F>
-[[nodiscard]] double ex05_second_derivative_h(F&& f, double a, double h) {
+[[nodiscard]] double Ex05SecondDerivativeH(F&& f, double a, double h) {
   return (2.0 * f(a - h) - 3.0 * f(a) + f(a + 2.0 * h)) / (3.0 * h * h);
 }
 

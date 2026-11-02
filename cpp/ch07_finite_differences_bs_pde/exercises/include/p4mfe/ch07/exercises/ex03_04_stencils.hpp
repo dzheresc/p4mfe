@@ -21,12 +21,11 @@ namespace p4mfe::ch07::ex {
 // It is exact for quadratics. (With -h instead of h it is the backward
 // version, used at the right end of a grid.)
 template <std::invocable<double> F>
-[[nodiscard]] double ex03_one_sided(F&& f, double a, double h) {
+[[nodiscard]] double Ex03OneSided(F&& f, double a, double h) {
   return (-3.0 * f(a) + 4.0 * f(a + h) - f(a + 2.0 * h)) / (2.0 * h);
 }
 // Leading error term, approximation - f'(a) ~ -h^2 f'''(a) / 3.
-[[nodiscard]] constexpr double ex03_leading_error(double f3,
-                                                  double h) noexcept {
+[[nodiscard]] constexpr double Ex03LeadingError(double f3, double h) noexcept {
   return -h * h * f3 / 3.0;
 }
 
@@ -51,13 +50,12 @@ template <std::invocable<double> F>
 // It is exact for polynomials of degree 5. Round-off grows like eps |f| / h^4,
 // so in double precision h should not be too small (h ~ eps^(1/6) ~ 2e-3).
 template <std::invocable<double> F>
-[[nodiscard]] double ex04_fourth_derivative(F&& f, double a, double h) {
+[[nodiscard]] double Ex04FourthDerivative(F&& f, double a, double h) {
   return (f(a - 2.0 * h) - 4.0 * f(a - h) + 6.0 * f(a) - 4.0 * f(a + h) +
           f(a + 2.0 * h)) /
          (h * h * h * h);
 }
-[[nodiscard]] constexpr double ex04_leading_error(double f6,
-                                                  double h) noexcept {
+[[nodiscard]] constexpr double Ex04LeadingError(double f6, double h) noexcept {
   return h * h * f6 / 6.0;
 }
 

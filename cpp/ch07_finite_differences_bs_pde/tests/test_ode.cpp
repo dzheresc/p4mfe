@@ -11,14 +11,14 @@ TEST(Ch07Ode, ForwardBackwardCentralConverge) {
   const auto f = [](double x, double y) { return -2 * x * y; };
   const auto exact = [](double x) { return std::exp(-x * x); };
   for (OdeScheme s :
-       {OdeScheme::Forward, OdeScheme::Backward, OdeScheme::Central}) {
-    const double e1 = max_error(solve_ivp(f, 0, 1, 2, 100, s), exact);
-    const double e2 = max_error(solve_ivp(f, 0, 1, 2, 200, s), exact);
+       {OdeScheme::kForward, OdeScheme::kBackward, OdeScheme::kCentral}) {
+    const double e1 = MaxError(SolveIvp(f, 0, 1, 2, 100, s), exact);
+    const double e2 = MaxError(SolveIvp(f, 0, 1, 2, 200, s), exact);
     const double order = std::log2(e1 / e2);
-    EXPECT_NEAR(order, s == OdeScheme::Central ? 2.0 : 1.0, 0.15);
+    EXPECT_NEAR(order, s == OdeScheme::kCentral ? 2.0 : 1.0, 0.15);
     EXPECT_LT(e2, 1e-2);
   }
-  const auto sol = euler_forward(f, 0, 1, 2, 4);
+  const auto sol = EulerForward(f, 0, 1, 2, 4);
   ASSERT_EQ(sol.x.size(), 5u);
   EXPECT_DOUBLE_EQ(sol.x[4], 2.0);
   EXPECT_DOUBLE_EQ(sol.y[1], 1.0);        // f(0, 1) = 0
@@ -28,7 +28,7 @@ TEST(Ch07Ode, ForwardBackwardCentralConverge) {
 TEST(Ch07Ode, BackwardEulerNonlinear) {
   // y' = y^2, y(0) = 1/2: y = 1 / (2 - x); each implicit step is a quadratic.
   const auto f = [](double, double y) { return y * y; };
-  const auto sol = euler_backward(f, 0, 0.5, 1, 400);
+  const auto sol = EulerBackward(f, 0, 0.5, 1, 400);
   EXPECT_NEAR(sol.y.back(), 1.0, 2e-3);
   // The step equation holds.
   const double h = 1.0 / 400;
@@ -39,19 +39,19 @@ TEST(Ch07Ode, BackwardEulerNonlinear) {
 TEST(Ch07Ode, Stability) {
   // y' = -20 y, y(0) = 1 on [0, 3] with h = 0.15: h * 20 = 3 > 2.
   const auto f = [](double, double y) { return -20 * y; };
-  EXPECT_GT(std::abs(euler_forward(f, 0, 1, 3, 20).y.back()),
+  EXPECT_GT(std::abs(EulerForward(f, 0, 1, 3, 20).y.back()),
             1e3);  // explicit blows up
-  EXPECT_LT(std::abs(euler_backward(f, 0, 1, 3, 20).y.back()),
+  EXPECT_LT(std::abs(EulerBackward(f, 0, 1, 3, 20).y.back()),
             1e-6);  // implicit decays
   // Leapfrog is unstable for decay at any h: the parasitic mode grows.
-  EXPECT_GT(std::abs(leapfrog(f, 0, 1, 3, 600).y.back()), 1.0);
+  EXPECT_GT(std::abs(Leapfrog(f, 0, 1, 3, 600).y.back()), 1.0);
 }
 
 TEST(Ch07Ode, Tridiagonal) {
   // [2 1 0; 1 3 1; 0 1 4] x = [3 5 5] has x = (1, 1, 1).
-  const auto x = solve_tridiagonal({0, 1, 1}, {2, 3, 4}, {1, 1, 0}, {3, 5, 5});
+  const auto x = SolveTridiagonal({0, 1, 1}, {2, 3, 4}, {1, 1, 0}, {3, 5, 5});
   for (double v : x) EXPECT_NEAR(v, 1.0, 1e-14);
-  EXPECT_THROW((void)solve_tridiagonal({0}, {1, 2}, {0, 0}, {1, 1}),
+  EXPECT_THROW((void)SolveTridiagonal({0}, {1, 2}, {0, 0}, {1, 1}),
                std::invalid_argument);
 }
 
@@ -60,11 +60,11 @@ TEST(Ch07Ode, BoundaryValueProblem) {
   const auto zero = [](double) { return 0.0; };
   const auto minus_one = [](double) { return -1.0; };
   const auto e1 =
-      max_error(solve_bvp(zero, minus_one, zero, 0, 1, 0, std::sinh(1.0), 20),
-                [](double x) { return std::sinh(x); });
+      MaxError(SolveBvp(zero, minus_one, zero, 0, 1, 0, std::sinh(1.0), 20),
+               [](double x) { return std::sinh(x); });
   const auto e2 =
-      max_error(solve_bvp(zero, minus_one, zero, 0, 1, 0, std::sinh(1.0), 40),
-                [](double x) { return std::sinh(x); });
+      MaxError(SolveBvp(zero, minus_one, zero, 0, 1, 0, std::sinh(1.0), 40),
+               [](double x) { return std::sinh(x); });
   EXPECT_NEAR(std::log2(e1 / e2), 2.0, 0.05);
   EXPECT_LT(e2, 1e-5);
 
@@ -73,8 +73,8 @@ TEST(Ch07Ode, BoundaryValueProblem) {
   const auto exact = [](double x) {
     return std::exp(x) / 4 + x * std::exp(-x);
   };
-  const auto sol = solve_bvp(
+  const auto sol = SolveBvp(
       [](double) { return 2.0; }, [](double) { return 1.0; },
       [](double x) { return std::exp(x); }, 0, 1, exact(0), exact(1), 200);
-  EXPECT_LT(max_error(sol, exact), 1e-5);
+  EXPECT_LT(MaxError(sol, exact), 1e-5);
 }

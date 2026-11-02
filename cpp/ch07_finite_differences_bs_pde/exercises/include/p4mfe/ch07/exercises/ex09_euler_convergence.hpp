@@ -33,18 +33,18 @@ namespace p4mfe::ch07::ex {
 // In fact ln(1 + h) - h < 0, so every e_i <= 0, |e_i| increases with i, and
 // the maximum is |e_n| = e - (1 + 1/n)^n = e/(2n) - 11e/(24 n^2) + O(1/n^3):
 // the bound e/(2n) is sharp.
-[[nodiscard]] inline OdeSolution ex09_solve(std::size_t n) {
-  return euler_forward([](double, double y) { return y; }, 0.0, 1.0, 1.0, n);
+[[nodiscard]] inline OdeSolution Ex09Solve(std::size_t n) {
+  return EulerForward([](double, double y) { return y; }, 0.0, 1.0, 1.0, n);
 }
 // y_i = (1 + h)^i, the closed form of (i).
-[[nodiscard]] inline double ex09_closed_form(std::size_t i, std::size_t n) {
+[[nodiscard]] inline double Ex09ClosedForm(std::size_t i, std::size_t n) {
   return std::pow(1.0 + 1.0 / static_cast<double>(n), static_cast<double>(i));
 }
-[[nodiscard]] inline double ex09_max_error(std::size_t n) {
-  return max_error(ex09_solve(n), [](double x) { return std::exp(x); });
+[[nodiscard]] inline double Ex09MaxError(std::size_t n) {
+  return MaxError(Ex09Solve(n), [](double x) { return std::exp(x); });
 }
 // The bound e/(2n) of (ii) without the o(1/n) term.
-[[nodiscard]] inline double ex09_bound(std::size_t n) {
+[[nodiscard]] inline double Ex09Bound(std::size_t n) {
   return std::numbers::e / (2.0 * static_cast<double>(n));
 }
 

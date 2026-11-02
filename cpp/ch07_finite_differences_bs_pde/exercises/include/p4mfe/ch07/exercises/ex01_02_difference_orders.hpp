@@ -24,17 +24,17 @@ namespace p4mfe::ch07::ex {
 // The h^2 term vanishes, so
 //   (f(h) - f(-h)) / (2h) - f'(0) = 54 h^4 / 120 + O(h^6) = 0.45 h^4 + O(h^6):
 // a fourth order approximation (for a generic f it is only second order).
-[[nodiscard]] inline double ex01_f(double x) {
+[[nodiscard]] inline double Ex01F(double x) {
   return (x * x * x - 6.0) * std::exp(x);
 }
-inline constexpr double ex01_exact_derivative = -6.0;     // f'(0)
-inline constexpr double ex01_leading_coefficient = 0.45;  // f^(5)(0)/120
+inline constexpr double kEx01ExactDerivative = -6.0;     // f'(0)
+inline constexpr double kEx01LeadingCoefficient = 0.45;  // f^(5)(0)/120
 
-[[nodiscard]] inline double ex01_central(double h) {
-  return central_difference(ex01_f, 0.0, h);
+[[nodiscard]] inline double Ex01Central(double h) {
+  return CentralDifference(Ex01F, 0.0, h);
 }
-[[nodiscard]] inline double ex01_error(double h) {
-  return ex01_central(h) - ex01_exact_derivative;
+[[nodiscard]] inline double Ex01Error(double h) {
+  return Ex01Central(h) - kEx01ExactDerivative;
 }
 
 // ------------------------------------------------------------ Exercise 2 ---
@@ -50,20 +50,20 @@ inline constexpr double ex01_leading_coefficient = 0.45;  // f^(5)(0)/120
 //                             = -h^2 / (6 sqrt(2 pi)) + O(h^3),
 // second order instead of the usual first order. (The O(h^3) term is in fact
 // zero too: N^(4)(0) = 0 since N - 1/2 is odd, so the next term is O(h^4).)
-inline constexpr double ex02_exact_derivative =
+inline constexpr double kEx02ExactDerivative =
     0.3989422804014327;  // phi(0) = 1/sqrt(2 pi)
-inline const double ex02_leading_coefficient = -ex02_exact_derivative / 6.0;
+inline const double kEx02LeadingCoefficient = -kEx02ExactDerivative / 6.0;
 
-[[nodiscard]] inline double ex02_forward(double h) {
-  return forward_difference([](double x) { return norm_cdf(x); }, 0.0, h);
+[[nodiscard]] inline double Ex02Forward(double h) {
+  return ForwardDifference([](double x) { return norm_cdf(x); }, 0.0, h);
 }
-[[nodiscard]] inline double ex02_error(double h) {
-  return ex02_forward(h) - ex02_exact_derivative;
+[[nodiscard]] inline double Ex02Error(double h) {
+  return Ex02Forward(h) - kEx02ExactDerivative;
 }
 
 // Observed order log2(|e(h)| / |e(h/2)|) of an error function e(h).
 template <std::invocable<double> E>
-[[nodiscard]] double ex_observed_order(E&& error, double h) {
+[[nodiscard]] double ExObservedOrder(E&& error, double h) {
   return std::log2(std::abs(error(h)) / std::abs(error(0.5 * h)));
 }
 
