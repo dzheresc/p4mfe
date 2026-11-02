@@ -38,36 +38,42 @@ using ch01::OptionType;
 // E_RN[g(S_T)] by integrating against the standard normal density (with
 // ch03::ContinuousDistribution, so g is not evaluated where phi underflows).
 template <std::invocable<double> Payoff>
-[[nodiscard]] double risk_neutral_expectation(Payoff&& g, double S0, double T,
-                                              double sigma, double r,
-                                              double q = 0.0,
-                                              double tol = 1e-9) {
-  const ch03::ContinuousDistribution Z{[](double z) { return norm_pdf(z); },
-                                       -ch02::kInfinity, ch02::kInfinity};
+[[nodiscard]] double RiskNeutralExpectation(Payoff&& g, double spot0,
+                                            double maturity, double sigma,
+                                            double r, double q = 0.0,
+                                            double tol = 1e-9) {
+  const ch03::ContinuousDistribution std_normal{
+      [](double z) { return norm_pdf(z); }, -ch02::kInfinity, ch02::kInfinity};
   return ch03::ExpectedValue(
-      Z, [&](double z) { return g(price_from_normal(z, S0, T, sigma, r, q)); },
+      std_normal,
+      [&](double z) {
+        return g(PriceFromNormal(z, spot0, maturity, sigma, r, q));
+      },
       tol);
 }
 
 // V = e^(-rT) E_RN[g(S_T)].
 template <std::invocable<double> Payoff>
-[[nodiscard]] double risk_neutral_price(Payoff&& g, double S0, double T,
-                                        double sigma, double r, double q = 0.0,
-                                        double tol = 1e-9) {
-  return std::exp(-r * T) *
-         risk_neutral_expectation(g, S0, T, sigma, r, q, tol);
+[[nodiscard]] double RiskNeutralPrice(Payoff&& g, double spot0, double maturity,
+                                      double sigma, double r, double q = 0.0,
+                                      double tol = 1e-9) {
+  return std::exp(-r * maturity) *
+         RiskNeutralExpectation(g, spot0, maturity, sigma, r, q, tol);
 }
 
 // The closed forms from completing the square:
 //   E_RN[(S_T - K)^+] = S_0 e^((r - q) T) N(d1) - K N(d2)
 //   E_RN[(K - S_T)^+] = K N(-d2) - S_0 e^((r - q) T) N(-d1)
-[[nodiscard]] inline double rn_expected_payoff(OptionType type, double S0,
-                                               double K, double T, double sigma,
-                                               double r, double q = 0.0) {
-  const auto [d1, d2] = ch03::BsD1D2(S0, K, T, sigma, r, q);
-  const double F = S0 * std::exp((r - q) * T);  // forward price = E_RN[S_T]
-  return type == OptionType::kCall ? F * norm_cdf(d1) - K * norm_cdf(d2)
-                                   : K * norm_cdf(-d2) - F * norm_cdf(-d1);
+[[nodiscard]] inline double RnExpectedPayoff(OptionType type, double spot0,
+                                             double strike, double maturity,
+                                             double sigma, double r,
+                                             double q = 0.0) {
+  const auto [d1, d2] = ch03::BsD1D2(spot0, strike, maturity, sigma, r, q);
+  const double forward =
+      spot0 * std::exp((r - q) * maturity);  // forward price = E_RN[S_T]
+  return type == OptionType::kCall
+             ? forward * norm_cdf(d1) - strike * norm_cdf(d2)
+             : strike * norm_cdf(-d2) - forward * norm_cdf(-d1);
 }
 
 // Monte Carlo estimate of e^(-rT) E_RN[g(S_T)] with n independent draws of Z,
@@ -80,20 +86,20 @@ struct MonteCarloResult {
 };
 
 template <std::invocable<double> Payoff>
-[[nodiscard]] MonteCarloResult monte_carlo_price(
-    Payoff&& g, double S0, double T, double sigma, double r, double q,
+[[nodiscard]] MonteCarloResult MonteCarloPrice(
+    Payoff&& g, double spot0, double maturity, double sigma, double r, double q,
     std::size_t n, std::uint64_t seed = 42, bool antithetic = true) {
   if (n < 2) throw std::invalid_argument("monte_carlo_price: need n >= 2");
   std::mt19937_64 rng(seed);
   std::normal_distribution<double> normal(0.0, 1.0);
-  const double disc = std::exp(-r * T);
+  const double disc = std::exp(-r * maturity);
   // Welford's running mean and variance of the (discounted) samples.
   double mean = 0.0, m2 = 0.0;
   for (std::size_t i = 1; i <= n; ++i) {
     const double z = normal(rng);
-    double x = g(price_from_normal(z, S0, T, sigma, r, q));
+    double x = g(PriceFromNormal(z, spot0, maturity, sigma, r, q));
     if (antithetic)
-      x = 0.5 * (x + g(price_from_normal(-z, S0, T, sigma, r, q)));
+      x = 0.5 * (x + g(PriceFromNormal(-z, spot0, maturity, sigma, r, q)));
     x *= disc;
     const double delta = x - mean;
     mean += delta / static_cast<double>(i);

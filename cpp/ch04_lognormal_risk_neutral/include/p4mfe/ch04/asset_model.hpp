@@ -23,59 +23,61 @@ using ch03::LogPriceDistribution;
 using ch03::NormalParams;
 
 // ln(S_T / S_0) ~ N((mu - q - sigma^2/2) T, sigma^2 T), the log return.
-[[nodiscard]] inline NormalParams log_return_distribution(double T,
-                                                          double sigma,
-                                                          double mu,
-                                                          double q = 0.0) {
-  return {(mu - q - 0.5 * sigma * sigma) * T, sigma * sigma * T};
+[[nodiscard]] inline NormalParams LogReturnDistribution(double maturity,
+                                                        double sigma, double mu,
+                                                        double q = 0.0) {
+  return {(mu - q - 0.5 * sigma * sigma) * maturity, sigma * sigma * maturity};
 }
 
 // S_T as a function of the standard normal draw z.
-[[nodiscard]] inline double price_from_normal(double z, double S0, double T,
-                                              double sigma, double mu,
-                                              double q = 0.0) noexcept {
-  return S0 * std::exp((mu - q - 0.5 * sigma * sigma) * T +
-                       sigma * std::sqrt(T) * z);
+[[nodiscard]] inline double PriceFromNormal(double z, double spot0,
+                                            double maturity, double sigma,
+                                            double mu,
+                                            double q = 0.0) noexcept {
+  return spot0 * std::exp((mu - q - 0.5 * sigma * sigma) * maturity +
+                          sigma * std::sqrt(maturity) * z);
 }
 
 // E[S_T] = S_0 e^((mu - q) T),  var(S_T) = S_0^2 e^(2 (mu - q) T) (e^(sigma^2
 // T) - 1).
-[[nodiscard]] inline double price_mean(double S0, double T, double mu,
-                                       double q = 0.0) noexcept {
-  return S0 * std::exp((mu - q) * T);
+[[nodiscard]] inline double PriceMean(double spot0, double maturity, double mu,
+                                      double q = 0.0) noexcept {
+  return spot0 * std::exp((mu - q) * maturity);
 }
-[[nodiscard]] inline double price_variance(double S0, double T, double sigma,
-                                           double mu, double q = 0.0) noexcept {
-  const double m = price_mean(S0, T, mu, q);
-  return m * m * std::expm1(sigma * sigma * T);
+[[nodiscard]] inline double PriceVariance(double spot0, double maturity,
+                                          double sigma, double mu,
+                                          double q = 0.0) noexcept {
+  const double m = PriceMean(spot0, maturity, mu, q);
+  return m * m * std::expm1(sigma * sigma * maturity);
 }
 // Median S_0 e^((mu - q - sigma^2/2) T) < mean.
-[[nodiscard]] inline double price_median(double S0, double T, double sigma,
-                                         double mu, double q = 0.0) noexcept {
-  return price_from_normal(0.0, S0, T, sigma, mu, q);
+[[nodiscard]] inline double PriceMedian(double spot0, double maturity,
+                                        double sigma, double mu,
+                                        double q = 0.0) noexcept {
+  return PriceFromNormal(0.0, spot0, maturity, sigma, mu, q);
 }
 
 // Density of S_T at x > 0: the lognormal density with the parameters above.
-[[nodiscard]] inline double price_pdf(double x, double S0, double T,
-                                      double sigma, double mu, double q = 0.0) {
-  const auto L = LogPriceDistribution(S0, T, sigma, mu, q);
-  return ch03::LognormalPdf(x, L.mean, L.Stddev());
+[[nodiscard]] inline double PricePdf(double x, double spot0, double maturity,
+                                     double sigma, double mu, double q = 0.0) {
+  const auto log_price = LogPriceDistribution(spot0, maturity, sigma, mu, q);
+  return ch03::LognormalPdf(x, log_price.mean, log_price.Stddev());
 }
 
 // P(S_T <= x).
-[[nodiscard]] inline double price_cdf(double x, double S0, double T,
-                                      double sigma, double mu, double q = 0.0) {
-  const auto L = LogPriceDistribution(S0, T, sigma, mu, q);
-  return ch03::LognormalCdf(x, L.mean, L.Stddev());
+[[nodiscard]] inline double PriceCdf(double x, double spot0, double maturity,
+                                     double sigma, double mu, double q = 0.0) {
+  const auto log_price = LogPriceDistribution(spot0, maturity, sigma, mu, q);
+  return ch03::LognormalCdf(x, log_price.mean, log_price.Stddev());
 }
 
 // The p-quantile of S_T: price_from_normal(N^(-1)(p)).
-[[nodiscard]] inline double price_quantile(double p, double S0, double T,
-                                           double sigma, double mu,
-                                           double q = 0.0) {
+[[nodiscard]] inline double PriceQuantile(double p, double spot0,
+                                          double maturity, double sigma,
+                                          double mu, double q = 0.0) {
   if (!(p > 0.0 && p < 1.0))
     throw std::domain_error("price_quantile: need 0 < p < 1");
-  return price_from_normal(norm_inv(p), S0, T, sigma, mu, q);
+  return PriceFromNormal(norm_inv(p), spot0, maturity, sigma, mu, q);
 }
 
 // The range [lo, hi] that S_T falls in with probability `confidence`, with
@@ -87,17 +89,17 @@ struct PriceRange {
   double lo;
   double hi;
 };
-[[nodiscard]] inline PriceRange price_confidence_interval(double confidence,
-                                                          double S0, double T,
-                                                          double sigma,
-                                                          double mu,
-                                                          double q = 0.0) {
+[[nodiscard]] inline PriceRange PriceConfidenceInterval(double confidence,
+                                                        double spot0,
+                                                        double maturity,
+                                                        double sigma, double mu,
+                                                        double q = 0.0) {
   if (!(confidence > 0.0 && confidence < 1.0))
     throw std::domain_error(
         "price_confidence_interval: need 0 < confidence < 1");
   const double z = norm_inv(0.5 * (1.0 + confidence));
-  return {price_from_normal(-z, S0, T, sigma, mu, q),
-          price_from_normal(z, S0, T, sigma, mu, q)};
+  return {PriceFromNormal(-z, spot0, maturity, sigma, mu, q),
+          PriceFromNormal(z, spot0, maturity, sigma, mu, q)};
 }
 
 }  // namespace p4mfe::ch04

@@ -16,31 +16,41 @@ from p4mfe.normal import norm_cdf
 
 
 def ex12_squared_call(
-    S0: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot0: float,
+    strike: float,
+    maturity: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
-    s = sigma * math.sqrt(T)
-    d2 = (math.log(S0 / K) + (r - q - 0.5 * sigma * sigma) * T) / s
+    s = sigma * math.sqrt(maturity)
+    d2 = (
+        math.log(spot0 / strike) + (r - q - 0.5 * sigma * sigma) * maturity
+    ) / s
     d1 = d2 + s
     return (
-        S0 * S0 * math.exp((r - 2.0 * q + sigma * sigma) * T) * norm_cdf(d1 + s)
-        - 2.0 * K * S0 * math.exp(-q * T) * norm_cdf(d1)
-        + K * K * math.exp(-r * T) * norm_cdf(d2)
+        spot0
+        * spot0
+        * math.exp((r - 2.0 * q + sigma * sigma) * maturity)
+        * norm_cdf(d1 + s)
+        - 2.0 * strike * spot0 * math.exp(-q * maturity) * norm_cdf(d1)
+        + strike * strike * math.exp(-r * maturity) * norm_cdf(d2)
     )
 
 
 def ex13_power_call(
-    S0: float,
-    K: float,
-    T: float,
+    spot0: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     alpha: float,
     q: float = 0.0,
 ) -> float:
-    s = alpha * sigma * math.sqrt(T)
-    m = alpha * (math.log(S0) + (r - q - 0.5 * sigma * sigma) * T)
-    d2 = (m - math.log(K)) / s
+    s = alpha * sigma * math.sqrt(maturity)
+    m = alpha * (math.log(spot0) + (r - q - 0.5 * sigma * sigma) * maturity)
+    d2 = (m - math.log(strike)) / s
     d1 = d2 + s
-    return math.exp(-r * T) * (
-        math.exp(m + 0.5 * s * s) * norm_cdf(d1) - K * norm_cdf(d2)
+    return math.exp(-r * maturity) * (
+        math.exp(m + 0.5 * s * s) * norm_cdf(d1) - strike * norm_cdf(d2)
     )

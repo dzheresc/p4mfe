@@ -18,46 +18,63 @@ from p4mfe.ch03_probability_black_scholes.black_scholes import bs_d1_d2
 from p4mfe.normal import norm_cdf, norm_pdf
 
 
-def ex14_book_forward(S0: float, r: float, T: float) -> float:
-    return S0 + r * T
+def ex14_book_forward(spot0: float, r: float, maturity: float) -> float:
+    return spot0 + r * maturity
 
 
 def ex14_call_forward(
-    F: float, K: float, T: float, sigma: float, r: float
+    forward: float, strike: float, maturity: float, sigma: float, r: float
 ) -> float:
-    s = sigma * math.sqrt(T)
-    d = (F - K) / s
-    return math.exp(-r * T) * ((F - K) * norm_cdf(d) + s * norm_pdf(d))
+    s = sigma * math.sqrt(maturity)
+    d = (forward - strike) / s
+    return math.exp(-r * maturity) * (
+        (forward - strike) * norm_cdf(d) + s * norm_pdf(d)
+    )
 
 
 def ex14_put_forward(
-    F: float, K: float, T: float, sigma: float, r: float
+    forward: float, strike: float, maturity: float, sigma: float, r: float
 ) -> float:
-    s = sigma * math.sqrt(T)
-    d = (F - K) / s
-    return math.exp(-r * T) * ((K - F) * norm_cdf(-d) + s * norm_pdf(d))
+    s = sigma * math.sqrt(maturity)
+    d = (forward - strike) / s
+    return math.exp(-r * maturity) * (
+        (strike - forward) * norm_cdf(-d) + s * norm_pdf(d)
+    )
 
 
-def ex14_call(S0: float, K: float, T: float, sigma: float, r: float) -> float:
-    return ex14_call_forward(ex14_book_forward(S0, r, T), K, T, sigma, r)
+def ex14_call(
+    spot0: float, strike: float, maturity: float, sigma: float, r: float
+) -> float:
+    return ex14_call_forward(
+        ex14_book_forward(spot0, r, maturity), strike, maturity, sigma, r
+    )
 
 
 def ex14_put_parity(
-    S0: float, K: float, T: float, sigma: float, r: float
+    spot0: float, strike: float, maturity: float, sigma: float, r: float
 ) -> float:
-    return ex14_call(S0, K, T, sigma, r) - S0 + K * math.exp(-r * T)
+    return (
+        ex14_call(spot0, strike, maturity, sigma, r)
+        - spot0
+        + strike * math.exp(-r * maturity)
+    )
 
 
 def ex15_inverse_claim(
-    S0: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot0: float, maturity: float, sigma: float, r: float, q: float = 0.0
 ) -> float:
-    return math.exp((q - 2.0 * r + sigma * sigma) * T) / S0
+    return math.exp((q - 2.0 * r + sigma * sigma) * maturity) / spot0
 
 
 def ex15_inverse_call(
-    S0: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot0: float,
+    strike: float,
+    maturity: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
-    d2 = bs_d1_d2(S0, K, T, sigma, r, q)[1]
-    return math.exp(-r * T) / K * norm_cdf(d2) - ex15_inverse_claim(
-        S0, T, sigma, r, q
-    ) * norm_cdf(d2 - sigma * math.sqrt(T))
+    d2 = bs_d1_d2(spot0, strike, maturity, sigma, r, q)[1]
+    return math.exp(-r * maturity) / strike * norm_cdf(d2) - ex15_inverse_claim(
+        spot0, maturity, sigma, r, q
+    ) * norm_cdf(d2 - sigma * math.sqrt(maturity))

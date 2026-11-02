@@ -49,20 +49,20 @@ def test_ex02(n):
 
 
 def test_ex03_ex04():
-    S, u, d, p = 40, 1.1, 0.92, 0.55
-    assert ex03_moment(1, S, u, d, p) == pytest.approx(
-        (p * u + (1 - p) * d) * S
+    spot, u, d, p = 40, 1.1, 0.92, 0.55
+    assert ex03_moment(1, spot, u, d, p) == pytest.approx(
+        (p * u + (1 - p) * d) * spot
     )
-    assert ex03_moment(2, S, u, d, p) == pytest.approx(
-        (p * u * u + (1 - p) * d * d) * S * S
+    assert ex03_moment(2, spot, u, d, p) == pytest.approx(
+        (p * u * u + (1 - p) * d * d) * spot * spot
     )
     r, sigma, dt = 0.05, 0.3, 0.25
     assert risk_neutral_expectation(
-        lambda x: x, S, dt, sigma, r
-    ) == pytest.approx(ex04_first_moment(S, r, dt), abs=1e-7)
+        lambda x: x, spot, dt, sigma, r
+    ) == pytest.approx(ex04_first_moment(spot, r, dt), abs=1e-7)
     assert risk_neutral_expectation(
-        lambda x: x * x, S, dt, sigma, r
-    ) == pytest.approx(ex04_second_moment(S, r, sigma, dt), abs=1e-5)
+        lambda x: x * x, spot, dt, sigma, r
+    ) == pytest.approx(ex04_second_moment(spot, r, sigma, dt), abs=1e-5)
 
 
 @pytest.mark.parametrize("dt", [1 / 252, 1 / 12, 0.5])
@@ -106,14 +106,18 @@ def test_ex07():
     assert (b.lo, b.hi) == pytest.approx((23.4360, 109.9221), abs=1e-4)
     c = ex07_interval(0.95, 0.5, True)
     assert (c.lo, c.hi) == pytest.approx((32.7451, 75.2107), abs=1e-4)
-    A = Ex07Asset()
-    for T in EX07_HORIZONS:
+    asset = Ex07Asset()
+    for maturity in EX07_HORIZONS:
         for rn in (False, True):
-            i = ex07_interval(0.99, T, rn)
-            mu = A.r if rn else A.mu
-            assert price_cdf(i.hi, A.S0, T, A.sigma, mu, A.q) - price_cdf(
-                i.lo, A.S0, T, A.sigma, mu, A.q
-            ) == pytest.approx(0.99, abs=1e-9)
+            i = ex07_interval(0.99, maturity, rn)
+            mu = asset.r if rn else asset.mu
+            assert price_cdf(
+                i.hi, asset.spot0, maturity, asset.sigma, mu, asset.q
+            ) - price_cdf(
+                i.lo, asset.spot0, maturity, asset.sigma, mu, asset.q
+            ) == pytest.approx(
+                0.99, abs=1e-9
+            )
 
 
 def test_ex08():

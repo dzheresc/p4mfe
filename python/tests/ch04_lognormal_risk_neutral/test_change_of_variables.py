@@ -38,24 +38,28 @@ def test_general_formula_matches_linear():
 
 def test_exp_of_normal_is_lognormal():
     mu, sigma = 0.2, 0.4
-    fY = exp_transform_pdf(lambda x: normal_pdf(x, mu, sigma))
+    f_y = exp_transform_pdf(lambda x: normal_pdf(x, mu, sigma))
     ys = np.array([0.1, 0.5, 1.0, 1.2, 2.0, 5.0])
-    np.testing.assert_allclose(fY(ys), lognormal_pdf(ys, mu, sigma), rtol=1e-14)
-    assert fY(0.0) == 0.0
-    assert fY(-1.0) == 0.0
+    np.testing.assert_allclose(
+        f_y(ys), lognormal_pdf(ys, mu, sigma), rtol=1e-14
+    )
+    assert f_y(0.0) == 0.0
+    assert f_y(-1.0) == 0.0
 
 
 def test_sqrt_of_exponential_is_rayleigh():
     lam = 1.5
-    X = exponential_distribution(lam)
-    f = transformed_pdf_numeric(X.pdf, lambda y: y * y, lambda y: y >= 0)
+    x_dist = exponential_distribution(lam)
+    f = transformed_pdf_numeric(x_dist.pdf, lambda y: y * y, lambda y: y >= 0)
     for y in [0.1, 0.5, 1.0, 2.0]:
         assert f(y) == pytest.approx(
             2 * lam * y * math.exp(-lam * y * y), abs=1e-9
         )
-    Y = ContinuousDistribution(f, 0.0, math.inf)
-    assert Y.cdf(50.0) == pytest.approx(1.0, abs=1e-8)
-    assert Y.mean() == pytest.approx(0.5 * math.sqrt(math.pi / lam), abs=1e-8)
+    y_dist = ContinuousDistribution(f, 0.0, math.inf)
+    assert y_dist.cdf(50.0) == pytest.approx(1.0, abs=1e-8)
+    assert y_dist.mean() == pytest.approx(
+        0.5 * math.sqrt(math.pi / lam), abs=1e-8
+    )
 
 
 def test_square_of_standard_normal_is_chi_squared():

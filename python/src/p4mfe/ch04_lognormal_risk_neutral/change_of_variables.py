@@ -26,7 +26,7 @@ def _scalar_or_array(out):
 
 
 def transformed_pdf(
-    f_X: ArrayFn, h: ArrayFn, dh: ArrayFn, in_range: ArrayFn = _always
+    f_x: ArrayFn, h: ArrayFn, dh: ArrayFn, in_range: ArrayFn = _always
 ) -> ArrayFn:
     """f_Y(y) = f_X(h(y)) |h'(y)| where in_range(y), else 0."""
 
@@ -34,14 +34,14 @@ def transformed_pdf(
         y = np.asarray(y, float)
         ok = np.asarray(in_range(y), bool)
         with np.errstate(all="ignore"):
-            out = np.where(ok, f_X(h(y)) * np.abs(dh(y)), 0.0)
+            out = np.where(ok, f_x(h(y)) * np.abs(dh(y)), 0.0)
         return _scalar_or_array(out)
 
     return f
 
 
 def transformed_pdf_numeric(
-    f_X: ArrayFn, h: ArrayFn, in_range: ArrayFn = _always
+    f_x: ArrayFn, h: ArrayFn, in_range: ArrayFn = _always
 ) -> ArrayFn:
     """Same, with h' by a central difference."""
 
@@ -49,36 +49,36 @@ def transformed_pdf_numeric(
         s = _STEP * np.maximum(1.0, np.abs(y))
         return (h(y + s) - h(y - s)) / (2 * s)
 
-    return transformed_pdf(f_X, h, dh, in_range)
+    return transformed_pdf(f_x, h, dh, in_range)
 
 
-def linear_transform_pdf(f_X: ArrayFn, a: float, b: float) -> ArrayFn:
+def linear_transform_pdf(f_x: ArrayFn, a: float, b: float) -> ArrayFn:
     """Y = aX + b, a != 0: f_X((y - b)/a) / |a|."""
     if a == 0:
         raise ValueError("a must be nonzero")
     return lambda y: _scalar_or_array(
-        f_X((np.asarray(y, float) - b) / a) / abs(a)
+        f_x((np.asarray(y, float) - b) / a) / abs(a)
     )
 
 
-def exp_transform_pdf(f_X: ArrayFn) -> ArrayFn:
+def exp_transform_pdf(f_x: ArrayFn) -> ArrayFn:
     """Y = e^X: f_X(ln y) / y for y > 0 (lognormal when X is normal)."""
     return transformed_pdf(
-        f_X,
+        f_x,
         lambda y: np.log(np.where(y > 0, y, 1.0)),
         lambda y: 1.0 / np.where(y > 0, y, 1.0),
         lambda y: y > 0,
     )
 
 
-def square_transform_pdf(f_X: ArrayFn) -> ArrayFn:
+def square_transform_pdf(f_x: ArrayFn) -> ArrayFn:
     """Y = X^2 (not monotone, two branches): (f_X(sqrt y) + f_X(-sqrt y)) / (2 sqrt y), y > 0."""
 
     def f(y):
         y = np.asarray(y, float)
         s = np.sqrt(np.where(y > 0, y, 1.0))
         return _scalar_or_array(
-            np.where(y > 0, (f_X(s) + f_X(-s)) / (2 * s), 0.0)
+            np.where(y > 0, (f_x(s) + f_x(-s)) / (2 * s), 0.0)
         )
 
     return f

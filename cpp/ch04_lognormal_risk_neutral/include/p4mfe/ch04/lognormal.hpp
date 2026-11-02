@@ -30,16 +30,16 @@ using ch03::NormalParams;
 // E[Y^n] = E[e^(n X)] = e^(n mu + n^2 sigma^2 / 2), from the moment generating
 // function of the normal X = ln Y. n need not be an integer. n = 1 and n = 2
 // give the mean and, through E[Y^2] - E[Y]^2, the variance.
-[[nodiscard]] inline double lognormal_moment(double n, double mu,
-                                             double sigma) noexcept {
+[[nodiscard]] inline double LognormalMoment(double n, double mu,
+                                            double sigma) noexcept {
   return std::exp(n * mu + 0.5 * n * n * sigma * sigma);
 }
 
 // The p-quantile: P(Y <= y_p) = p  <=>  y_p = e^(mu + sigma N^(-1)(p)).
 // Monotone transforms carry quantiles over, which is why this is easy while
 // the mean is not simply e^(E[X]).
-[[nodiscard]] inline double lognormal_quantile(double p, double mu,
-                                               double sigma) {
+[[nodiscard]] inline double LognormalQuantile(double p, double mu,
+                                              double sigma) {
   if (!(p > 0.0 && p < 1.0))
     throw std::domain_error("lognormal_quantile: need 0 < p < 1");
   return std::exp(mu + sigma * norm_inv(p));
@@ -47,18 +47,18 @@ using ch03::NormalParams;
 
 // Median e^mu (the 0.5-quantile), below the mean e^(mu + sigma^2/2); the mode
 // (argmax of the density) is lower still, e^(mu - sigma^2).
-[[nodiscard]] inline double lognormal_median(double mu) noexcept {
+[[nodiscard]] inline double LognormalMedian(double mu) noexcept {
   return std::exp(mu);
 }
-[[nodiscard]] inline double lognormal_mode(double mu, double sigma) noexcept {
+[[nodiscard]] inline double LognormalMode(double mu, double sigma) noexcept {
   return std::exp(mu - sigma * sigma);
 }
 
 // Inverse problem: the parameters of ln(Y) for a lognormal Y with given mean m
 // and variance v,
 //   sigma^2 = ln(1 + v / m^2),  mu = ln(m) - sigma^2 / 2.
-[[nodiscard]] inline NormalParams lognormal_params_from_moments(double m,
-                                                                double v) {
+[[nodiscard]] inline NormalParams LognormalParamsFromMoments(double m,
+                                                             double v) {
   if (!(m > 0.0 && v > 0.0))
     throw std::invalid_argument("lognormal_params_from_moments: need m, v > 0");
   const double s2 = std::log1p(v / (m * m));

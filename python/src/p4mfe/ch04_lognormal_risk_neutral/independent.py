@@ -20,14 +20,14 @@ ArrayFn = Callable[[np.ndarray], np.ndarray]
 
 
 # 4.3 -----------------------------------------------------------------------
-def independent_joint_pdf(f_X: ArrayFn, f_Y: ArrayFn) -> Callable:
+def independent_joint_pdf(f_x: ArrayFn, f_y: ArrayFn) -> Callable:
     """(x, y) -> f_X(x) f_Y(y)."""
-    return lambda x, y: f_X(x) * f_Y(y)
+    return lambda x, y: f_x(x) * f_y(y)
 
 
 def sum_pdf(
-    f_X: ArrayFn,
-    f_Y: ArrayFn,
+    f_x: ArrayFn,
+    f_y: ArrayFn,
     z: float,
     lo: float = -math.inf,
     hi: float = math.inf,
@@ -37,34 +37,34 @@ def sum_pdf(
     integrand can be nonzero (pass it for densities with bounded support)."""
     if not lo < hi:
         return 0.0
-    return improper_integral(lambda x: f_X(x) * f_Y(z - x), lo, hi, tol).value
+    return improper_integral(lambda x: f_x(x) * f_y(z - x), lo, hi, tol).value
 
 
 # 4.3.1 ---------------------------------------------------------------------
 def independent_normal_combination(
-    a: Sequence[float], X: Sequence[NormalParams]
+    a: Sequence[float], x_dist: Sequence[NormalParams]
 ) -> NormalParams:
     """sum a_i X_i: mean sum a_i mu_i, variance sum a_i^2 sigma_i^2."""
-    if len(a) != len(X):
+    if len(a) != len(x_dist):
         raise ValueError("sizes differ")
     return NormalParams(
-        math.fsum(ai * x.mean for ai, x in zip(a, X)),
-        math.fsum(ai * ai * x.variance for ai, x in zip(a, X)),
+        math.fsum(ai * x.mean for ai, x in zip(a, x_dist)),
+        math.fsum(ai * ai * x.variance for ai, x in zip(a, x_dist)),
     )
 
 
-def independent_normal_sum(X: Sequence[NormalParams]) -> NormalParams:
-    return independent_normal_combination([1.0] * len(X), X)
+def independent_normal_sum(x_dist: Sequence[NormalParams]) -> NormalParams:
+    return independent_normal_combination([1.0] * len(x_dist), x_dist)
 
 
 # 4.3.2 ---------------------------------------------------------------------
 def independent_lognormal_product(
-    log_Y: Sequence[NormalParams], a: Sequence[float] | None = None
+    log_y: Sequence[NormalParams], a: Sequence[float] | None = None
 ) -> NormalParams:
     """prod Y_i^(a_i) (a_i = 1 by default) for independent lognormal Y_i given
     by the normal parameters of ln(Y_i); returns those of ln(product)."""
     return independent_normal_combination(
-        [1.0] * len(log_Y) if a is None else a, log_Y
+        [1.0] * len(log_y) if a is None else a, log_y
     )
 
 

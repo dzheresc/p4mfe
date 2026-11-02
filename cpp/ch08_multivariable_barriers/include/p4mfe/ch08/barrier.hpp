@@ -46,7 +46,7 @@ template <std::invocable<double> V>
     if (B <= K) return ch03::BsCall(s, K, T, sigma, r, q);
     return ch03::BsCall(s, B, T, sigma, r, q) +
            (B - K) *
-               ch04::cash_or_nothing(OptionType::kCall, s, B, T, sigma, r, q);
+               ch04::CashOrNothing(OptionType::kCall, s, B, T, sigma, r, q);
   };
   return W(S) - barrier_image(W, S, B, sigma, r, q);
 }
@@ -66,7 +66,7 @@ template <std::invocable<double> V>
     if (B >= K) return ch03::BsPut(s, K, T, sigma, r, q);
     return ch03::BsPut(s, B, T, sigma, r, q) +
            (K - B) *
-               ch04::cash_or_nothing(OptionType::kPut, s, B, T, sigma, r, q);
+               ch04::CashOrNothing(OptionType::kPut, s, B, T, sigma, r, q);
   };
   return W(S) - barrier_image(W, S, B, sigma, r, q);
 }

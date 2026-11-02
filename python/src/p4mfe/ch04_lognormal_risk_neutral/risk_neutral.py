@@ -28,8 +28,8 @@ _STD_NORMAL = ContinuousDistribution(
 
 def risk_neutral_expectation(
     g: Callable,
-    S0: float,
-    T: float,
+    spot0: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
@@ -37,40 +37,40 @@ def risk_neutral_expectation(
 ) -> float:
     """E_RN[g(S_T)] by integrating against phi; g must accept numpy arrays."""
     return _STD_NORMAL.expected_value(
-        lambda z: g(price_from_normal(z, S0, T, sigma, r, q)), tol
+        lambda z: g(price_from_normal(z, spot0, maturity, sigma, r, q)), tol
     )
 
 
 def risk_neutral_price(
     g: Callable,
-    S0: float,
-    T: float,
+    spot0: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
     tol: float = 1e-9,
 ) -> float:
     """e^(-rT) E_RN[g(S_T)]."""
-    return math.exp(-r * T) * risk_neutral_expectation(
-        g, S0, T, sigma, r, q, tol
+    return math.exp(-r * maturity) * risk_neutral_expectation(
+        g, spot0, maturity, sigma, r, q, tol
     )
 
 
 def rn_expected_payoff(
     option_type: OptionType,
-    S0: float,
-    K: float,
-    T: float,
+    spot0: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> float:
     """Call: F N(d1) - K N(d2); put: K N(-d2) - F N(-d1); F = S_0 e^((r - q) T)."""
-    d1, d2 = bs_d1_d2(S0, K, T, sigma, r, q)
-    F = S0 * math.exp((r - q) * T)
+    d1, d2 = bs_d1_d2(spot0, strike, maturity, sigma, r, q)
+    forward = spot0 * math.exp((r - q) * maturity)
     if option_type is OptionType.CALL:
-        return F * norm_cdf(d1) - K * norm_cdf(d2)
-    return K * norm_cdf(-d2) - F * norm_cdf(-d1)
+        return forward * norm_cdf(d1) - strike * norm_cdf(d2)
+    return strike * norm_cdf(-d2) - forward * norm_cdf(-d1)
 
 
 @dataclass(frozen=True)
@@ -81,8 +81,8 @@ class MonteCarloResult:
 
 def monte_carlo_price(
     g: Callable,
-    S0: float,
-    T: float,
+    spot0: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float,
@@ -95,10 +95,10 @@ def monte_carlo_price(
     if n < 2:
         raise ValueError("need n >= 2")
     z = np.random.default_rng(seed).standard_normal(n)
-    x = g(price_from_normal(z, S0, T, sigma, r, q))
+    x = g(price_from_normal(z, spot0, maturity, sigma, r, q))
     if antithetic:
-        x = 0.5 * (x + g(price_from_normal(-z, S0, T, sigma, r, q)))
-    x = math.exp(-r * T) * np.asarray(x, float)
+        x = 0.5 * (x + g(price_from_normal(-z, spot0, maturity, sigma, r, q)))
+    x = math.exp(-r * maturity) * np.asarray(x, float)
     return MonteCarloResult(
         float(x.mean()), float(x.std(ddof=1) / math.sqrt(n))
     )

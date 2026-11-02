@@ -20,7 +20,7 @@ from p4mfe.normal import norm_cdf
 
 @dataclass(frozen=True)
 class Ex07Asset:
-    S0: float = 50.0
+    spot0: float = 50.0
     q: float = 0.02
     mu: float = 0.08
     sigma: float = 0.3
@@ -31,10 +31,18 @@ EX07_HORIZONS = (1.0 / 24.0, 1.0 / 12.0, 2.0 / 12.0, 0.5, 1.0)
 
 
 def ex07_interval(
-    confidence: float, T: float, risk_neutral: bool, a: Ex07Asset = Ex07Asset()
+    confidence: float,
+    maturity: float,
+    risk_neutral: bool,
+    a: Ex07Asset = Ex07Asset(),
 ) -> PriceRange:
     return price_confidence_interval(
-        confidence, a.S0, T, a.sigma, a.r if risk_neutral else a.mu, a.q
+        confidence,
+        a.spot0,
+        maturity,
+        a.sigma,
+        a.r if risk_neutral else a.mu,
+        a.q,
     )
 
 

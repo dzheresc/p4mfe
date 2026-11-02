@@ -40,15 +40,15 @@ namespace p4mfe::ch04::ex {
 //   [27.3587, 88.6780] [22.7434, 106.6734]
 // The risk-neutral intervals are shifted down by the factor e^(-(mu - r) T).
 struct Ex07Asset {
-  double S0 = 50.0, q = 0.02, mu = 0.08, sigma = 0.3, r = 0.05;
+  double spot0 = 50.0, q = 0.02, mu = 0.08, sigma = 0.3, r = 0.05;
 };
-inline constexpr std::array<double, 5> ex07_horizons{1.0 / 24.0, 1.0 / 12.0,
+inline constexpr std::array<double, 5> kEx07Horizons{1.0 / 24.0, 1.0 / 12.0,
                                                      2.0 / 12.0, 0.5, 1.0};
-[[nodiscard]] inline PriceRange ex07_interval(double confidence, double T,
-                                              bool risk_neutral,
-                                              const Ex07Asset& a = {}) {
-  return price_confidence_interval(confidence, a.S0, T, a.sigma,
-                                   risk_neutral ? a.r : a.mu, a.q);
+[[nodiscard]] inline PriceRange Ex07Interval(double confidence, double maturity,
+                                             bool risk_neutral,
+                                             const Ex07Asset& a = {}) {
+  return PriceConfidenceInterval(confidence, a.spot0, maturity, a.sigma,
+                                 risk_neutral ? a.r : a.mu, a.q);
 }
 
 // ------------------------------------------------------------ Exercise 8 ---
@@ -74,10 +74,10 @@ inline constexpr std::array<double, 5> ex07_horizons{1.0 / 24.0, 1.0 / 12.0,
 // G moves in steps of 200, so a continuity correction (use 900 for 1000)
 // gives 0.076603 and 0.354127, close to the exact values.
 // The house edge makes losing $1000 about 4.6 times as likely as winning it.
-inline constexpr double ex08_p_black = 18.0 / 38.0;
+inline constexpr double kEx08PBlack = 18.0 / 38.0;
 
 // P(W = k) for W ~ Binomial(n, p), via lgamma to stay accurate for large n.
-[[nodiscard]] inline double binomial_pmf(int k, int n, double p) {
+[[nodiscard]] inline double BinomialPmf(int k, int n, double p) {
   const double logc =
       std::lgamma(n + 1.0) - std::lgamma(k + 1.0) - std::lgamma(n - k + 1.0);
   return std::exp(logc + k * std::log(p) + (n - k) * std::log1p(-p));
@@ -87,25 +87,25 @@ struct RouletteOdds {
   double lose;  // P(net loss >= threshold)
 };
 // Exact: sum the pmf over the wins that reach the threshold.
-[[nodiscard]] inline RouletteOdds ex08_exact(int n_bets = 100,
-                                             double bet = 100.0,
-                                             double threshold = 1000.0,
-                                             double p = ex08_p_black) {
+[[nodiscard]] inline RouletteOdds Ex08Exact(int n_bets = 100,
+                                            double bet = 100.0,
+                                            double threshold = 1000.0,
+                                            double p = kEx08PBlack) {
   RouletteOdds r{0.0, 0.0};
   for (int k = 0; k <= n_bets; ++k) {
     const double gain = bet * (2.0 * k - n_bets);
-    if (gain >= threshold) r.win += binomial_pmf(k, n_bets, p);
-    if (gain <= -threshold) r.lose += binomial_pmf(k, n_bets, p);
+    if (gain >= threshold) r.win += BinomialPmf(k, n_bets, p);
+    if (gain <= -threshold) r.lose += BinomialPmf(k, n_bets, p);
   }
   return r;
 }
 // Normal approximation; `continuity` moves the threshold half a step (one bet)
 // inward.
-[[nodiscard]] inline RouletteOdds ex08_normal(bool continuity = false,
-                                              int n_bets = 100,
-                                              double bet = 100.0,
-                                              double threshold = 1000.0,
-                                              double p = ex08_p_black) {
+[[nodiscard]] inline RouletteOdds Ex08Normal(bool continuity = false,
+                                             int n_bets = 100,
+                                             double bet = 100.0,
+                                             double threshold = 1000.0,
+                                             double p = kEx08PBlack) {
   const double n = n_bets;
   const double mean = n * bet * (2.0 * p - 1.0);
   const double sd = bet * std::sqrt(n * 4.0 * p * (1.0 - p));

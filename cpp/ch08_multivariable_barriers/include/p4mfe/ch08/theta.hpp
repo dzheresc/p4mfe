@@ -35,10 +35,9 @@ template <std::invocable<double> Payoff>
                                        double tol = 1e-7) {
   const auto integrand = [&](double z, double tau) {
     const double p = norm_pdf(z);
-    return p == 0.0
-               ? 0.0
-               : std::exp(-r * tau) *
-                     h(ch04::price_from_normal(z, S, tau, sigma, r, q)) * p;
+    return p == 0.0 ? 0.0
+                    : std::exp(-r * tau) *
+                          h(ch04::PriceFromNormal(z, S, tau, sigma, r, q)) * p;
   };
   return -ch02::ImproperIntegralDerivative(integrand, -ch02::kInfinity,
                                            ch02::kInfinity, T, tol);
