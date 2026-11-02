@@ -56,7 +56,7 @@ namespace p4mfe::ch06::ex {
 
 [[nodiscard]] inline Ex12Result ex13_solve(const Ex12Market& m = {}) {
   const double a = ex13_put(m.S, m.T, m.sigma, m.r, m.q);
-  const double bs = ch03::bs_put(m.S, m.S, m.T, m.sigma, m.r, m.q);
+  const double bs = ch03::BsPut(m.S, m.S, m.T, m.sigma, m.r, m.q);
   return {a, bs, ex12_relative_error(bs, a)};
 }
 

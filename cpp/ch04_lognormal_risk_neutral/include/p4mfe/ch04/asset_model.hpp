@@ -19,7 +19,7 @@
 
 namespace p4mfe::ch04 {
 
-using ch03::log_price_distribution;
+using ch03::LogPriceDistribution;
 using ch03::NormalParams;
 
 // ln(S_T / S_0) ~ N((mu - q - sigma^2/2) T, sigma^2 T), the log return.
@@ -58,15 +58,15 @@ using ch03::NormalParams;
 // Density of S_T at x > 0: the lognormal density with the parameters above.
 [[nodiscard]] inline double price_pdf(double x, double S0, double T,
                                       double sigma, double mu, double q = 0.0) {
-  const auto L = log_price_distribution(S0, T, sigma, mu, q);
-  return ch03::lognormal_pdf(x, L.mean, L.stddev());
+  const auto L = LogPriceDistribution(S0, T, sigma, mu, q);
+  return ch03::LognormalPdf(x, L.mean, L.Stddev());
 }
 
 // P(S_T <= x).
 [[nodiscard]] inline double price_cdf(double x, double S0, double T,
                                       double sigma, double mu, double q = 0.0) {
-  const auto L = log_price_distribution(S0, T, sigma, mu, q);
-  return ch03::lognormal_cdf(x, L.mean, L.stddev());
+  const auto L = LogPriceDistribution(S0, T, sigma, mu, q);
+  return ch03::LognormalCdf(x, L.mean, L.Stddev());
 }
 
 // The p-quantile of S_T: price_from_normal(N^(-1)(p)).

@@ -32,7 +32,7 @@ inline constexpr std::array<double, 5> ex15_maturities{1.0, 3.0, 5.0, 10.0,
                                          double sigma = 0.3, double r = 0.045,
                                          double q = 0.02) {
   const double a = atm_put_approx(S, T, sigma, r, q);
-  const double bs = ch03::bs_put(S, S, T, sigma, r, q);
+  const double bs = ch03::BsPut(S, S, T, sigma, r, q);
   return {a, bs, ex12_relative_error(bs, a)};
 }
 

@@ -25,8 +25,8 @@ void BmParitySweep(benchmark::State& state) {
   std::vector<double> calls, puts;
   for (const auto& o : chain) {
     calls.push_back(
-        p4mfe::ch03::bs_call(o.S, o.K, o.T, o.sigma, spec.r, spec.q));
-    puts.push_back(p4mfe::ch03::bs_put(o.S, o.K, o.T, o.sigma, spec.r, spec.q) +
+        p4mfe::ch03::BsCall(o.S, o.K, o.T, o.sigma, spec.r, spec.q));
+    puts.push_back(p4mfe::ch03::BsPut(o.S, o.K, o.T, o.sigma, spec.r, spec.q) +
                    0.01);  // a small mispricing
   }
   for (auto _ : state) {

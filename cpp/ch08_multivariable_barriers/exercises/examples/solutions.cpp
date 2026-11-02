@@ -123,7 +123,7 @@ int main() {
       "Ex 16: down-and-out call, S = K = 40, B = 35, T = 0.5, sigma = 30%, r = "
       "5%");
   std::printf("  V_DOC = %.6f (vanilla %.6f)\n", ex16_formula_846(),
-              ch03::bs_call(40, 40, 0.5, 0.3, 0.05));
+              ch03::BsCall(40, 40, 0.5, 0.3, 0.05));
 
   header("Ex 17: B -> 0, r = q = 0 (S = K = 40, T = 2, sigma = 60%)");
   for (double B : {35.0, 20.0, 10.0, 5.0, 1.0})

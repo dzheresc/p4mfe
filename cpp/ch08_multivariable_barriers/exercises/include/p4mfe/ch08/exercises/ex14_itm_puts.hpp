@@ -44,7 +44,7 @@ inline constexpr double ex14_S = 40.0, ex14_sigma = 0.3, ex14_r = 0.05;
   const double maturities[] = {0.5, 0.25, 0.5, 0.25, 0.5, 0.25};
   for (std::size_t i = 0; i < 6; ++i) {
     const double K = strikes[i], T = maturities[i];
-    const double v = ch03::bs_put(ex14_S, K, T, ex14_sigma, ex14_r);
+    const double v = ch03::BsPut(ex14_S, K, T, ex14_sigma, ex14_r);
     const double in = std::max(K - ex14_S, 0.0);
     rows[i] = {K, T, v, in, in > v};
   }

@@ -29,9 +29,9 @@ struct Ex16Market {
 
 [[nodiscard]] inline double ex16_formula_846(const Ex16Market& m = {}) {
   const double p = 2.0 * (m.r - m.q) / (m.sigma * m.sigma) - 1.0;
-  return ch03::bs_call(m.S, m.K, m.T, m.sigma, m.r, m.q) -
+  return ch03::BsCall(m.S, m.K, m.T, m.sigma, m.r, m.q) -
          std::pow(m.B / m.S, p) *
-             ch03::bs_call(m.B * m.B / m.S, m.K, m.T, m.sigma, m.r, m.q);
+             ch03::BsCall(m.B * m.B / m.S, m.K, m.T, m.sigma, m.r, m.q);
 }
 
 [[nodiscard]] inline double ex16_value(const Ex16Market& m = {}) {

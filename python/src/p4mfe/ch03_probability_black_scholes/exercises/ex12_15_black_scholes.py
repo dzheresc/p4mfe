@@ -22,48 +22,69 @@ from p4mfe.normal import norm_cdf, norm_pdf
 
 @dataclass(frozen=True)
 class Ex12Market:
-    S: float = 50.0
-    K: float = 45.0
-    T: float = 0.5
+    spot: float = 50.0
+    strike: float = 45.0
+    maturity: float = 0.5
     sigma: float = 0.2
     r: float = 0.06
     q: float = 0.02
 
 
 def ex12_call(m: Ex12Market = Ex12Market()) -> float:
-    return bs_call(m.S, m.K, m.T, m.sigma, m.r, m.q)
+    return bs_call(m.spot, m.strike, m.maturity, m.sigma, m.r, m.q)
 
 
 def ex12_put(m: Ex12Market = Ex12Market()) -> float:
-    return bs_put(m.S, m.K, m.T, m.sigma, m.r, m.q)
+    return bs_put(m.spot, m.strike, m.maturity, m.sigma, m.r, m.q)
 
 
 def ex13_put_zero_strike() -> float:
     return 0.0
 
 
-def ex13_call_zero_strike(S: float, T: float, q: float = 0.0) -> float:
-    return S * math.exp(-q * T)
+def ex13_call_zero_strike(
+    spot: float, maturity: float, q: float = 0.0
+) -> float:
+    return spot * math.exp(-q * maturity)
 
 
 def ex14_rho_put_from_parity(
-    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float,
+    strike: float,
+    maturity: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
     return bs_greeks(
-        OptionType.CALL, S, K, T, sigma, r, q
-    ).rho - K * T * math.exp(-r * T)
+        OptionType.CALL, spot, strike, maturity, sigma, r, q
+    ).rho - strike * maturity * math.exp(-r * maturity)
 
 
 def ex15_aon_call(
-    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float,
+    strike: float,
+    maturity: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
-    return S * math.exp(-q * T) * norm_cdf(bs_d1_d2(S, K, T, sigma, r, q)[0])
+    return (
+        spot
+        * math.exp(-q * maturity)
+        * norm_cdf(bs_d1_d2(spot, strike, maturity, sigma, r, q)[0])
+    )
 
 
 def ex15_aon_delta(
-    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float,
+    strike: float,
+    maturity: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
-    d1 = bs_d1_d2(S, K, T, sigma, r, q)[0]
-    return math.exp(-q * T) * (
-        norm_cdf(d1) + norm_pdf(d1) / (sigma * math.sqrt(T))
+    d1 = bs_d1_d2(spot, strike, maturity, sigma, r, q)[0]
+    return math.exp(-q * maturity) * (
+        norm_cdf(d1) + norm_pdf(d1) / (sigma * math.sqrt(maturity))
     )

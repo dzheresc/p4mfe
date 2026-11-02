@@ -160,8 +160,8 @@ void BM_exercise_and_heat(benchmark::State& state) {
   const auto chain = p4mfe::bench::make_option_chain(spec);
   const auto& o = chain[chain.size() / 2];
   const auto payoff = [K = o.K](double s) { return std::max(s - K, 0.0); };
-  const double bs = ch03::bs_price(p4mfe::ch01::OptionType::kCall, o.S, o.K,
-                                   o.T, o.sigma, spec.r, spec.q);
+  const double bs = ch03::BsPrice(p4mfe::ch01::OptionType::kCall, o.S, o.K, o.T,
+                                  o.sigma, spec.r, spec.q);
   if (!check(state,
              std::abs(ch08::bs_price_via_heat(payoff, o.S, o.K, o.T, o.sigma,
                                               spec.r, spec.q) -
@@ -181,8 +181,8 @@ void BM_exercise_and_heat(benchmark::State& state) {
                                0.05);
     sum += ch08::theta_from_maturity(
         [&](double tau) {
-          return ch03::bs_price(p4mfe::ch01::OptionType::kCall, o.S, o.K, tau,
-                                o.sigma, spec.r, spec.q);
+          return ch03::BsPrice(p4mfe::ch01::OptionType::kCall, o.S, o.K, tau,
+                               o.sigma, spec.r, spec.q);
         },
         o.T);
     sum += ch08::theta_by_integral(payoff, o.S, o.T, o.sigma, spec.r, spec.q);

@@ -14,7 +14,7 @@ from p4mfe.ch03_probability_black_scholes.black_scholes import (
     bs_put,
 )
 
-S, K, T, SIGMA, R, Q = 40.0, 42.0, 0.5, 0.27, 0.05, 0.015
+SPOT, STRIKE, MATURITY, SIGMA, R, Q = 40.0, 42.0, 0.5, 0.27, 0.05, 0.015
 
 
 def test_reference_values():
@@ -30,10 +30,10 @@ def test_reference_values():
 
 def test_put_call_parity_with_dividends():
     args = (40, 45, 0.75, 0.3, 0.04, 0.02)
-    C, P = bs_call(*args), bs_put(*args)
-    assert parity_violation(C, P, 40, 45, 0.75, 0.04, 0.02) == pytest.approx(
-        0.0, abs=1e-12
-    )
+    call, put = bs_call(*args), bs_put(*args)
+    assert parity_violation(
+        call, put, 40, 45, 0.75, 0.04, 0.02
+    ) == pytest.approx(0.0, abs=1e-12)
 
 
 def test_limits_and_bad_input():
@@ -48,40 +48,58 @@ def test_limits_and_bad_input():
 
 @pytest.mark.parametrize("t", [OptionType.CALL, OptionType.PUT])
 def test_greeks_match_finite_differences(t):
-    g = bs_greeks(t, S, K, T, SIGMA, R, Q)
+    g = bs_greeks(t, SPOT, STRIKE, MATURITY, SIGMA, R, Q)
     assert g.delta == pytest.approx(
-        derivative(lambda s: bs_price(t, s, K, T, SIGMA, R, Q), S), abs=1e-8
+        derivative(
+            lambda s: bs_price(t, s, STRIKE, MATURITY, SIGMA, R, Q), SPOT
+        ),
+        abs=1e-8,
     )
     assert g.gamma == pytest.approx(
-        second_derivative(lambda s: bs_price(t, s, K, T, SIGMA, R, Q), S),
+        second_derivative(
+            lambda s: bs_price(t, s, STRIKE, MATURITY, SIGMA, R, Q), SPOT
+        ),
         abs=1e-6,
     )
     assert g.vega == pytest.approx(
-        derivative(lambda v: bs_price(t, S, K, T, v, R, Q), SIGMA), abs=1e-7
+        derivative(
+            lambda v: bs_price(t, SPOT, STRIKE, MATURITY, v, R, Q), SIGMA
+        ),
+        abs=1e-7,
     )
     assert g.rho == pytest.approx(
-        derivative(lambda x: bs_price(t, S, K, T, SIGMA, x, Q), R), abs=1e-7
+        derivative(
+            lambda x: bs_price(t, SPOT, STRIKE, MATURITY, SIGMA, x, Q), R
+        ),
+        abs=1e-7,
     )
     assert g.theta == pytest.approx(
-        -derivative(lambda u: bs_price(t, S, K, u, SIGMA, R, Q), T), abs=1e-7
+        -derivative(
+            lambda u: bs_price(t, SPOT, STRIKE, u, SIGMA, R, Q), MATURITY
+        ),
+        abs=1e-7,
     )
 
 
 @pytest.mark.parametrize("t", [OptionType.CALL, OptionType.PUT])
 @pytest.mark.parametrize("spot", [20.0, 40.0, 60.0])
 def test_pde(t, spot):
-    assert bs_pde_residual(t, spot, K, T, SIGMA, R, Q) == pytest.approx(
-        0.0, abs=1e-12
-    )
+    assert bs_pde_residual(
+        t, spot, STRIKE, MATURITY, SIGMA, R, Q
+    ) == pytest.approx(0.0, abs=1e-12)
 
 
 def test_call_put_relations_and_phi_identity():
-    c = bs_greeks(OptionType.CALL, S, K, T, SIGMA, R, Q)
-    p = bs_greeks(OptionType.PUT, S, K, T, SIGMA, R, Q)
-    assert c.delta - p.delta == pytest.approx(math.exp(-Q * T), abs=1e-15)
+    c = bs_greeks(OptionType.CALL, SPOT, STRIKE, MATURITY, SIGMA, R, Q)
+    p = bs_greeks(OptionType.PUT, SPOT, STRIKE, MATURITY, SIGMA, R, Q)
+    assert c.delta - p.delta == pytest.approx(
+        math.exp(-Q * MATURITY), abs=1e-15
+    )
     assert c.gamma == p.gamma and c.vega == p.vega
-    assert c.rho - p.rho == pytest.approx(K * T * math.exp(-R * T), abs=1e-13)
+    assert c.rho - p.rho == pytest.approx(
+        STRIKE * MATURITY * math.exp(-R * MATURITY), abs=1e-13
+    )
     for spot in (10.0, 40.0, 100.0):
-        assert bs_phi_identity_gap(spot, K, T, SIGMA, R, Q) == pytest.approx(
-            0.0, abs=1e-14
-        )
+        assert bs_phi_identity_gap(
+            spot, STRIKE, MATURITY, SIGMA, R, Q
+        ) == pytest.approx(0.0, abs=1e-14)

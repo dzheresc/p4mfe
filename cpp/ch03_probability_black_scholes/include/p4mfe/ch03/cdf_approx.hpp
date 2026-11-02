@@ -19,22 +19,24 @@
 
 namespace p4mfe::ch03 {
 
-[[nodiscard]] inline double norm_cdf_poly(double x) noexcept {
-  if (x < 0.0) return 1.0 - norm_cdf_poly(-x);
-  constexpr double a1 = 0.319381530, a2 = -0.356563782, a3 = 1.781477937,
-                   a4 = -1.821255978, a5 = 1.330274429;
+[[nodiscard]] inline double NormCdfPoly(double x) noexcept {
+  if (x < 0.0) return 1.0 - NormCdfPoly(-x);
+  constexpr double kA1 = 0.319381530, kA2 = -0.356563782, kA3 = 1.781477937,
+                   kA4 = -1.821255978, kA5 = 1.330274429;
   const double z = 1.0 / (1.0 + 0.2316419 * x);
   const double poly =
-      z * (a1 + z * (a2 + z * (a3 + z * (a4 + z * a5))));  // Horner
+      z * (kA1 + z * (kA2 + z * (kA3 + z * (kA4 + z * kA5))));  // Horner
   return 1.0 - p4mfe::norm_pdf(x) * poly;
 }
 
-[[nodiscard]] inline double norm_cdf_simpson(double x, double tol = 1e-12) {
+[[nodiscard]] inline double NormCdfSimpson(double x, double tol = 1e-12) {
   if (x == 0.0) return 0.5;
   const auto g = [](double t) { return std::exp(-0.5 * t * t); };
   // Integrate over [0, |x|] so the interval is never reversed.
-  const double I = ch02::IntegrateToTolerance(g, 0.0, std::abs(x), tol).value;
-  const double half_mass = I * std::numbers::inv_sqrtpi / std::numbers::sqrt2;
+  const double integral =
+      ch02::IntegrateToTolerance(g, 0.0, std::abs(x), tol).value;
+  const double half_mass =
+      integral * std::numbers::inv_sqrtpi / std::numbers::sqrt2;
   return x > 0.0 ? 0.5 + half_mass : 0.5 - half_mass;
 }
 

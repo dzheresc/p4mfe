@@ -32,7 +32,7 @@ TEST(Ch04Ex10, AtmCallDelta) {
         const double d = ex10_atm_call_delta(r, 0.0, sigma, T);
         EXPECT_GT(d, 0.5);
         EXPECT_NEAR(
-            d, ch03::bs_greeks(OptionType::kCall, 100, 100, T, sigma, r).delta,
+            d, ch03::BsGreeks(OptionType::kCall, 100, 100, T, sigma, r).delta,
             1e-12);
         // (ii) threshold q*.
         const double qs = ex10_threshold_q(r, sigma, T);
@@ -90,7 +90,7 @@ double rn_price_above(G g, double z_lo, const Case& c) {
   return std::exp(-c.r * c.T) * ch02::SimpsonRule(f, z_lo, 12.0, 20000);
 }
 double z_at(double K, const Case& c) {
-  return -ch03::bs_d1_d2(c.S, K, c.T, c.sigma, c.r, c.q).d2;
+  return -ch03::BsD1D2(c.S, K, c.T, c.sigma, c.r, c.q).d2;
 }
 }  // namespace
 
@@ -108,7 +108,7 @@ TEST(Ch04Ex13, PowerCall) {
   for (const auto& c : cases) {
     // alpha = 1 is the Black-Scholes call.
     EXPECT_NEAR(ex13_power_call(c.S, c.K, c.T, c.sigma, c.r, 1.0, c.q),
-                ch03::bs_call(c.S, c.K, c.T, c.sigma, c.r, c.q), 1e-10);
+                ch03::BsCall(c.S, c.K, c.T, c.sigma, c.r, c.q), 1e-10);
     for (double alpha : {0.5, 1.5, 2.0}) {
       const double K = std::pow(c.K, alpha);
       const double numeric = rn_price_above(
@@ -129,7 +129,7 @@ TEST(Ch04Ex14, NormalModel) {
   const double s = sigma * std::sqrt(T);
   const double numeric =
       std::exp(-r * T) *
-      ch03::expected_value(
+      ch03::ExpectedValue(
           Z, [&](double z) { return std::max(F + s * z - K, 0.0); }, 1e-11);
   EXPECT_NEAR(ex14_call(S0, K, T, sigma, r), numeric, 1e-7);
   // (ii) parity.

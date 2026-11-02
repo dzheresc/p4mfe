@@ -20,10 +20,10 @@ using namespace p4mfe::ch08;
 TEST(Ch08Theta, MatchesClosedForm) {
   const double S = 50, K = 52, T = 0.75, sigma = 0.3, r = 0.04, q = 0.01;
   for (OptionType type : {OptionType::kCall, OptionType::kPut}) {
-    const double exact = ch03::bs_greeks(type, S, K, T, sigma, r, q).theta;
+    const double exact = ch03::BsGreeks(type, S, K, T, sigma, r, q).theta;
     EXPECT_NEAR(theta_from_maturity(
                     [&](double tau) {
-                      return ch03::bs_price(type, S, K, tau, sigma, r, q);
+                      return ch03::BsPrice(type, S, K, tau, sigma, r, q);
                     },
                     T),
                 exact, 1e-7);
@@ -88,8 +88,8 @@ TEST(Ch08Heat, TransformSolvesHeatEquation) {
   // call.
   const auto u = [&](double x, double tau) {
     const double theta = 2 * tau / (sigma * sigma);
-    return heat_from_bs(ch03::bs_call(K * std::exp(x), K, theta, sigma, r, q),
-                        x, tau, K, c);
+    return heat_from_bs(ch03::BsCall(K * std::exp(x), K, theta, sigma, r, q), x,
+                        tau, K, c);
   };
   for (double x : {-0.2, 0.0, 0.3}) {
     const double tau = 0.01;
@@ -106,7 +106,7 @@ TEST(Ch08Heat, TransformSolvesHeatEquation) {
     const auto h = [&](double s) { return ch01::Payoff(type, s, K); };
     for (double S : {35.0, 40.0, 46.0})
       EXPECT_NEAR(bs_price_via_heat(h, S, K, T, sigma, r, q),
-                  ch03::bs_price(type, S, K, T, sigma, r, q), 1e-7);
+                  ch03::BsPrice(type, S, K, T, sigma, r, q), 1e-7);
   }
 }
 
@@ -115,10 +115,10 @@ TEST(Ch08Heat, ExplicitFiniteDifferences) {
   for (OptionType type : {OptionType::kCall, OptionType::kPut})
     for (double S : {35.0, 40.0, 46.0})
       EXPECT_NEAR(european_heat_fd(type, S, K, T, sigma, r, q),
-                  ch03::bs_price(type, S, K, T, sigma, r, q), 2e-3);
+                  ch03::BsPrice(type, S, K, T, sigma, r, q), 2e-3);
   // Converges as the grid is refined (O(dx^2) on average; the payoff kink
   // makes individual errors irregular).
-  const double exact = ch03::bs_call(46, K, T, sigma, r, q);
+  const double exact = ch03::BsCall(46, K, T, sigma, r, q);
   const double e1 = std::abs(
       european_heat_fd(OptionType::kCall, 46, K, T, sigma, r, q, 100) - exact);
   const double e2 = std::abs(
@@ -139,7 +139,7 @@ TEST(Ch08Barrier, DownAndOutCall) {
     for (double S : {B + 1, 105.0, 130.0}) {
       if (S <= B) continue;
       const double out = down_and_out_call(S, K, B, T, sigma, r, q);
-      const double vanilla = ch03::bs_call(S, K, T, sigma, r, q);
+      const double vanilla = ch03::BsCall(S, K, T, sigma, r, q);
       EXPECT_GT(out, 0.0);
       EXPECT_LT(out, vanilla);
       EXPECT_NEAR(out + down_and_in_call(S, K, B, T, sigma, r, q), vanilla,
@@ -168,7 +168,7 @@ TEST(Ch08Barrier, DownAndOutCall) {
   }
   // Far barrier: knock-out ~ vanilla.
   EXPECT_NEAR(down_and_out_call(100, K, 20, T, sigma, r, q),
-              ch03::bs_call(100, K, T, sigma, r, q), 1e-9);
+              ch03::BsCall(100, K, T, sigma, r, q), 1e-9);
 }
 
 TEST(Ch08Barrier, UpAndOutPutAndImage) {
@@ -178,7 +178,7 @@ TEST(Ch08Barrier, UpAndOutPutAndImage) {
     const double out = up_and_out_put(S, K, B, T, sigma, r, q);
     EXPECT_GT(out, 0.0);
     EXPECT_NEAR(out + up_and_in_put(S, K, B, T, sigma, r, q),
-                ch03::bs_put(S, K, T, sigma, r, q), 1e-12);
+                ch03::BsPut(S, K, T, sigma, r, q), 1e-12);
     EXPECT_NEAR(up_and_out_put(B * (1 - 1e-9), K, B, T, sigma, r, q), 0.0,
                 1e-6);
     const auto V = [&](double s, double t) {
@@ -189,7 +189,7 @@ TEST(Ch08Barrier, UpAndOutPutAndImage) {
   // The image of a solution is a solution, and equals it on S = B.
   const double B = 90;
   const auto call = [&](double s, double t) {
-    return ch03::bs_call(s, K, T - t, sigma, r, 0.01);
+    return ch03::BsCall(s, K, T - t, sigma, r, 0.01);
   };
   const auto img = [&](double s, double t) {
     return barrier_image([&](double x) { return call(x, t); }, s, B, sigma, r,
@@ -209,7 +209,7 @@ TEST(Ch08EarlyExercise, CallWithoutDividends) {
               0.0, 1e-12);
   EXPECT_NEAR(binomial_price(OptionType::kCall, S, K, T, sigma, r, 0, 1000,
                              ExerciseStyle::European),
-              ch03::bs_call(S, K, T, sigma, r), 2e-2);
+              ch03::BsCall(S, K, T, sigma, r), 2e-2);
   // Exercising gives up at least K (1 - e^(-r tau)).
   for (double tau : {0.1, 0.5, 2.0})
     for (double s : {80.0, 100.0, 200.0})

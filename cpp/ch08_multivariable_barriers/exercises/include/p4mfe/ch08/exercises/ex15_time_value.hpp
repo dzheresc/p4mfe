@@ -28,14 +28,14 @@ struct Ex15Market {
 
 [[nodiscard]] inline double ex15_time_value(double S,
                                             const Ex15Market& m = {}) {
-  return ch03::bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - std::max(S - m.K, 0.0);
+  return ch03::BsCall(S, m.K, m.T, m.sigma, m.r, m.q) - std::max(S - m.K, 0.0);
 }
 
 // f'(S) away from S = K.
 [[nodiscard]] inline double ex15_derivative(double S,
                                             const Ex15Market& m = {}) {
   const double delta =
-      ch03::bs_greeks(ch03::OptionType::kCall, S, m.K, m.T, m.sigma, m.r, m.q)
+      ch03::BsGreeks(ch03::OptionType::kCall, S, m.K, m.T, m.sigma, m.r, m.q)
           .delta;
   return S < m.K ? delta : delta - 1.0;
 }

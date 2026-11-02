@@ -84,7 +84,7 @@ template <std::invocable<double> U0>
   const ch03::ContinuousDistribution Z{[](double z) { return norm_pdf(z); },
                                        -ch02::kInfinity, ch02::kInfinity};
   const double s = std::sqrt(2.0 * tau);
-  return ch03::expected_value(Z, [&](double z) { return u0(x + s * z); }, tol);
+  return ch03::ExpectedValue(Z, [&](double z) { return u0(x + s * z); }, tol);
 }
 
 // European price of payoff h by solving the heat equation in closed form.

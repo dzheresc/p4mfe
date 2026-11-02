@@ -23,16 +23,16 @@ namespace p4mfe::ch03::ex {
 //   k     2,12   3,11   4,10   5,9   6,8   7
 //   w(k)   35     17     11     8    6.2   5
 // (At this w(k) the game is fair; any larger w(k) gives a positive edge.)
-[[nodiscard]] inline int ex01_ways(int k) {
+[[nodiscard]] inline int Ex01Ways(int k) {
   if (k < 2 || k > 12) throw std::invalid_argument("ex01: need 2 <= k <= 12");
   return 6 - std::abs(k - 7);
 }
-[[nodiscard]] inline double ex01_prob(int k) { return ex01_ways(k) / 36.0; }
-[[nodiscard]] inline double ex01_breakeven_win(int k) {
-  return 36.0 / ex01_ways(k) - 1.0;
+[[nodiscard]] inline double Ex01Prob(int k) { return Ex01Ways(k) / 36.0; }
+[[nodiscard]] inline double Ex01BreakevenWin(int k) {
+  return 36.0 / Ex01Ways(k) - 1.0;
 }
-[[nodiscard]] inline double ex01_expected_gain(int k, double w) {
-  const double p = ex01_prob(k);
+[[nodiscard]] inline double Ex01ExpectedGain(int k, double w) {
+  const double p = Ex01Prob(k);
   return w * p - (1.0 - p);
 }
 
@@ -47,8 +47,8 @@ namespace p4mfe::ch03::ex {
 //   E[X] = p / p^2 = 1/p,   E[X(X-1)] = 2(1-p)/p^2,
 //   var(X) = E[X(X-1)] + E[X] - E[X]^2 = (1-p)/p^2.
 // For a fair coin, E[X] = 2 and var(X) = 2.
-[[nodiscard]] inline double ex02_mean(double p = 0.5) { return 1.0 / p; }
-[[nodiscard]] inline double ex02_variance(double p = 0.5) {
+[[nodiscard]] inline double Ex02Mean(double p = 0.5) { return 1.0 / p; }
+[[nodiscard]] inline double Ex02Variance(double p = 0.5) {
   return (1.0 - p) / (p * p);
 }
 
@@ -68,25 +68,25 @@ namespace p4mfe::ch03::ex {
 //   E_k = 1/p + 1/p^2 + ... + 1/p^k = (1 - p^k) / ((1 - p) p^k).
 // Exercise 3 (k = 2): E_2 = (1 + p)/p^2, which is 6 for a fair coin.
 // For p = 1/2 in general, E_k = 2^(k+1) - 2.
-[[nodiscard]] inline double ex04_expected_tosses(int k, double p) {
+[[nodiscard]] inline double Ex04ExpectedTosses(int k, double p) {
   if (k < 0 || !(p > 0.0 && p <= 1.0))
     throw std::invalid_argument("ex04: need k >= 0, 0 < p <= 1");
   if (p == 1.0) return k;
   return (1.0 - std::pow(p, k)) / ((1.0 - p) * std::pow(p, k));
 }
-[[nodiscard]] inline double ex04_expected_tosses_recursive(int k, double p) {
+[[nodiscard]] inline double Ex04ExpectedTossesRecursive(int k, double p) {
   double e = 0.0;
   for (int j = 1; j <= k; ++j) e = (e + 1.0) / p;
   return e;
 }
-[[nodiscard]] inline double ex03_expected_tosses(double p = 0.5) {
+[[nodiscard]] inline double Ex03ExpectedTosses(double p = 0.5) {
   return (1.0 + p) / (p * p);
 }
 
 // Independent check: E[N] = sum_{n>=0} P(N > n), where the distribution of the
 // current run of heads (0..k-1, not yet finished) is propagated toss by toss.
-[[nodiscard]] inline double ex04_expected_tosses_markov(int k, double p,
-                                                        double tol = 1e-14) {
+[[nodiscard]] inline double Ex04ExpectedTossesMarkov(int k, double p,
+                                                     double tol = 1e-14) {
   std::vector<double> state(static_cast<std::size_t>(k), 0.0);
   state[0] = 1.0;
   double expected = 0.0;

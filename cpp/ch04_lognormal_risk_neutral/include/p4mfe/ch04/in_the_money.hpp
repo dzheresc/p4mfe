@@ -37,7 +37,7 @@ using ch01::OptionType;
 [[nodiscard]] inline double prob_itm(OptionType type, double S0, double K,
                                      double T, double sigma, double mu,
                                      double q = 0.0) {
-  const double above = ch03::prob_price_above(K, S0, T, sigma, mu, q);
+  const double above = ch03::ProbPriceAbove(K, S0, T, sigma, mu, q);
   return type == OptionType::kCall ? above : 1.0 - above;
 }
 
@@ -45,8 +45,8 @@ using ch01::OptionType;
 [[nodiscard]] inline double prob_between(double K1, double K2, double S0,
                                          double T, double sigma, double mu,
                                          double q = 0.0) {
-  return ch03::prob_price_above(K1, S0, T, sigma, mu, q) -
-         ch03::prob_price_above(K2, S0, T, sigma, mu, q);
+  return ch03::ProbPriceAbove(K1, S0, T, sigma, mu, q) -
+         ch03::ProbPriceAbove(K2, S0, T, sigma, mu, q);
 }
 
 // ---------------------------------------------------------------- 4.7 ------
@@ -55,7 +55,7 @@ using ch01::OptionType;
 [[nodiscard]] inline double cash_or_nothing(OptionType type, double S, double K,
                                             double T, double sigma, double r,
                                             double q = 0.0) {
-  const auto [d1, d2] = ch03::bs_d1_d2(S, K, T, sigma, r, q);
+  const auto [d1, d2] = ch03::BsD1D2(S, K, T, sigma, r, q);
   return std::exp(-r * T) * norm_cdf(type == OptionType::kCall ? d2 : -d2);
 }
 
@@ -64,7 +64,7 @@ using ch01::OptionType;
 [[nodiscard]] inline double asset_or_nothing(OptionType type, double S,
                                              double K, double T, double sigma,
                                              double r, double q = 0.0) {
-  const auto [d1, d2] = ch03::bs_d1_d2(S, K, T, sigma, r, q);
+  const auto [d1, d2] = ch03::BsD1D2(S, K, T, sigma, r, q);
   return S * std::exp(-q * T) * norm_cdf(type == OptionType::kCall ? d1 : -d1);
 }
 
@@ -78,7 +78,7 @@ struct ExerciseProbabilities {
 };
 [[nodiscard]] inline ExerciseProbabilities exercise_probabilities(
     double S, double K, double T, double sigma, double r, double q = 0.0) {
-  const auto [d1, d2] = ch03::bs_d1_d2(S, K, T, sigma, r, q);
+  const auto [d1, d2] = ch03::BsD1D2(S, K, T, sigma, r, q);
   return {norm_cdf(d1), norm_cdf(d2)};
 }
 

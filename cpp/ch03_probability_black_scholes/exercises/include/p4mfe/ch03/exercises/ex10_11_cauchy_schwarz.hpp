@@ -27,24 +27,24 @@ struct CauchySchwarzSides {
   double rhs;  // ex10: A C;  ex11: sqrt(A) sqrt(C)
 };
 
-[[nodiscard]] inline CauchySchwarzSides ex10_sides(std::span<const double> x,
-                                                   std::span<const double> y) {
+[[nodiscard]] inline CauchySchwarzSides Ex10Sides(std::span<const double> x,
+                                                  std::span<const double> y) {
   if (x.size() != y.size())
     throw std::invalid_argument("ex10: x and y must have the same length");
-  double A = 0.0, B = 0.0, C = 0.0;
+  double sum_xx = 0.0, sum_xy = 0.0, sum_yy = 0.0;
   for (std::size_t i = 0; i < x.size(); ++i) {
-    A += x[i] * x[i];
-    B += x[i] * y[i];
-    C += y[i] * y[i];
+    sum_xx += x[i] * x[i];
+    sum_xy += x[i] * y[i];
+    sum_yy += y[i] * y[i];
   }
-  return {B * B, A * C};
+  return {sum_xy * sum_xy, sum_xx * sum_yy};
 }
 
 // The quadratic sum (x_i + alpha y_i)^2, nonnegative for every alpha; its
 // minimum, at alpha* = -B/C, is A - B^2/C = (AC - B^2)/C.
-[[nodiscard]] inline double ex10_quadratic(std::span<const double> x,
-                                           std::span<const double> y,
-                                           double alpha) {
+[[nodiscard]] inline double Ex10Quadratic(std::span<const double> x,
+                                          std::span<const double> y,
+                                          double alpha) {
   double s = 0.0;
   for (std::size_t i = 0; i < x.size(); ++i)
     s += (x[i] + alpha * y[i]) * (x[i] + alpha * y[i]);
@@ -64,15 +64,15 @@ struct CauchySchwarzSides {
 // the inequality asked for.
 // The sides are computed with Simpson's rule (n intervals).
 template <class F, class G>
-[[nodiscard]] CauchySchwarzSides ex11_sides(F&& f, G&& g, double a, double b,
-                                            std::size_t n = 1000) {
-  const double A =
+[[nodiscard]] CauchySchwarzSides Ex11Sides(F&& f, G&& g, double a, double b,
+                                           std::size_t n = 1000) {
+  const double int_ff =
       ch02::Integrate([&](double x) { return f(x) * f(x); }, a, b, n);
-  const double B =
+  const double int_fg =
       ch02::Integrate([&](double x) { return f(x) * g(x); }, a, b, n);
-  const double C =
+  const double int_gg =
       ch02::Integrate([&](double x) { return g(x) * g(x); }, a, b, n);
-  return {B, std::sqrt(A) * std::sqrt(C)};
+  return {int_fg, std::sqrt(int_ff) * std::sqrt(int_gg)};
 }
 
 }  // namespace p4mfe::ch03::ex

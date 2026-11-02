@@ -30,7 +30,7 @@ inline constexpr std::array<double, 4> ex14_maturities{3.0, 5.0, 10.0, 20.0};
 [[nodiscard]] inline Ex12Result ex14_row(double T, double S = 40.0,
                                          double sigma = 0.3) {
   const double a = atm_price_approx(S, T, sigma);
-  const double bs = ch03::bs_put(S, S, T, sigma, 0.0, 0.0);
+  const double bs = ch03::BsPut(S, S, T, sigma, 0.0, 0.0);
   return {a, bs, ex12_relative_error(bs, a)};
 }
 

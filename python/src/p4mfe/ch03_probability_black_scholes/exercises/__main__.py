@@ -91,19 +91,19 @@ def main() -> None:
         print(
             f"17  r = 0.05, q = {q}: ATM C - P = {ex17_atm_call_minus_put(100, 1, 0.2, 0.05, q):+.6f}"
         )
-    for T in (1.0, 9.0, 10.0, 20.0):
+    for maturity in (1.0, 9.0, 10.0, 20.0):
         print(
-            f"18  q = r = 0.05, T = {T}: Theta = {ex18_theta_call(100, 100, T, 0.2, 0.05, 0.05):+.6f}"
+            f"18  q = r = 0.05, T = {maturity}: Theta = {ex18_theta_call(100, 100, maturity, 0.2, 0.05, 0.05):+.6f}"
         )
     print(f"18  sign change at T* = {ex18_theta_sign_change(0.2, 0.05):.4f}")
     sd = ex19_strike_derivatives(50, 45, 0.5, 0.2, 0.06, 0.02)
     print(
-        f"19  dC/dK = {sd.dC_dK:.6f}  d2C/dK2 = {sd.d2C_dK2:.6f}  dP/dK = {sd.dP_dK:.6f}"
+        f"19  dC/dK = {sd.d_call_d_strike:.6f}  d2C/dK2 = {sd.d2_call_d_strike2:.6f}  dP/dK = {sd.d_put_d_strike:.6f}"
     )
     print(f"21  K* = {ex21_min_straddle_strike(50, 0.5, 0.2, 0.06, 0.02):.6f}")
-    for T in EX22_MATURITIES:
+    for maturity in EX22_MATURITIES:
         print(
-            f"22-23  T = {T:.4f}: Gamma = {ex22_atm_gamma(T):.6f}  vega = {ex23_atm_vega(T):.6f}"
+            f"22-23  T = {maturity:.4f}: Gamma = {ex22_atm_gamma(maturity):.6f}  vega = {ex23_atm_vega(maturity):.6f}"
         )
     print(
         "24 ",

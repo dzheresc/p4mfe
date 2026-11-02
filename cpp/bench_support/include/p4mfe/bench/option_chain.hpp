@@ -78,7 +78,7 @@ struct ChainSpec {
         const double k = std::log(K / F);
         const double sigma = std::max(smile_vol(k, T) + jitter(rng), 0.05);
         for (const OptionType type : {OptionType::kCall, OptionType::kPut}) {
-          const double price = ch03::bs_price(type, S, K, T, sigma, c.r, c.q);
+          const double price = ch03::BsPrice(type, S, K, T, sigma, c.r, c.q);
           const auto b = type == OptionType::kCall
                              ? ch01::CallBounds(S, K, T, c.r, c.q)
                              : ch01::PutBounds(S, K, T, c.r, c.q);

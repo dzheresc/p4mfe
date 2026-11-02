@@ -43,8 +43,8 @@ template <std::invocable<double> V>
                                               double q = 0.0) {
   if (S <= B) return 0.0;
   const auto W = [&](double s) {
-    if (B <= K) return ch03::bs_call(s, K, T, sigma, r, q);
-    return ch03::bs_call(s, B, T, sigma, r, q) +
+    if (B <= K) return ch03::BsCall(s, K, T, sigma, r, q);
+    return ch03::BsCall(s, B, T, sigma, r, q) +
            (B - K) *
                ch04::cash_or_nothing(OptionType::kCall, s, B, T, sigma, r, q);
   };
@@ -54,7 +54,7 @@ template <std::invocable<double> V>
 [[nodiscard]] inline double down_and_in_call(double S, double K, double B,
                                              double T, double sigma, double r,
                                              double q = 0.0) {
-  return ch03::bs_call(S, K, T, sigma, r, q) -
+  return ch03::BsCall(S, K, T, sigma, r, q) -
          down_and_out_call(S, K, B, T, sigma, r, q);
 }
 
@@ -63,8 +63,8 @@ template <std::invocable<double> V>
                                            double q = 0.0) {
   if (S >= B) return 0.0;
   const auto W = [&](double s) {
-    if (B >= K) return ch03::bs_put(s, K, T, sigma, r, q);
-    return ch03::bs_put(s, B, T, sigma, r, q) +
+    if (B >= K) return ch03::BsPut(s, K, T, sigma, r, q);
+    return ch03::BsPut(s, B, T, sigma, r, q) +
            (K - B) *
                ch04::cash_or_nothing(OptionType::kPut, s, B, T, sigma, r, q);
   };
@@ -74,7 +74,7 @@ template <std::invocable<double> V>
 [[nodiscard]] inline double up_and_in_put(double S, double K, double B,
                                           double T, double sigma, double r,
                                           double q = 0.0) {
-  return ch03::bs_put(S, K, T, sigma, r, q) -
+  return ch03::BsPut(S, K, T, sigma, r, q) -
          up_and_out_put(S, K, B, T, sigma, r, q);
 }
 

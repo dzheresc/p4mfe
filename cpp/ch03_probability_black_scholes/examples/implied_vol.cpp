@@ -8,26 +8,30 @@
 
 int main() {
   using namespace p4mfe::ch03;
-  const double S = 30, K = 30, T = 0.5, r = 0.03, q = 0.01, C = 2.5;
-  std::printf("Call price %g, S = %g, K = %g, T = %g, r = %g, q = %g\n", C, S,
-              K, T, r, q);
+  const double spot = 30, strike = 30, maturity = 0.5, r = 0.03, q = 0.01,
+               call = 2.5;
+  std::printf("Call price %g, S = %g, K = %g, T = %g, r = %g, q = %g\n", call,
+              spot, strike, maturity, r, q);
   std::printf("initial guess sigma_0 = %.6f\n\n",
-              implied_vol_initial_guess(S, K, T, r, q));
+              ImpliedVolInitialGuess(spot, strike, maturity, r, q));
 
   // Show the Newton iterates themselves.
-  double sigma = implied_vol_initial_guess(S, K, T, r, q);
+  double sigma = ImpliedVolInitialGuess(spot, strike, maturity, r, q);
   for (int k = 1; k <= 5; ++k) {
-    sigma -= (bs_call(S, K, T, sigma, r, q) - C) /
-             bs_greeks(OptionType::kCall, S, K, T, sigma, r, q).vega;
+    sigma -=
+        (BsCall(spot, strike, maturity, sigma, r, q) - call) /
+        BsGreeks(OptionType::kCall, spot, strike, maturity, sigma, r, q).vega;
     std::printf("  iteration %d: sigma = %.12f\n", k, sigma);
   }
 
-  const auto n = implied_vol_newton(OptionType::kCall, C, S, K, T, r, q);
-  const auto b = implied_vol_bisection(OptionType::kCall, C, S, K, T, r, q);
+  const auto n =
+      ImpliedVolNewton(OptionType::kCall, call, spot, strike, maturity, r, q);
+  const auto b = ImpliedVolBisection(OptionType::kCall, call, spot, strike,
+                                     maturity, r, q);
   std::printf("\nNewton:    sigma = %.12f in %zu iterations\n", n.sigma,
               n.iterations);
   std::printf("Bisection: sigma = %.12f in %zu iterations\n", b.sigma,
               b.iterations);
   std::printf("check: BS price at Newton sigma = %.12f\n",
-              bs_call(S, K, T, n.sigma, r, q));
+              BsCall(spot, strike, maturity, n.sigma, r, q));
 }

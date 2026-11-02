@@ -42,7 +42,7 @@ void BM_fd_greeks(benchmark::State& state, ch07::FdScheme scheme) {
     const auto fd = ch07::bs_fd_greeks(o.type, o.S, o.K, o.T, o.sigma, spec.r,
                                        spec.q, {}, scheme);
     const auto cf =
-        p4mfe::ch03::bs_greeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
+        p4mfe::ch03::BsGreeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
     worst = std::max(worst, std::abs(fd.delta - cf.delta));
   }
   if (!check(state, worst < 1e-4,
@@ -67,10 +67,10 @@ void BM_pde_residual(benchmark::State& state) {
   for (auto _ : state) {
     double worst = 0.0;
     for (const auto& o : c) {
-      const auto g = p4mfe::ch03::bs_greeks(o.type, o.S, o.K, o.T, o.sigma,
-                                            spec.r, spec.q);
+      const auto g =
+          p4mfe::ch03::BsGreeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
       const double V =
-          p4mfe::ch03::bs_price(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
+          p4mfe::ch03::BsPrice(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
       worst = std::max(worst, std::abs(ch07::pde_residual(V, g, o.S, o.sigma,
                                                           spec.r, spec.q)));
     }

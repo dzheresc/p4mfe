@@ -25,35 +25,62 @@ from p4mfe.normal import norm_cdf, norm_pdf
 
 
 def ex16_volga(
-    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float,
+    strike: float,
+    maturity: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
-    d1, d2 = bs_d1_d2(S, K, T, sigma, r, q)
-    return S * math.exp(-q * T) * math.sqrt(T) * norm_pdf(d1) * d1 * d2 / sigma
+    d1, d2 = bs_d1_d2(spot, strike, maturity, sigma, r, q)
+    return (
+        spot
+        * math.exp(-q * maturity)
+        * math.sqrt(maturity)
+        * norm_pdf(d1)
+        * d1
+        * d2
+        / sigma
+    )
 
 
 def ex16_vanna(
-    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float,
+    strike: float,
+    maturity: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
-    d1, d2 = bs_d1_d2(S, K, T, sigma, r, q)
-    return -math.exp(-q * T) * norm_pdf(d1) * d2 / sigma
+    d1, d2 = bs_d1_d2(spot, strike, maturity, sigma, r, q)
+    return -math.exp(-q * maturity) * norm_pdf(d1) * d2 / sigma
 
 
 def ex17_atm_call_minus_put(
-    S: float, T: float, sigma: float, r: float, q: float
+    spot: float, maturity: float, sigma: float, r: float, q: float
 ) -> float:
-    return bs_call(S, S, T, sigma, r, q) - bs_put(S, S, T, sigma, r, q)
+    return bs_call(spot, spot, maturity, sigma, r, q) - bs_put(
+        spot, spot, maturity, sigma, r, q
+    )
 
 
 def ex18_theta_call(
-    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float,
+    strike: float,
+    maturity: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
-    return bs_greeks(OptionType.CALL, S, K, T, sigma, r, q).theta
+    return bs_greeks(OptionType.CALL, spot, strike, maturity, sigma, r, q).theta
 
 
-def ex18_atm_q_eq_r_bracket(T: float, sigma: float, r: float) -> float:
+def ex18_atm_q_eq_r_bracket(maturity: float, sigma: float, r: float) -> float:
     """Theta(C) / (S e^(-rT)) for an ATM call with q = r."""
-    x = 0.5 * sigma * math.sqrt(T)
-    return r * (2 * norm_cdf(x) - 1) - sigma * norm_pdf(x) / (2 * math.sqrt(T))
+    x = 0.5 * sigma * math.sqrt(maturity)
+    return r * (2 * norm_cdf(x) - 1) - sigma * norm_pdf(x) / (
+        2 * math.sqrt(maturity)
+    )
 
 
 def ex18_theta_sign_change(
@@ -70,30 +97,42 @@ def ex18_theta_sign_change(
 
 @dataclass(frozen=True)
 class StrikeDerivatives:
-    dC_dK: float
-    d2C_dK2: float
-    dP_dK: float
-    d2P_dK2: float
+    d_call_d_strike: float
+    d2_call_d_strike2: float
+    d_put_d_strike: float
+    d2_put_d_strike2: float
 
 
 def ex19_strike_derivatives(
-    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float,
+    strike: float,
+    maturity: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
 ) -> StrikeDerivatives:
-    d2 = bs_d1_d2(S, K, T, sigma, r, q)[1]
-    er = math.exp(-r * T)
-    second = er * norm_pdf(d2) / (K * sigma * math.sqrt(T))
+    d2 = bs_d1_d2(spot, strike, maturity, sigma, r, q)[1]
+    er = math.exp(-r * maturity)
+    second = er * norm_pdf(d2) / (strike * sigma * math.sqrt(maturity))
     return StrikeDerivatives(
         -er * norm_cdf(d2), second, er * norm_cdf(-d2), second
     )
 
 
 def ex21_min_straddle_strike(
-    S: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float, maturity: float, sigma: float, r: float, q: float = 0.0
 ) -> float:
-    return S * math.exp((r - q - 0.5 * sigma**2) * T)
+    return spot * math.exp((r - q - 0.5 * sigma**2) * maturity)
 
 
 def ex21_straddle(
-    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float,
+    strike: float,
+    maturity: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
-    return bs_call(S, K, T, sigma, r, q) + bs_put(S, K, T, sigma, r, q)
+    return bs_call(spot, strike, maturity, sigma, r, q) + bs_put(
+        spot, strike, maturity, sigma, r, q
+    )

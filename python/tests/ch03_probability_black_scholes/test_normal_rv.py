@@ -54,18 +54,18 @@ def test_lognormal_moments_match_integration():
 
 
 def test_price_model():
-    S0, T, sigma, mu, q = 50, 2, 0.25, 0.08, 0.01
-    ln_ST = log_price_distribution(S0, T, sigma, mu, q)
-    assert lognormal_mean(ln_ST.mean, ln_ST.stddev) == pytest.approx(
-        S0 * math.exp((mu - q) * T), rel=1e-13
+    spot0, maturity, sigma, mu, q = 50, 2, 0.25, 0.08, 0.01
+    ln_spot_t = log_price_distribution(spot0, maturity, sigma, mu, q)
+    assert lognormal_mean(ln_spot_t.mean, ln_spot_t.stddev) == pytest.approx(
+        spot0 * math.exp((mu - q) * maturity), rel=1e-13
     )
-    K, r = 55, 0.04
-    d2 = (math.log(S0 / K) + (r - q - 0.5 * sigma**2) * T) / (
-        sigma * math.sqrt(T)
+    strike, r = 55, 0.04
+    d2 = (math.log(spot0 / strike) + (r - q - 0.5 * sigma**2) * maturity) / (
+        sigma * math.sqrt(maturity)
     )
-    assert prob_price_above(K, S0, T, sigma, r, q) == pytest.approx(
-        norm_cdf(d2), abs=1e-14
-    )
+    assert prob_price_above(
+        strike, spot0, maturity, sigma, r, q
+    ) == pytest.approx(norm_cdf(d2), abs=1e-14)
 
 
 def test_cdf_poly_within_bound():

@@ -15,7 +15,7 @@ namespace {
 
 using p4mfe::bench::set_items;
 
-std::vector<double> grid(std::size_t n) {
+std::vector<double> Grid(std::size_t n) {
   std::vector<double> x(n);
   for (std::size_t i = 0; i < n; ++i)
     x[i] =
@@ -23,19 +23,19 @@ std::vector<double> grid(std::size_t n) {
   return x;
 }
 
-const std::vector<double>& points() {
-  static const auto x =
-      grid(p4mfe::bench::by_tier<std::size_t>(10'000, 1'000'000, 10'000'000));
-  return x;
+const std::vector<double>& GetPoints() {
+  static const auto kX =
+      Grid(p4mfe::bench::by_tier<std::size_t>(10'000, 1'000'000, 10'000'000));
+  return kX;
 }
-const std::vector<double>& few_points() {
-  static const auto x =
-      grid(p4mfe::bench::by_tier<std::size_t>(100, 10'000, 100'000));
-  return x;
+const std::vector<double>& FewPoints() {
+  static const auto kX =
+      Grid(p4mfe::bench::by_tier<std::size_t>(100, 10'000, 100'000));
+  return kX;
 }
 
 template <class F>
-void sweep(benchmark::State& state, const std::vector<double>& xs, F f,
+void Sweep(benchmark::State& state, const std::vector<double>& xs, F f,
            double max_error) {
   double worst = 0.0;
   for (const double x : xs)
@@ -52,20 +52,20 @@ void sweep(benchmark::State& state, const std::vector<double>& xs, F f,
   state.counters["max_abs_error"] = worst;
 }
 
-const bool registered = [] {
-  (void)points();
-  (void)few_points();
+const bool kRegistered = [] {
+  (void)GetPoints();
+  (void)FewPoints();
   benchmark::RegisterBenchmark(
       "W2/ch03/norm_cdf_poly", [](benchmark::State& s) {
-        sweep(
-            s, points(), [](double x) { return p4mfe::ch03::norm_cdf_poly(x); },
-            1e-6);
+        Sweep(
+            s, GetPoints(),
+            [](double x) { return p4mfe::ch03::NormCdfPoly(x); }, 1e-6);
       });
   benchmark::RegisterBenchmark(
       "W2/ch03/norm_cdf_simpson", [](benchmark::State& s) {
-        sweep(
-            s, few_points(),
-            [](double x) { return p4mfe::ch03::norm_cdf_simpson(x); }, 1e-10);
+        Sweep(
+            s, FewPoints(),
+            [](double x) { return p4mfe::ch03::NormCdfSimpson(x); }, 1e-10);
       });
   return true;
 }();

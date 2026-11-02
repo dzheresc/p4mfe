@@ -37,11 +37,10 @@ struct Ex04Market {
 inline constexpr Tolerances ex04_tolerances{1e-9, 1e-6, 200};
 
 [[nodiscard]] inline double ex04_f(double sigma, const Ex04Market& m = {}) {
-  return ch03::bs_call(m.S, m.K, m.T, sigma, m.r, m.q) - m.C;
+  return ch03::BsCall(m.S, m.K, m.T, sigma, m.r, m.q) - m.C;
 }
 [[nodiscard]] inline double ex04_vega(double sigma, const Ex04Market& m = {}) {
-  return ch03::bs_greeks(ch01::OptionType::kCall, m.S, m.K, m.T, sigma, m.r,
-                         m.q)
+  return ch03::BsGreeks(ch01::OptionType::kCall, m.S, m.K, m.T, sigma, m.r, m.q)
       .vega;
 }
 

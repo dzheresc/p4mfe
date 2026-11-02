@@ -19,7 +19,7 @@ int main() {
   for (double B : {70.0, 90.0, 110.0})
     for (double S : {B + 5, 120.0})
       std::printf("%6.0f  %6.0f  %10.5f  %10.5f  %10.5f\n", B, S,
-                  ch03::bs_call(S, K, T, sigma, r, q),
+                  ch03::BsCall(S, K, T, sigma, r, q),
                   down_and_out_call(S, K, B, T, sigma, r, q),
                   down_and_in_call(S, K, B, T, sigma, r, q));
 
@@ -27,7 +27,7 @@ int main() {
               "out");
   for (double B : {105.0, 120.0, 150.0})
     std::printf("%6.0f  %10.5f  %10.5f\n", B,
-                ch03::bs_put(100, K, T, sigma, r, q),
+                ch03::BsPut(100, K, T, sigma, r, q),
                 up_and_out_put(100, K, B, T, sigma, r, q));
 
   std::printf(

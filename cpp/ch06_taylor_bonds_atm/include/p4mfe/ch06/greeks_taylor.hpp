@@ -33,7 +33,7 @@ using ch03::Greeks;
 // Delta-Gamma: dV ~ Delta dS + 1/2 Gamma dS^2.
 [[nodiscard]] constexpr double option_change_delta_gamma(const Greeks& g,
                                                          double dS) noexcept {
-  return ch03::portfolio_change_approx(g.delta, g.gamma, dS);
+  return ch03::PortfolioChangeApprox(g.delta, g.gamma, dS);
 }
 
 // Full approximation: Delta, Gamma, Theta, Vega and Rho terms.
@@ -41,7 +41,7 @@ using ch03::Greeks;
                                                     double dt,
                                                     double dsigma = 0.0,
                                                     double dr = 0.0) noexcept {
-  return ch03::portfolio_change_approx(g.delta, g.gamma, dS, g.theta, dt) +
+  return ch03::PortfolioChangeApprox(g.delta, g.gamma, dS, g.theta, dt) +
          g.vega * dsigma + g.rho * dr;
 }
 

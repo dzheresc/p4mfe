@@ -99,7 +99,7 @@ namespace p4mfe::ch04::ex {
 [[nodiscard]] inline double ex15_inverse_call(double S0, double K, double T,
                                               double sigma, double r,
                                               double q = 0.0) {
-  const double d2 = ch03::bs_d1_d2(S0, K, T, sigma, r, q).d2;
+  const double d2 = ch03::BsD1D2(S0, K, T, sigma, r, q).d2;
   return std::exp(-r * T) / K * norm_cdf(d2) -
          ex15_inverse_claim(S0, T, sigma, r, q) *
              norm_cdf(d2 - sigma * std::sqrt(T));

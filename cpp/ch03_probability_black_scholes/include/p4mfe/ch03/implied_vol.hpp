@@ -27,10 +27,12 @@ struct ImpliedVolResult {
 };
 
 namespace detail {
-inline void check_price_in_bounds(OptionType type, double price, double S,
-                                  double K, double T, double r, double q) {
-  const auto b = type == OptionType::kCall ? ch01::CallBounds(S, K, T, r, q)
-                                           : ch01::PutBounds(S, K, T, r, q);
+inline void CheckPriceInBounds(OptionType type, double price, double spot,
+                               double strike, double maturity, double r,
+                               double q) {
+  const auto b = type == OptionType::kCall
+                     ? ch01::CallBounds(spot, strike, maturity, r, q)
+                     : ch01::PutBounds(spot, strike, maturity, r, q);
   if (!(price > b.lower && price < b.upper))
     throw std::domain_error(
         "implied volatility: price outside the no-arbitrage bounds");
@@ -39,28 +41,32 @@ inline void check_price_in_bounds(OptionType type, double price, double S,
 
 // Inflection point of sigma -> V_BS(sigma); floored so that d1 stays finite
 // when the option is at the money forward.
-[[nodiscard]] inline double implied_vol_initial_guess(double S, double K,
-                                                      double T, double r,
-                                                      double q = 0.0) {
-  return std::max(std::sqrt(2.0 * std::abs(std::log(S / K) + (r - q) * T) / T),
-                  1e-4);
+[[nodiscard]] inline double ImpliedVolInitialGuess(double spot, double strike,
+                                                   double maturity, double r,
+                                                   double q = 0.0) {
+  return std::max(
+      std::sqrt(2.0 * std::abs(std::log(spot / strike) + (r - q) * maturity) /
+                maturity),
+      1e-4);
 }
 
 // Stops when two consecutive iterates differ by less than tol (the book's
 // criterion), or when the price is matched to rounding error: for deep in-
 // or out-of-the-money options vega is tiny, sigma is only determined to about
 // eps * (S + K) / vega, and tol may be out of reach.
-[[nodiscard]] inline ImpliedVolResult implied_vol_newton(
-    OptionType type, double price, double S, double K, double T, double r,
-    double q = 0.0, double tol = 1e-10, std::size_t max_iter = 100) {
-  detail::check_price_in_bounds(type, price, S, K, T, r, q);
-  const double price_noise = 8.0 * std::numeric_limits<double>::epsilon() *
-                             (S * std::exp(-q * T) + K * std::exp(-r * T));
-  double sigma = implied_vol_initial_guess(S, K, T, r, q);
+[[nodiscard]] inline ImpliedVolResult ImpliedVolNewton(
+    OptionType type, double price, double spot, double strike, double maturity,
+    double r, double q = 0.0, double tol = 1e-10, std::size_t max_iter = 100) {
+  detail::CheckPriceInBounds(type, price, spot, strike, maturity, r, q);
+  const double price_noise =
+      8.0 * std::numeric_limits<double>::epsilon() *
+      (spot * std::exp(-q * maturity) + strike * std::exp(-r * maturity));
+  double sigma = ImpliedVolInitialGuess(spot, strike, maturity, r, q);
   for (std::size_t k = 1; k <= max_iter; ++k) {
-    const double f = bs_price(type, S, K, T, sigma, r, q) - price;
+    const double f = BsPrice(type, spot, strike, maturity, sigma, r, q) - price;
     if (std::abs(f) <= price_noise) return {sigma, k - 1};
-    const double vega = bs_greeks(type, S, K, T, sigma, r, q).vega;
+    const double vega =
+        BsGreeks(type, spot, strike, maturity, sigma, r, q).vega;
     const double next = sigma - f / vega;
     if (!(next > 0.0) || !std::isfinite(next))
       throw std::runtime_error("implied_vol_newton: iterate left (0, inf)");
@@ -71,12 +77,13 @@ inline void check_price_in_bounds(OptionType type, double price, double S,
 }
 
 // Bisection on [lo, hi]; widens hi until it brackets the root.
-[[nodiscard]] inline ImpliedVolResult implied_vol_bisection(
-    OptionType type, double price, double S, double K, double T, double r,
-    double q = 0.0, double tol = 1e-10, double lo = 1e-6, double hi = 1.0) {
-  detail::check_price_in_bounds(type, price, S, K, T, r, q);
+[[nodiscard]] inline ImpliedVolResult ImpliedVolBisection(
+    OptionType type, double price, double spot, double strike, double maturity,
+    double r, double q = 0.0, double tol = 1e-10, double lo = 1e-6,
+    double hi = 1.0) {
+  detail::CheckPriceInBounds(type, price, spot, strike, maturity, r, q);
   const auto f = [&](double s) {
-    return bs_price(type, S, K, T, s, r, q) - price;
+    return BsPrice(type, spot, strike, maturity, s, r, q) - price;
   };
   while (f(hi) < 0.0) {
     hi *= 2.0;

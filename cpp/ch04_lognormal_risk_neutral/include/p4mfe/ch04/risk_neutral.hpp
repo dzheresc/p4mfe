@@ -44,7 +44,7 @@ template <std::invocable<double> Payoff>
                                               double tol = 1e-9) {
   const ch03::ContinuousDistribution Z{[](double z) { return norm_pdf(z); },
                                        -ch02::kInfinity, ch02::kInfinity};
-  return ch03::expected_value(
+  return ch03::ExpectedValue(
       Z, [&](double z) { return g(price_from_normal(z, S0, T, sigma, r, q)); },
       tol);
 }
@@ -64,7 +64,7 @@ template <std::invocable<double> Payoff>
 [[nodiscard]] inline double rn_expected_payoff(OptionType type, double S0,
                                                double K, double T, double sigma,
                                                double r, double q = 0.0) {
-  const auto [d1, d2] = ch03::bs_d1_d2(S0, K, T, sigma, r, q);
+  const auto [d1, d2] = ch03::BsD1D2(S0, K, T, sigma, r, q);
   const double F = S0 * std::exp((r - q) * T);  // forward price = E_RN[S_T]
   return type == OptionType::kCall ? F * norm_cdf(d1) - K * norm_cdf(d2)
                                    : K * norm_cdf(-d2) - F * norm_cdf(-d1);

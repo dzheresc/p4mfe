@@ -41,7 +41,7 @@ struct Ex09Market {
   return prob_itm(OptionType::kPut, m.S, m.K, m.T, m.sigma, m.r);
 }
 [[nodiscard]] inline double ex09_n_minus_d2(const Ex09Market& m = {}) {
-  return norm_cdf(-ch03::bs_d1_d2(m.S, m.K, m.T, m.sigma, m.r).d2);
+  return norm_cdf(-ch03::BsD1D2(m.S, m.K, m.T, m.sigma, m.r).d2);
 }
 
 // ----------------------------------------------------------- Exercise 10 ---

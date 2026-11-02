@@ -22,7 +22,7 @@ int main() {
   for (double S : {30.0, 36.0, 40.0, 44.0, 50.0}) {
     const auto h = [&](double s) { return std::max(s - K, 0.0); };
     std::printf("%6.1f  %12.7f  %12.7f  %12.7f  %12.7f\n", S,
-                ch03::bs_call(S, K, T, sigma, r, q),
+                ch03::BsCall(S, K, T, sigma, r, q),
                 bs_price_via_heat(h, S, K, T, sigma, r, q),
                 european_heat_fd(OptionType::kCall, S, K, T, sigma, r, q, 200),
                 european_heat_fd(OptionType::kCall, S, K, T, sigma, r, q, 800));
@@ -41,5 +41,5 @@ int main() {
         european_heat_fd(OptionType::kPut, 40, K, T, sigma, r, q, 200, nt));
   }
   std::printf("%8s  %8s  %14.6g\n", "exact", "",
-              ch03::bs_put(40, K, T, sigma, r, q));
+              ch03::BsPut(40, K, T, sigma, r, q));
 }

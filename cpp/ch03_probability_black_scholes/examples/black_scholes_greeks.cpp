@@ -9,29 +9,32 @@
 int main() {
   using namespace p4mfe::ch03;
   using p4mfe::ch01::Derivative;
-  const double S = 40, K = 40, T = 0.5, sigma = 0.3, r = 0.05, q = 0.02;
-  std::printf("S = %g, K = %g, T = %g, sigma = %g, r = %g, q = %g\n\n", S, K, T,
-              sigma, r, q);
+  const double spot = 40, strike = 40, maturity = 0.5, sigma = 0.3, r = 0.05,
+               q = 0.02;
+  std::printf("S = %g, K = %g, T = %g, sigma = %g, r = %g, q = %g\n\n", spot,
+              strike, maturity, sigma, r, q);
 
   std::printf("%-5s %10s %10s %10s %10s %10s %10s %12s\n", "", "price", "delta",
               "gamma", "vega", "theta", "rho", "PDE resid");
   for (OptionType type : {OptionType::kCall, OptionType::kPut}) {
-    const auto g = bs_greeks(type, S, K, T, sigma, r, q);
+    const auto g = BsGreeks(type, spot, strike, maturity, sigma, r, q);
     std::printf("%-5s %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %12.2e\n",
                 type == OptionType::kCall ? "call" : "put",
-                bs_price(type, S, K, T, sigma, r, q), g.delta, g.gamma, g.vega,
-                g.theta, g.rho, bs_pde_residual(type, S, K, T, sigma, r, q));
+                BsPrice(type, spot, strike, maturity, sigma, r, q), g.delta,
+                g.gamma, g.vega, g.theta, g.rho,
+                BsPdeResidual(type, spot, strike, maturity, sigma, r, q));
   }
 
-  const auto g = bs_greeks(OptionType::kCall, S, K, T, sigma, r, q);
-  const double fd_delta =
-      Derivative([&](double s) { return bs_call(s, K, T, sigma, r, q); }, S);
-  const double fd_vega =
-      Derivative([&](double v) { return bs_call(S, K, T, v, r, q); }, sigma);
+  const auto g =
+      BsGreeks(OptionType::kCall, spot, strike, maturity, sigma, r, q);
+  const double fd_delta = Derivative(
+      [&](double s) { return BsCall(s, strike, maturity, sigma, r, q); }, spot);
+  const double fd_vega = Derivative(
+      [&](double v) { return BsCall(spot, strike, maturity, v, r, q); }, sigma);
   std::printf("\ncall delta: closed form %.10f, finite difference %.10f\n",
               g.delta, fd_delta);
   std::printf("call vega:  closed form %.10f, finite difference %.10f\n",
               g.vega, fd_vega);
   std::printf("S e^(-qT) phi(d1) - K e^(-rT) phi(d2) = %.2e\n",
-              bs_phi_identity_gap(S, K, T, sigma, r, q));
+              BsPhiIdentityGap(spot, strike, maturity, sigma, r, q));
 }

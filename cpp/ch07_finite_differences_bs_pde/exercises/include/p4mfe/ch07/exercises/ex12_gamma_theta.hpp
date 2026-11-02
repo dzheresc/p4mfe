@@ -45,12 +45,12 @@ struct Ex12Market {
 
 [[nodiscard]] inline double ex12_lhs(
     const Ex12Market& m, ch03::OptionType type = ch03::OptionType::kCall) {
-  const auto g = ch03::bs_greeks(type, m.S, m.K, m.tau, m.sigma, m.r, 0.0);
+  const auto g = ch03::BsGreeks(type, m.S, m.K, m.tau, m.sigma, m.r, 0.0);
   return 1.0 + 0.5 * m.sigma * m.sigma * m.S * m.S * g.gamma / g.theta;
 }
 // The right-hand side of (ii) (for r != 0).
 [[nodiscard]] inline double ex12_rhs(const Ex12Market& m) {
-  const auto [d1, d2] = ch03::bs_d1_d2(m.S, m.K, m.tau, m.sigma, m.r, 0.0);
+  const auto [d1, d2] = ch03::BsD1D2(m.S, m.K, m.tau, m.sigma, m.r, 0.0);
   return 1.0 / (1.0 + m.sigma / (2.0 * m.r * std::sqrt(m.tau)) * norm_pdf(d2) /
                           norm_cdf(d2));
 }

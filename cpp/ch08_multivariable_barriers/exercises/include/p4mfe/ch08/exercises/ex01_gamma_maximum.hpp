@@ -44,8 +44,7 @@ struct Ex01Market {
 };
 
 [[nodiscard]] inline double ex01_gamma(double S, const Ex01Market& m = {}) {
-  return ch03::bs_greeks(ch03::OptionType::kCall, S, m.K, m.T, m.sigma, m.r,
-                         0.0)
+  return ch03::BsGreeks(ch03::OptionType::kCall, S, m.K, m.T, m.sigma, m.r, 0.0)
       .gamma;
 }
 
@@ -64,7 +63,7 @@ struct Ex01Market {
 [[nodiscard]] inline double ex01_log_derivative(double S,
                                                 const Ex01Market& m = {}) {
   const double st = m.sigma * std::sqrt(m.T);
-  const double d1 = ch03::bs_d1_d2(S, m.K, m.T, m.sigma, m.r, 0.0).d1;
+  const double d1 = ch03::BsD1D2(S, m.K, m.T, m.sigma, m.r, 0.0).d1;
   return -(st + d1) / (S * st);
 }
 

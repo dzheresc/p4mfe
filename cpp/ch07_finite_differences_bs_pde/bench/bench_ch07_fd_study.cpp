@@ -59,12 +59,12 @@ void BM_pde_solutions(benchmark::State& state) {
   std::vector<double> w;
   for (const auto& o : chain) {
     gs.push_back(
-        ch03::bs_greeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q));
+        ch03::BsGreeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q));
     w.push_back(o.K > o.S ? 1.0 : -1.0);
   }
   const auto& o0 = chain.front();
   const auto call = [&](double S, double t) {
-    return ch03::bs_price(o0.type, S, o0.K, o0.T - t, o0.sigma, spec.r, spec.q);
+    return ch03::BsPrice(o0.type, S, o0.K, o0.T - t, o0.sigma, spec.r, spec.q);
   };
   if (!check(state,
              std::abs(ch07::bs_pde_residual_fd(call, o0.S, 0.0, o0.sigma,

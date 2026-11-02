@@ -40,12 +40,12 @@ struct Ex12Result {
 }
 [[nodiscard]] inline Ex12Result ex12_zero_rates(const Ex12Market& m = {}) {
   const double a = atm_price_approx(m.S, m.T, m.sigma);
-  const double bs = ch03::bs_put(m.S, m.S, m.T, m.sigma, 0.0, 0.0);
+  const double bs = ch03::BsPut(m.S, m.S, m.T, m.sigma, 0.0, 0.0);
   return {a, bs, ex12_relative_error(bs, a)};
 }
 [[nodiscard]] inline Ex12Result ex12_with_rates(const Ex12Market& m = {}) {
   const double a = atm_put_approx(m.S, m.T, m.sigma, m.r, m.q);
-  const double bs = ch03::bs_put(m.S, m.S, m.T, m.sigma, m.r, m.q);
+  const double bs = ch03::BsPut(m.S, m.S, m.T, m.sigma, m.r, m.q);
   return {a, bs, ex12_relative_error(bs, a)};
 }
 

@@ -21,10 +21,10 @@
 
 namespace p4mfe::ch04 {
 
-using ch03::lognormal_cdf;
-using ch03::lognormal_mean;
-using ch03::lognormal_pdf;
-using ch03::lognormal_variance;
+using ch03::LognormalCdf;
+using ch03::LognormalMean;
+using ch03::LognormalPdf;
+using ch03::LognormalVariance;
 using ch03::NormalParams;
 
 // E[Y^n] = E[e^(n X)] = e^(n mu + n^2 sigma^2 / 2), from the moment generating

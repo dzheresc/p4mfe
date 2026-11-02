@@ -24,34 +24,35 @@ struct D1D2 {
   double d2;
 };
 
-[[nodiscard]] inline D1D2 bs_d1_d2(double S, double K, double T, double sigma,
-                                   double r, double q = 0.0) {
-  if (!(S > 0.0 && K > 0.0 && T > 0.0 && sigma > 0.0))
+[[nodiscard]] inline D1D2 BsD1D2(double spot, double strike, double maturity,
+                                 double sigma, double r, double q = 0.0) {
+  if (!(spot > 0.0 && strike > 0.0 && maturity > 0.0 && sigma > 0.0))
     throw std::invalid_argument("Black-Scholes: need S, K, T, sigma > 0");
-  const double sd = sigma * std::sqrt(T);
-  const double d1 = (std::log(S / K) + (r - q + 0.5 * sigma * sigma) * T) / sd;
+  const double sd = sigma * std::sqrt(maturity);
+  const double d1 =
+      (std::log(spot / strike) + (r - q + 0.5 * sigma * sigma) * maturity) / sd;
   return {d1, d1 - sd};
 }
 
 //   C = S e^(-qT) N(d1) - K e^(-rT) N(d2)
 //   P = K e^(-rT) N(-d2) - S e^(-qT) N(-d1)
-[[nodiscard]] inline double bs_price(OptionType type, double S, double K,
-                                     double T, double sigma, double r,
-                                     double q = 0.0) {
-  const auto [d1, d2] = bs_d1_d2(S, K, T, sigma, r, q);
-  const double fwd_S = S * std::exp(-q * T);
-  const double disc_K = K * std::exp(-r * T);
+[[nodiscard]] inline double BsPrice(OptionType type, double spot, double strike,
+                                    double maturity, double sigma, double r,
+                                    double q = 0.0) {
+  const auto [d1, d2] = BsD1D2(spot, strike, maturity, sigma, r, q);
+  const double fwd_spot = spot * std::exp(-q * maturity);
+  const double disc_strike = strike * std::exp(-r * maturity);
   return type == OptionType::kCall
-             ? fwd_S * norm_cdf(d1) - disc_K * norm_cdf(d2)
-             : disc_K * norm_cdf(-d2) - fwd_S * norm_cdf(-d1);
+             ? fwd_spot * norm_cdf(d1) - disc_strike * norm_cdf(d2)
+             : disc_strike * norm_cdf(-d2) - fwd_spot * norm_cdf(-d1);
 }
-[[nodiscard]] inline double bs_call(double S, double K, double T, double sigma,
-                                    double r, double q = 0.0) {
-  return bs_price(OptionType::kCall, S, K, T, sigma, r, q);
+[[nodiscard]] inline double BsCall(double spot, double strike, double maturity,
+                                   double sigma, double r, double q = 0.0) {
+  return BsPrice(OptionType::kCall, spot, strike, maturity, sigma, r, q);
 }
-[[nodiscard]] inline double bs_put(double S, double K, double T, double sigma,
-                                   double r, double q = 0.0) {
-  return bs_price(OptionType::kPut, S, K, T, sigma, r, q);
+[[nodiscard]] inline double BsPut(double spot, double strike, double maturity,
+                                  double sigma, double r, double q = 0.0) {
+  return BsPrice(OptionType::kPut, spot, strike, maturity, sigma, r, q);
 }
 
 // ---------------------------------------------------------------- 3.6 ------
@@ -70,27 +71,29 @@ struct Greeks {
 //   - r K e^(-rT) N(d2) Theta_P = -S sigma e^(-qT) phi(d1) / (2 sqrt(T)) - q S
 //   e^(-qT) N(-d1) + r K e^(-rT) N(-d2) Rho_C   = K T e^(-rT) N(d2), Rho_P = -K
 //   T e^(-rT) N(-d2)
-[[nodiscard]] inline Greeks bs_greeks(OptionType type, double S, double K,
-                                      double T, double sigma, double r,
-                                      double q = 0.0) {
-  const auto [d1, d2] = bs_d1_d2(S, K, T, sigma, r, q);
-  const double eq = std::exp(-q * T);
-  const double er = std::exp(-r * T);
-  const double sqrtT = std::sqrt(T);
+[[nodiscard]] inline Greeks BsGreeks(OptionType type, double spot,
+                                     double strike, double maturity,
+                                     double sigma, double r, double q = 0.0) {
+  const auto [d1, d2] = BsD1D2(spot, strike, maturity, sigma, r, q);
+  const double eq = std::exp(-q * maturity);
+  const double er = std::exp(-r * maturity);
+  const double sqrt_maturity = std::sqrt(maturity);
   const double pdf1 = norm_pdf(d1);
 
   Greeks g{};
-  g.gamma = eq * pdf1 / (S * sigma * sqrtT);
-  g.vega = S * eq * pdf1 * sqrtT;
-  const double decay = -S * sigma * eq * pdf1 / (2.0 * sqrtT);
+  g.gamma = eq * pdf1 / (spot * sigma * sqrt_maturity);
+  g.vega = spot * eq * pdf1 * sqrt_maturity;
+  const double decay = -spot * sigma * eq * pdf1 / (2.0 * sqrt_maturity);
   if (type == OptionType::kCall) {
     g.delta = eq * norm_cdf(d1);
-    g.theta = decay + q * S * eq * norm_cdf(d1) - r * K * er * norm_cdf(d2);
-    g.rho = K * T * er * norm_cdf(d2);
+    g.theta =
+        decay + q * spot * eq * norm_cdf(d1) - r * strike * er * norm_cdf(d2);
+    g.rho = strike * maturity * er * norm_cdf(d2);
   } else {
     g.delta = -eq * norm_cdf(-d1);
-    g.theta = decay - q * S * eq * norm_cdf(-d1) + r * K * er * norm_cdf(-d2);
-    g.rho = -K * T * er * norm_cdf(-d2);
+    g.theta =
+        decay - q * spot * eq * norm_cdf(-d1) + r * strike * er * norm_cdf(-d2);
+    g.rho = -strike * maturity * er * norm_cdf(-d2);
   }
   return g;
 }
@@ -102,24 +105,25 @@ struct Greeks {
 // This is why, e.g., dC/dS = e^(-qT) N(d1): the terms from d(d1)/dS and
 // d(d2)/dS cancel. Returns the difference of the two sides (zero up to
 // rounding).
-[[nodiscard]] inline double bs_phi_identity_gap(double S, double K, double T,
-                                                double sigma, double r,
-                                                double q = 0.0) {
-  const auto [d1, d2] = bs_d1_d2(S, K, T, sigma, r, q);
-  return S * std::exp(-q * T) * norm_pdf(d1) -
-         K * std::exp(-r * T) * norm_pdf(d2);
+[[nodiscard]] inline double BsPhiIdentityGap(double spot, double strike,
+                                             double maturity, double sigma,
+                                             double r, double q = 0.0) {
+  const auto [d1, d2] = BsD1D2(spot, strike, maturity, sigma, r, q);
+  return spot * std::exp(-q * maturity) * norm_pdf(d1) -
+         strike * std::exp(-r * maturity) * norm_pdf(d2);
 }
 
 // The Greeks satisfy the Black-Scholes PDE
 //   Theta + 1/2 sigma^2 S^2 Gamma + (r - q) S Delta - r V = 0.
 // Returns the left-hand side (zero up to rounding).
-[[nodiscard]] inline double bs_pde_residual(OptionType type, double S, double K,
-                                            double T, double sigma, double r,
-                                            double q = 0.0) {
-  const auto g = bs_greeks(type, S, K, T, sigma, r, q);
-  const double V = bs_price(type, S, K, T, sigma, r, q);
-  return g.theta + 0.5 * sigma * sigma * S * S * g.gamma +
-         (r - q) * S * g.delta - r * V;
+[[nodiscard]] inline double BsPdeResidual(OptionType type, double spot,
+                                          double strike, double maturity,
+                                          double sigma, double r,
+                                          double q = 0.0) {
+  const auto g = BsGreeks(type, spot, strike, maturity, sigma, r, q);
+  const double value = BsPrice(type, spot, strike, maturity, sigma, r, q);
+  return g.theta + 0.5 * sigma * sigma * spot * spot * g.gamma +
+         (r - q) * spot * g.delta - r * value;
 }
 
 }  // namespace p4mfe::ch03

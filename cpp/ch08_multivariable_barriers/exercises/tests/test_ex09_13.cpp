@@ -101,8 +101,8 @@ TEST(Ch08Ex12, GeometricAsianPdes) {
   // At t = 0, I = 0 the price is the classic geometric Asian call:
   // Black-Scholes with volatility sigma/sqrt(3) and yield (r + sigma^2/6)/2.
   const double S = 50.0;
-  const double bs = ch03::bs_call(S, m.K, m.T, m.sigma / std::sqrt(3.0), m.r,
-                                  0.5 * (m.r + m.sigma * m.sigma / 6.0));
+  const double bs = ch03::BsCall(S, m.K, m.T, m.sigma / std::sqrt(3.0), m.r,
+                                 0.5 * (m.r + m.sigma * m.sigma / 6.0));
   EXPECT_NEAR(V(S, 0.0, 0.0), bs, 1e-12);
 }
 

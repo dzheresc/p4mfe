@@ -26,21 +26,21 @@ inline constexpr Tolerances implied_vol_tolerances{1e-9, 1e-9, 100};
 [[nodiscard]] inline RootResult implied_vol_newton(
     OptionType type, double price, double S, double K, double T, double r,
     double q = 0.0, const Tolerances& tol = implied_vol_tolerances) {
-  ch03::detail::check_price_in_bounds(type, price, S, K, T, r, q);
+  ch03::detail::CheckPriceInBounds(type, price, S, K, T, r, q);
   return newton(
-      [&](double s) { return ch03::bs_price(type, S, K, T, s, r, q) - price; },
-      [&](double s) { return ch03::bs_greeks(type, S, K, T, s, r, q).vega; },
-      ch03::implied_vol_initial_guess(S, K, T, r, q), tol);
+      [&](double s) { return ch03::BsPrice(type, S, K, T, s, r, q) - price; },
+      [&](double s) { return ch03::BsGreeks(type, S, K, T, s, r, q).vega; },
+      ch03::ImpliedVolInitialGuess(S, K, T, r, q), tol);
 }
 
 // Secant method started at sigma_0 and sigma_0 + 0.1; no vega needed.
 [[nodiscard]] inline RootResult implied_vol_secant(
     OptionType type, double price, double S, double K, double T, double r,
     double q = 0.0, const Tolerances& tol = implied_vol_tolerances) {
-  ch03::detail::check_price_in_bounds(type, price, S, K, T, r, q);
-  const double s0 = ch03::implied_vol_initial_guess(S, K, T, r, q);
+  ch03::detail::CheckPriceInBounds(type, price, S, K, T, r, q);
+  const double s0 = ch03::ImpliedVolInitialGuess(S, K, T, r, q);
   return secant(
-      [&](double s) { return ch03::bs_price(type, S, K, T, s, r, q) - price; },
+      [&](double s) { return ch03::BsPrice(type, S, K, T, s, r, q) - price; },
       s0 + 0.1, s0, tol);
 }
 
@@ -49,9 +49,9 @@ inline constexpr Tolerances implied_vol_tolerances{1e-9, 1e-9, 100};
     OptionType type, double price, double S, double K, double T, double r,
     double q = 0.0, const Tolerances& tol = implied_vol_tolerances,
     double lo = 1e-6, double hi = 1.0) {
-  ch03::detail::check_price_in_bounds(type, price, S, K, T, r, q);
+  ch03::detail::CheckPriceInBounds(type, price, S, K, T, r, q);
   const auto f = [&](double s) {
-    return ch03::bs_price(type, S, K, T, s, r, q) - price;
+    return ch03::BsPrice(type, S, K, T, s, r, q) - price;
   };
   while (f(hi) < 0.0) {
     hi *= 2.0;
