@@ -45,7 +45,9 @@ def _grid(x0: float, x_end: float, n: int) -> OdeSolution:
 
 
 # 7.2 -----------------------------------------------------------------------
-def euler_forward(f: OdeFn, x0: float, y0: float, x_end: float, n: int) -> OdeSolution:
+def euler_forward(
+    f: OdeFn, x0: float, y0: float, x_end: float, n: int
+) -> OdeSolution:
     s = _grid(x0, x_end, n)
     h = (x_end - x0) / n
     s.y[0] = y0
@@ -54,7 +56,9 @@ def euler_forward(f: OdeFn, x0: float, y0: float, x_end: float, n: int) -> OdeSo
     return s
 
 
-def euler_backward(f: OdeFn, x0: float, y0: float, x_end: float, n: int) -> OdeSolution:
+def euler_backward(
+    f: OdeFn, x0: float, y0: float, x_end: float, n: int
+) -> OdeSolution:
     """Solves y - y_k - h f(x_{k+1}, y) = 0 by Newton from the explicit guess."""
     s = _grid(x0, x_end, n)
     h = (x_end - x0) / n
@@ -67,11 +71,18 @@ def euler_backward(f: OdeFn, x0: float, y0: float, x_end: float, n: int) -> OdeS
 
         scale = max(1.0, abs(yk))
         tol = Tolerances(1e-12 * scale, 1e-12 * scale, 100)
-        s.y[k + 1] = newton(g, lambda y, g=g: derivative(g, y), yk + h * f(float(s.x[k]), yk), tol).x
+        s.y[k + 1] = newton(
+            g,
+            lambda y, g=g: derivative(g, y),
+            yk + h * f(float(s.x[k]), yk),
+            tol,
+        ).x
     return s
 
 
-def leapfrog(f: OdeFn, x0: float, y0: float, x_end: float, n: int) -> OdeSolution:
+def leapfrog(
+    f: OdeFn, x0: float, y0: float, x_end: float, n: int
+) -> OdeSolution:
     s = _grid(x0, x_end, n)
     h = (x_end - x0) / n
     s.y[0] = y0
@@ -81,7 +92,9 @@ def leapfrog(f: OdeFn, x0: float, y0: float, x_end: float, n: int) -> OdeSolutio
     return s
 
 
-def solve_ivp(f: OdeFn, x0: float, y0: float, x_end: float, n: int, scheme: OdeScheme) -> OdeSolution:
+def solve_ivp(
+    f: OdeFn, x0: float, y0: float, x_end: float, n: int, scheme: OdeScheme
+) -> OdeSolution:
     if scheme is OdeScheme.FORWARD:
         return euler_forward(f, x0, y0, x_end, n)
     if scheme is OdeScheme.BACKWARD:
@@ -111,8 +124,16 @@ def solve_tridiagonal(lower, diag, upper, rhs) -> np.ndarray:
     return x
 
 
-def solve_bvp(p: Callable[[float], float], q: Callable[[float], float], r: Callable[[float], float],
-              a: float, b: float, ya: float, yb: float, n: int) -> OdeSolution:
+def solve_bvp(
+    p: Callable[[float], float],
+    q: Callable[[float], float],
+    r: Callable[[float], float],
+    a: float,
+    b: float,
+    ya: float,
+    yb: float,
+    n: int,
+) -> OdeSolution:
     """y'' + p y' + q y = r on [a, b], y(a) = ya, y(b) = yb, n intervals."""
     if n < 2:
         raise ValueError("need n >= 2 intervals")

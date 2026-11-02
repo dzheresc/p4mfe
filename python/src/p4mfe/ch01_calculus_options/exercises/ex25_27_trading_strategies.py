@@ -29,13 +29,19 @@ def ex25_call_return(ST):
     return np.maximum(ST - EX25_SPOT, 0.0) / EX25_CALL_PRICE - 1.0
 
 
-def replicate_piecewise_linear(v0: float, slopes: Sequence[float], kinks: Sequence[float]) -> Portfolio:
+def replicate_piecewise_linear(
+    v0: float, slopes: Sequence[float], kinks: Sequence[float]
+) -> Portfolio:
     """Cash v0 = V(0), shares = first slope, and (slope jump) calls at each kink."""
     if len(slopes) != len(kinks) + 1:
         raise ValueError("need one more slope than kinks")
     if any(b < a for a, b in zip(kinks, kinks[1:])):
         raise ValueError("kinks must be increasing")
-    legs = [call(k, s1 - s0) for k, s0, s1 in zip(kinks, slopes, slopes[1:]) if s1 != s0]
+    legs = [
+        call(k, s1 - s0)
+        for k, s0, s1 in zip(kinks, slopes, slopes[1:])
+        if s1 != s0
+    ]
     return Portfolio(cash=v0, shares=slopes[0], options=legs)
 
 
@@ -61,4 +67,11 @@ def ex27_range_digital(c: float, K1: float, K2: float, eps: float) -> Portfolio:
     if not (eps > 0 and 2 * eps <= K2 - K1):
         raise ValueError("need 0 < 2 eps <= K2 - K1")
     n = c / eps
-    return Portfolio(options=[call(K1, n), call(K1 + eps, -n), call(K2 - eps, -n), call(K2, n)])
+    return Portfolio(
+        options=[
+            call(K1, n),
+            call(K1 + eps, -n),
+            call(K2 - eps, -n),
+            call(K2, n),
+        ]
+    )

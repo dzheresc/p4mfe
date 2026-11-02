@@ -7,9 +7,9 @@
 namespace p4mfe::ch06::ex {
 
 // ------------------------------------------------------------ Exercise 17 ---
-// A bond portfolio worth $50mil has DV01 = $10,000 and dollar convexity $400mil.
-// (i) The yield curve moves up by 50bp. What is the new portfolio value?
-// (ii) Bonds available for trading:
+// A bond portfolio worth $50mil has DV01 = $10,000 and dollar convexity
+// $400mil. (i) The yield curve moves up by 50bp. What is the new portfolio
+// value? (ii) Bonds available for trading:
 //            Principal  Value  Duration  Convexity
 //   Bond 1     1000      1100     2.5        12
 //   Bond 2      100       106     3           9
@@ -36,28 +36,30 @@ namespace p4mfe::ch06::ex {
 // -$12.96mil, that makes the total value zero; cash has no duration or
 // convexity, so it does not change the hedge.
 struct Ex17Data {
-    double value = 50e6, dv01 = 1e4, dollar_convexity = 400e6;
-    double B1 = 1100.0, D1 = 2.5, C1 = 12.0;
-    double B2 = 106.0, D2 = 3.0, C2 = 9.0;
+  double value = 50e6, dv01 = 1e4, dollar_convexity = 400e6;
+  double B1 = 1100.0, D1 = 2.5, C1 = 12.0;
+  double B2 = 106.0, D2 = 3.0, C2 = 9.0;
 };
 
-[[nodiscard]] constexpr DollarRisk ex17_portfolio(const Ex17Data& x = {}) noexcept {
-    return {x.value, x.dv01 * 10000.0, x.dollar_convexity};
+[[nodiscard]] constexpr DollarRisk ex17_portfolio(
+    const Ex17Data& x = {}) noexcept {
+  return {x.value, x.dv01 * 10000.0, x.dollar_convexity};
 }
 [[nodiscard]] constexpr DollarRisk ex17_bond1(const Ex17Data& x = {}) noexcept {
-    return {x.B1, x.B1 * x.D1, x.B1 * x.C1};
+  return {x.B1, x.B1 * x.D1, x.B1 * x.C1};
 }
 [[nodiscard]] constexpr DollarRisk ex17_bond2(const Ex17Data& x = {}) noexcept {
-    return {x.B2, x.B2 * x.D2, x.B2 * x.C2};
+  return {x.B2, x.B2 * x.D2, x.B2 * x.C2};
 }
 // (i)
-[[nodiscard]] constexpr double ex17_new_value(double dy = 0.005, const Ex17Data& x = {}) noexcept {
-    const auto p = ex17_portfolio(x);
-    return p.value + value_change_approx_convexity(p, dy);
+[[nodiscard]] constexpr double ex17_new_value(double dy = 0.005,
+                                              const Ex17Data& x = {}) noexcept {
+  const auto p = ex17_portfolio(x);
+  return p.value + value_change_approx_convexity(p, dy);
 }
 // (ii)
 [[nodiscard]] inline Immunization ex17_immunize(const Ex17Data& x = {}) {
-    return immunize(ex17_portfolio(x), ex17_bond1(x), ex17_bond2(x));
+  return immunize(ex17_portfolio(x), ex17_bond1(x), ex17_bond2(x));
 }
 
 }  // namespace p4mfe::ch06::ex

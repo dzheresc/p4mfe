@@ -2,11 +2,10 @@
 // Exercise 8 (section 7.6): the scaled butterfly payoff is a nascent Dirac
 // delta at K.
 
-#include <p4mfe/ch02/integration.hpp>
-#include <p4mfe/ch07/exercises/ex06_butterfly_spread.hpp>
-
 #include <concepts>
 #include <cstddef>
+#include <p4mfe/ch02/integration.hpp>
+#include <p4mfe/ch07/exercises/ex06_butterfly_spread.hpp>
 
 namespace p4mfe::ch07::ex {
 
@@ -36,14 +35,16 @@ namespace p4mfe::ch07::ex {
 // int f u = 0 by symmetry and int f u^2 = 2/x^2 int_0^x (x - u) u^2 du = x^2/6,
 // so int f g = g(K) + g''(K) x^2/12 + O(x^4).
 [[nodiscard]] inline double ex08_f(double S, double K, double x) {
-    return ex06_butterfly_payoff(S, K, x) / (x * x);
+  return ex06_butterfly_payoff(S, K, x) / (x * x);
 }
 // int f(S) g(S) dS by Simpson's rule (chapter 2) on [K - x, K] and [K, K + x],
 // where f is smooth; f = 0 elsewhere.
 template <std::invocable<double> G>
-[[nodiscard]] double ex08_integral(G&& g, double K, double x, std::size_t n = 64) {
-    const auto fg = [&](double S) { return ex08_f(S, K, x) * g(S); };
-    return ch02::simpson_rule(fg, K - x, K, n) + ch02::simpson_rule(fg, K, K + x, n);
+[[nodiscard]] double ex08_integral(G&& g, double K, double x,
+                                   std::size_t n = 64) {
+  const auto fg = [&](double S) { return ex08_f(S, K, x) * g(S); };
+  return ch02::simpson_rule(fg, K - x, K, n) +
+         ch02::simpson_rule(fg, K, K + x, n);
 }
 
 }  // namespace p4mfe::ch07::ex

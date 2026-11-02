@@ -5,18 +5,18 @@
 // time to maturity tau = T - t, so by the chain rule
 //   Theta = dV/dt = dV/dtau * dtau/dt = -dV/dtau.
 // Under risk-neutral valuation (chapter 4), with payoff h,
-//   V(tau) = e^(-r tau) integral h(S e^((r - q - sigma^2/2) tau + sigma sqrt(tau) z)) phi(z) dz,
+//   V(tau) = e^(-r tau) integral h(S e^((r - q - sigma^2/2) tau + sigma
+//   sqrt(tau) z)) phi(z) dz,
 // and dV/dtau is obtained by differentiating under the integral sign
 // (chapter 2's improper_integral_derivative). For calls and puts this gives
 // back chapter 3's closed-form Theta.
 
+#include <cmath>
+#include <concepts>
 #include <p4mfe/ch01/calculus.hpp>
 #include <p4mfe/ch02/integration.hpp>
 #include <p4mfe/ch04/asset_model.hpp>
 #include <p4mfe/normal.hpp>
-
-#include <cmath>
-#include <concepts>
 
 namespace p4mfe::ch08 {
 
@@ -24,19 +24,24 @@ namespace p4mfe::ch08 {
 // Theta = -dV/dtau for a value given as a function of tau.
 template <std::invocable<double> V>
 [[nodiscard]] double theta_from_maturity(V&& v_of_tau, double tau) {
-    return -ch01::derivative(v_of_tau, tau);
+  return -ch01::derivative(v_of_tau, tau);
 }
 
 // Theta of the European derivative with payoff h, by differentiating the
 // risk-neutral integral under the integral sign in tau.
 template <std::invocable<double> Payoff>
-[[nodiscard]] double theta_by_integral(Payoff&& h, double S, double T, double sigma, double r, double q = 0.0,
+[[nodiscard]] double theta_by_integral(Payoff&& h, double S, double T,
+                                       double sigma, double r, double q = 0.0,
                                        double tol = 1e-7) {
-    const auto integrand = [&](double z, double tau) {
-        const double p = norm_pdf(z);
-        return p == 0.0 ? 0.0 : std::exp(-r * tau) * h(ch04::price_from_normal(z, S, tau, sigma, r, q)) * p;
-    };
-    return -ch02::improper_integral_derivative(integrand, -ch02::infinity, ch02::infinity, T, tol);
+  const auto integrand = [&](double z, double tau) {
+    const double p = norm_pdf(z);
+    return p == 0.0
+               ? 0.0
+               : std::exp(-r * tau) *
+                     h(ch04::price_from_normal(z, S, tau, sigma, r, q)) * p;
+  };
+  return -ch02::improper_integral_derivative(integrand, -ch02::infinity,
+                                             ch02::infinity, T, tol);
 }
 
 }  // namespace p4mfe::ch08

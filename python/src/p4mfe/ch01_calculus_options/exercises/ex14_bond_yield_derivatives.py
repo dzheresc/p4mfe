@@ -21,7 +21,9 @@ class PriceDerivs(NamedTuple):
 def ex14_continuous(times, amounts, y: float) -> PriceDerivs:
     t = np.asarray(times, dtype=float)
     df = np.asarray(amounts, dtype=float) * np.exp(-y * t)
-    return PriceDerivs(float(df.sum()), float(-(t * df).sum()), float((t * t * df).sum()))
+    return PriceDerivs(
+        float(df.sum()), float(-(t * df).sum()), float((t * t * df).sum())
+    )
 
 
 def ex14_discrete(times, amounts, y: float, m: float) -> PriceDerivs:

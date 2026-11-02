@@ -27,7 +27,9 @@ def ex09_curve() -> ZeroCurve:
 
 
 def ex09_model_price(c: ZeroCurve) -> float:
-    cf = bond_cash_flows(EX09_THREE_YEAR.maturity, EX09_THREE_YEAR.coupon_rate, 2)
+    cf = bond_cash_flows(
+        EX09_THREE_YEAR.maturity, EX09_THREE_YEAR.coupon_rate, 2
+    )
     return bond_price_from_zero_rate(cf, lambda t: zero_rate_linear(c, t))
 
 

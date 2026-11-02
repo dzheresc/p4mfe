@@ -30,7 +30,11 @@ class Ex11Market:
 
 def ex11_integrand(x, m: Ex11Market = Ex11Market()):
     """e^(-rT) (K - x) f(x) on [0, K]; accepts arrays."""
-    return math.exp(-m.r * m.T) * (m.K - x) * price_pdf(x, m.S0, m.T, m.sigma, m.r, m.q)
+    return (
+        math.exp(-m.r * m.T)
+        * (m.K - x)
+        * price_pdf(x, m.S0, m.T, m.sigma, m.r, m.q)
+    )
 
 
 def ex11_put_bs(m: Ex11Market = Ex11Market()) -> float:
@@ -48,7 +52,9 @@ class Ex11Step:
     error: float  # value - P_BS
 
 
-def ex11_run(rule: Rule, tol: float = 5e-7, n0: int = 4, m: Ex11Market = Ex11Market()) -> list[Ex11Step]:
+def ex11_run(
+    rule: Rule, tol: float = 5e-7, n0: int = 4, m: Ex11Market = Ex11Market()
+) -> list[Ex11Step]:
     exact = ex11_put_bs(m)
     steps: list[Ex11Step] = []
     n = n0

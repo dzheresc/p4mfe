@@ -2,10 +2,9 @@
 // Exercises 22-24 (section 1.12): Put-Call parity arbitrage, with and without
 // bid-ask spreads.
 
-#include <p4mfe/ch01/options.hpp>
-
 #include <cmath>
 #include <optional>
+#include <p4mfe/ch01/options.hpp>
 
 namespace p4mfe::ch01::ex {
 
@@ -26,10 +25,12 @@ namespace p4mfe::ch01::ex {
 // K = 40 whatever S(T) is and close the short. Riskless profit at T:
 //   39.5821 e^(0.05/3) - 40 = 0.2432 e^(rT) = $0.2473.
 struct Ex22Data {
-    double S = 42.0, K = 40.0, T = 4.0 / 12.0, r = 0.05, q = 0.03, C = 4.0, P = 2.0;
+  double S = 42.0, K = 40.0, T = 4.0 / 12.0, r = 0.05, q = 0.03, C = 4.0,
+         P = 2.0;
 };
-[[nodiscard]] inline std::optional<ParityArbitrage> ex22_arbitrage(const Ex22Data& d = {}) {
-    return parity_arbitrage(d.C, d.P, d.S, d.K, d.T, d.r, d.q);
+[[nodiscard]] inline std::optional<ParityArbitrage> ex22_arbitrage(
+    const Ex22Data& d = {}) {
+  return parity_arbitrage(d.C, d.P, d.S, d.K, d.T, d.r, d.q);
 }
 
 // ----------------------------------------------------------- Exercise 24 ---
@@ -52,29 +53,31 @@ struct Ex22Data {
 //               C_bid <= P_ask + S e^(-qT) - K e^(-rT).
 // (The asset trades at S and cash is lent and borrowed at r without spread.)
 struct BidAsk {
-    double bid;
-    double ask;
+  double bid;
+  double ask;
 };
 
 struct BidAskParityArbitrage {
-    enum class Side {
-        BuyCallSellPut,  // strategy A: synthetic long forward is cheap
-        SellCallBuyPut,  // strategy B: synthetic long forward is rich
-    } side;
-    double profit;  // riskless profit at T per one call/put pair
+  enum class Side {
+    BuyCallSellPut,  // strategy A: synthetic long forward is cheap
+    SellCallBuyPut,  // strategy B: synthetic long forward is rich
+  } side;
+  double profit;  // riskless profit at T per one call/put pair
 };
 
-[[nodiscard]] inline std::optional<BidAskParityArbitrage> ex24_bid_ask_arbitrage(BidAsk C, BidAsk P, double S,
-                                                                                  double K, double T, double r,
-                                                                                  double q = 0.0,
-                                                                                  double tol = 1e-12) {
-    const double fwd = S * std::exp(-q * T) - K * std::exp(-r * T);  // PV of (F - K)
-    const double growth = std::exp(r * T);
-    if (const double a = fwd - (C.ask - P.bid); a > tol)
-        return BidAskParityArbitrage{BidAskParityArbitrage::Side::BuyCallSellPut, a * growth};
-    if (const double b = (C.bid - P.ask) - fwd; b > tol)
-        return BidAskParityArbitrage{BidAskParityArbitrage::Side::SellCallBuyPut, b * growth};
-    return std::nullopt;
+[[nodiscard]] inline std::optional<BidAskParityArbitrage>
+ex24_bid_ask_arbitrage(BidAsk C, BidAsk P, double S, double K, double T,
+                       double r, double q = 0.0, double tol = 1e-12) {
+  const double fwd =
+      S * std::exp(-q * T) - K * std::exp(-r * T);  // PV of (F - K)
+  const double growth = std::exp(r * T);
+  if (const double a = fwd - (C.ask - P.bid); a > tol)
+    return BidAskParityArbitrage{BidAskParityArbitrage::Side::BuyCallSellPut,
+                                 a * growth};
+  if (const double b = (C.bid - P.ask) - fwd; b > tol)
+    return BidAskParityArbitrage{BidAskParityArbitrage::Side::SellCallBuyPut,
+                                 b * growth};
+  return std::nullopt;
 }
 
 // ----------------------------------------------------------- Exercise 23 ---
@@ -87,7 +90,7 @@ struct BidAskParityArbitrage {
 // so by exercise 24 there is no arbitrage. (With mid prices, 5.25 - 3 = 2.25
 // != 2 looks like a violation, but the spreads eat it.)
 [[nodiscard]] inline std::optional<BidAskParityArbitrage> ex23_arbitrage() {
-    return ex24_bid_ask_arbitrage({5.0, 5.5}, {2.75, 3.25}, 42.0, 40.0, 0.5, 0.0);
+  return ex24_bid_ask_arbitrage({5.0, 5.5}, {2.75, 3.25}, 42.0, 40.0, 0.5, 0.0);
 }
 
 }  // namespace p4mfe::ch01::ex

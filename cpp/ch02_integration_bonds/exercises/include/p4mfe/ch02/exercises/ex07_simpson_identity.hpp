@@ -2,10 +2,9 @@
 // Exercise 7 (section 2.12): Simpson's rule as a weighted average of the
 // midpoint and trapezoidal rules.
 
-#include <p4mfe/ch02/integration.hpp>
-
 #include <concepts>
 #include <cstddef>
+#include <p4mfe/ch02/integration.hpp>
 
 namespace p4mfe::ch02::ex {
 
@@ -28,8 +27,9 @@ namespace p4mfe::ch02::ex {
 
 // (2/3) M_n + (1/3) T_n, to compare with simpson_rule(f, a, b, n).
 template <std::invocable<double> F>
-[[nodiscard]] double ex07_simpson_from_mt(F&& f, double a, double b, std::size_t n) {
-    return (2.0 * midpoint_rule(f, a, b, n) + trapezoidal_rule(f, a, b, n)) / 3.0;
+[[nodiscard]] double ex07_simpson_from_mt(F&& f, double a, double b,
+                                          std::size_t n) {
+  return (2.0 * midpoint_rule(f, a, b, n) + trapezoidal_rule(f, a, b, n)) / 3.0;
 }
 
 }  // namespace p4mfe::ch02::ex

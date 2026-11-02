@@ -53,7 +53,9 @@ def second_central_difference(f: ScalarFn, a: float, h: float) -> float:
     return second_derivative(f, a, h)
 
 
-def first_difference(f: ScalarFn, a: float, h: float, scheme: FdScheme) -> float:
+def first_difference(
+    f: ScalarFn, a: float, h: float, scheme: FdScheme
+) -> float:
     if scheme is FdScheme.FORWARD:
         return forward_difference(f, a, h)
     if scheme is FdScheme.BACKWARD:
@@ -66,14 +68,18 @@ def truncation_order(scheme: FdScheme) -> int:
 
 
 # 7.3.1 ---------------------------------------------------------------------
-def optimal_step(scheme: FdScheme, derivative_order: int = 1, a: float = 0.0) -> float:
+def optimal_step(
+    scheme: FdScheme, derivative_order: int = 1, a: float = 0.0
+) -> float:
     """sqrt(eps) one-sided, eps^(1/3) central, eps^(1/4) for f''; times max(1, |a|)."""
     scale = max(1.0, abs(a))
     if derivative_order == 2:
         return _EPS**0.25 * scale
     if derivative_order != 1:
         raise ValueError("derivative_order must be 1 or 2")
-    return (_EPS ** (1 / 3) if scheme is FdScheme.CENTRAL else math.sqrt(_EPS)) * scale
+    return (
+        _EPS ** (1 / 3) if scheme is FdScheme.CENTRAL else math.sqrt(_EPS)
+    ) * scale
 
 
 @dataclass(frozen=True)
@@ -83,22 +89,40 @@ class FdErrorRow:
     error: float  # approx - exact
 
 
-def fd_error_table(f: ScalarFn, a: float, exact: float, scheme: FdScheme, h0: float, n: int,
-                   ratio: float = 10.0, derivative_order: int = 1) -> list[FdErrorRow]:
+def fd_error_table(
+    f: ScalarFn,
+    a: float,
+    exact: float,
+    scheme: FdScheme,
+    h0: float,
+    n: int,
+    ratio: float = 10.0,
+    derivative_order: int = 1,
+) -> list[FdErrorRow]:
     """Approximations for h = h0, h0/ratio, ... (n rows) and their errors."""
     if not (h0 > 0 and ratio > 1):
         raise ValueError("need h0 > 0 and ratio > 1")
     rows = []
     h = h0
     for _ in range(n):
-        v = second_central_difference(f, a, h) if derivative_order == 2 else first_difference(f, a, h, scheme)
+        v = (
+            second_central_difference(f, a, h)
+            if derivative_order == 2
+            else first_difference(f, a, h, scheme)
+        )
         rows.append(FdErrorRow(h, v, v - exact))
         h /= ratio
     return rows
 
 
-def fd_observed_order(f: ScalarFn, a: float, exact: float, scheme: FdScheme, h: float,
-                      derivative_order: int = 1) -> float:
+def fd_observed_order(
+    f: ScalarFn,
+    a: float,
+    exact: float,
+    scheme: FdScheme,
+    h: float,
+    derivative_order: int = 1,
+) -> float:
     """log2(|e(h)| / |e(h/2)|)."""
     rows = fd_error_table(f, a, exact, scheme, h, 2, 2.0, derivative_order)
     return math.log2(abs(rows[0].error) / abs(rows[1].error))

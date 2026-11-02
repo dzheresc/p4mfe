@@ -39,4 +39,6 @@ def ex18_solve() -> Ex18Result:
 
 def ex18_yield_changes() -> list[float]:
     cf = ex18_cash_flows()
-    return [yield_change_from_shift(cf, ex18_zero_rate, dr) for dr in EX18_SHIFTS]
+    return [
+        yield_change_from_shift(cf, ex18_zero_rate, dr) for dr in EX18_SHIFTS
+    ]

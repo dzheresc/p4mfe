@@ -47,9 +47,15 @@ def classify_hessian(H, tol: float = 1e-6) -> CriticalPointType:
     return CriticalPointType.SADDLE
 
 
-def classify_critical_point(f: Callable, x, tol: float = 1e-6) -> CriticalPointType:
+def classify_critical_point(
+    f: Callable, x, tol: float = 1e-6
+) -> CriticalPointType:
     return classify_hessian(hessian(f, x), tol)
 
 
-def find_critical_point(f: Callable, x0, tol: Tolerances = Tolerances(1e-8, 1e-10, 100)) -> np.ndarray:
-    return newton_nd(lambda x: gradient(f, x), lambda x: hessian(f, x), x0, tol).x
+def find_critical_point(
+    f: Callable, x0, tol: Tolerances = Tolerances(1e-8, 1e-10, 100)
+) -> np.ndarray:
+    return newton_nd(
+        lambda x: gradient(f, x), lambda x: hessian(f, x), x0, tol
+    ).x

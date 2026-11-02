@@ -67,7 +67,9 @@ def sum_log_returns(r: Sequence[float]) -> float:
 
 
 # 6.4.1 ---------------------------------------------------------------------
-def portfolio_weights(units: Sequence[float], prices: Sequence[float]) -> np.ndarray:
+def portfolio_weights(
+    units: Sequence[float], prices: Sequence[float]
+) -> np.ndarray:
     n, S = np.asarray(units, float), np.asarray(prices, float)
     if n.shape != S.shape:
         raise ValueError("size mismatch")

@@ -33,11 +33,18 @@ def ex06_delta(q: float, m: Ex06Market = Ex06Market()) -> float:
 
 def ex06_delta_dq(q: float, m: Ex06Market = Ex06Market()) -> float:
     d1 = ex06_d1(q, m)
-    return -math.exp(-q * m.T) * (m.T * norm_cdf(d1) + norm_pdf(d1) * math.sqrt(m.T) / m.sigma)
+    return -math.exp(-q * m.T) * (
+        m.T * norm_cdf(d1) + norm_pdf(d1) * math.sqrt(m.T) / m.sigma
+    )
 
 
 def ex06_solve(q0: float = 0.0, m: Ex06Market = Ex06Market()) -> RootResult:
-    return newton(lambda q: ex06_delta(q, m) - 0.5, lambda q: ex06_delta_dq(q, m), q0, Tolerances(1e-12, 1e-12, 100))
+    return newton(
+        lambda q: ex06_delta(q, m) - 0.5,
+        lambda q: ex06_delta_dq(q, m),
+        q0,
+        Tolerances(1e-12, 1e-12, 100),
+    )
 
 
 def ex06_upper_bound(m: Ex06Market = Ex06Market()) -> float:

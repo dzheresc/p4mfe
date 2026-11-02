@@ -3,11 +3,10 @@
 // (real-world and risk-neutral), and the roulette question solved exactly
 // and with the normal approximation.
 
-#include <p4mfe/ch04/asset_model.hpp>
-#include <p4mfe/normal.hpp>
-
 #include <array>
 #include <cmath>
+#include <p4mfe/ch04/asset_model.hpp>
+#include <p4mfe/normal.hpp>
 
 namespace p4mfe::ch04::ex {
 
@@ -22,27 +21,34 @@ namespace p4mfe::ch04::ex {
 //
 // ln(S_T/S_0) ~ N((mu - q - sigma^2/2) T, sigma^2 T). With
 // z = N^(-1)((1 + c)/2) (1.959964 for c = 95%, 2.575829 for c = 99%):
-//   P(-z <= Z <= z) = c  =>  S_T in [S_0 e^((mu - q - sigma^2/2)T - z sigma sqrt(T)),
-//                                    S_0 e^((mu - q - sigma^2/2)T + z sigma sqrt(T))]
+//   P(-z <= Z <= z) = c  =>  S_T in [S_0 e^((mu - q - sigma^2/2)T - z sigma
+//   sqrt(T)),
+//                                    S_0 e^((mu - q - sigma^2/2)T + z sigma
+//                                    sqrt(T))]
 // with probability c (ch04::price_confidence_interval). The interval is
 // symmetric in ln S_T, not in S_T: the upper half is wider.
 // Assumption: 15 days = 1/24 year, k months = k/12 year.
 //
 //   horizon   (i) mu = 0.08                         (ii) mu = r = 0.05
 //             95%               99%                 95%               99%
-//   15 days   [44.3727, 56.4114] [42.7304, 58.5795]  [44.3173, 56.3409] [42.6771, 58.5063]
-//   1 month   [42.2471, 59.3238] [40.0528, 62.5738]  [42.1416, 59.1757] [39.9528, 62.4175]
-//   2 months  [39.4280, 63.7245] [36.5635, 68.7170]  [39.2314, 63.4066] [36.3811, 68.3743]
-//   6 months  [33.2399, 76.3474] [29.1690, 87.0027]  [32.7451, 75.2107] [28.7347, 85.7074]
-//   1 year    [28.1919, 91.3787] [23.4360, 109.9221] [27.3587, 88.6780] [22.7434, 106.6734]
+//   15 days   [44.3727, 56.4114] [42.7304, 58.5795]  [44.3173, 56.3409]
+//   [42.6771, 58.5063] 1 month   [42.2471, 59.3238] [40.0528, 62.5738]
+//   [42.1416, 59.1757] [39.9528, 62.4175] 2 months  [39.4280, 63.7245]
+//   [36.5635, 68.7170]  [39.2314, 63.4066] [36.3811, 68.3743] 6 months
+//   [33.2399, 76.3474] [29.1690, 87.0027]  [32.7451, 75.2107]
+//   [28.7347, 85.7074] 1 year    [28.1919, 91.3787] [23.4360, 109.9221]
+//   [27.3587, 88.6780] [22.7434, 106.6734]
 // The risk-neutral intervals are shifted down by the factor e^(-(mu - r) T).
 struct Ex07Asset {
-    double S0 = 50.0, q = 0.02, mu = 0.08, sigma = 0.3, r = 0.05;
+  double S0 = 50.0, q = 0.02, mu = 0.08, sigma = 0.3, r = 0.05;
 };
-inline constexpr std::array<double, 5> ex07_horizons{1.0 / 24.0, 1.0 / 12.0, 2.0 / 12.0, 0.5, 1.0};
-[[nodiscard]] inline PriceRange ex07_interval(double confidence, double T, bool risk_neutral,
+inline constexpr std::array<double, 5> ex07_horizons{1.0 / 24.0, 1.0 / 12.0,
+                                                     2.0 / 12.0, 0.5, 1.0};
+[[nodiscard]] inline PriceRange ex07_interval(double confidence, double T,
+                                              bool risk_neutral,
                                               const Ex07Asset& a = {}) {
-    return price_confidence_interval(confidence, a.S0, T, a.sigma, risk_neutral ? a.r : a.mu, a.q);
+  return price_confidence_interval(confidence, a.S0, T, a.sigma,
+                                   risk_neutral ? a.r : a.mu, a.q);
 }
 
 // ------------------------------------------------------------ Exercise 8 ---
@@ -62,8 +68,9 @@ inline constexpr std::array<double, 5> ex07_horizons{1.0 / 24.0, 1.0 / 12.0, 2.0
 // one bet has mean 100 (2p - 1) = -100/19 = -5.263158 and variance
 // 100^2 (1 - (2p - 1)^2) = 100^2 * 4 p (1 - p), so over 100 bets
 //   E[G] = -526.3158,  sd(G) = 100 * 10 * sqrt(4 p (1 - p)) = 998.6140,
-//   P(G >= 1000)  ~ 1 - N((1000 + 526.3158)/998.6140) = N(-1.528432) = 0.063202,
-//   P(G <= -1000) ~ N((-1000 + 526.3158)/998.6140) = N(-0.474341) = 0.317628.
+//   P(G >= 1000)  ~ 1 - N((1000 + 526.3158)/998.6140) = N(-1.528432) =
+//   0.063202, P(G <= -1000) ~ N((-1000 + 526.3158)/998.6140) = N(-0.474341) =
+//   0.317628.
 // G moves in steps of 200, so a continuity correction (use 900 for 1000)
 // gives 0.076603 and 0.354127, close to the exact values.
 // The house edge makes losing $1000 about 4.6 times as likely as winning it.
@@ -71,32 +78,39 @@ inline constexpr double ex08_p_black = 18.0 / 38.0;
 
 // P(W = k) for W ~ Binomial(n, p), via lgamma to stay accurate for large n.
 [[nodiscard]] inline double binomial_pmf(int k, int n, double p) {
-    const double logc = std::lgamma(n + 1.0) - std::lgamma(k + 1.0) - std::lgamma(n - k + 1.0);
-    return std::exp(logc + k * std::log(p) + (n - k) * std::log1p(-p));
+  const double logc =
+      std::lgamma(n + 1.0) - std::lgamma(k + 1.0) - std::lgamma(n - k + 1.0);
+  return std::exp(logc + k * std::log(p) + (n - k) * std::log1p(-p));
 }
 struct RouletteOdds {
-    double win;   // P(net gain >= threshold)
-    double lose;  // P(net loss >= threshold)
+  double win;   // P(net gain >= threshold)
+  double lose;  // P(net loss >= threshold)
 };
 // Exact: sum the pmf over the wins that reach the threshold.
-[[nodiscard]] inline RouletteOdds ex08_exact(int n_bets = 100, double bet = 100.0, double threshold = 1000.0,
+[[nodiscard]] inline RouletteOdds ex08_exact(int n_bets = 100,
+                                             double bet = 100.0,
+                                             double threshold = 1000.0,
                                              double p = ex08_p_black) {
-    RouletteOdds r{0.0, 0.0};
-    for (int k = 0; k <= n_bets; ++k) {
-        const double gain = bet * (2.0 * k - n_bets);
-        if (gain >= threshold) r.win += binomial_pmf(k, n_bets, p);
-        if (gain <= -threshold) r.lose += binomial_pmf(k, n_bets, p);
-    }
-    return r;
+  RouletteOdds r{0.0, 0.0};
+  for (int k = 0; k <= n_bets; ++k) {
+    const double gain = bet * (2.0 * k - n_bets);
+    if (gain >= threshold) r.win += binomial_pmf(k, n_bets, p);
+    if (gain <= -threshold) r.lose += binomial_pmf(k, n_bets, p);
+  }
+  return r;
 }
-// Normal approximation; `continuity` moves the threshold half a step (one bet) inward.
-[[nodiscard]] inline RouletteOdds ex08_normal(bool continuity = false, int n_bets = 100, double bet = 100.0,
-                                              double threshold = 1000.0, double p = ex08_p_black) {
-    const double n = n_bets;
-    const double mean = n * bet * (2.0 * p - 1.0);
-    const double sd = bet * std::sqrt(n * 4.0 * p * (1.0 - p));
-    const double t = continuity ? threshold - bet : threshold;
-    return {norm_cdf((mean - t) / sd), norm_cdf((-t - mean) / sd)};
+// Normal approximation; `continuity` moves the threshold half a step (one bet)
+// inward.
+[[nodiscard]] inline RouletteOdds ex08_normal(bool continuity = false,
+                                              int n_bets = 100,
+                                              double bet = 100.0,
+                                              double threshold = 1000.0,
+                                              double p = ex08_p_black) {
+  const double n = n_bets;
+  const double mean = n * bet * (2.0 * p - 1.0);
+  const double sd = bet * std::sqrt(n * 4.0 * p * (1.0 - p));
+  const double t = continuity ? threshold - bet : threshold;
+  return {norm_cdf((mean - t) / sd), norm_cdf((-t - mean) / sd)};
 }
 
 }  // namespace p4mfe::ch04::ex

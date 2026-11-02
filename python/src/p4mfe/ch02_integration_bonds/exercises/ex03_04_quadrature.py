@@ -36,7 +36,9 @@ def ex03_approx(rule: Rule, tol: float = EX03_TOL) -> IntegrationResult:
 
 
 def ex03_exact() -> float:
-    return integrate_to_tolerance(lambda u: 2 * u * u * np.exp(-u * u), 1.0, math.sqrt(3.0), 1e-15).value
+    return integrate_to_tolerance(
+        lambda u: 2 * u * u * np.exp(-u * u), 1.0, math.sqrt(3.0), 1e-15
+    ).value
 
 
 def ex04_f(x):
@@ -55,9 +57,20 @@ def ex04_midpoint(tol: float = 1e-6) -> IntegrationResult:
 def ex04_f4(x: float) -> float:
     """f''''(x) by Leibniz on x^(5/2) * 1/(1+x^2)."""
     q = 1 + x * x
-    p = [x**2.5, 2.5 * x**1.5, 3.75 * x**0.5, 1.875 * x**-0.5, -0.9375 * x**-1.5]
-    g = [1 / q, -2 * x / q**2, (6 * x * x - 2) / q**3, 24 * x * (1 - x * x) / q**4,
-         24 * (5 * x**4 - 10 * x * x + 1) / q**5]
+    p = [
+        x**2.5,
+        2.5 * x**1.5,
+        3.75 * x**0.5,
+        1.875 * x**-0.5,
+        -0.9375 * x**-1.5,
+    ]
+    g = [
+        1 / q,
+        -2 * x / q**2,
+        (6 * x * x - 2) / q**3,
+        24 * x * (1 - x * x) / q**4,
+        24 * (5 * x**4 - 10 * x * x + 1) / q**5,
+    ]
     return sum(c * p[4 - j] * g[j] for j, c in enumerate((1, 4, 6, 4, 1)))
 
 

@@ -14,7 +14,13 @@ from .ex12_atm_put_error import Ex12Result, ex12_relative_error
 EX15_MATURITIES = (1.0, 3.0, 5.0, 10.0, 20.0)
 
 
-def ex15_row(T: float, S: float = 40.0, sigma: float = 0.3, r: float = 0.045, q: float = 0.02) -> Ex12Result:
+def ex15_row(
+    T: float,
+    S: float = 40.0,
+    sigma: float = 0.3,
+    r: float = 0.045,
+    q: float = 0.02,
+) -> Ex12Result:
     a = atm_put_approx(S, T, sigma, r, q)
     bs = bs_put(S, S, T, sigma, r, q)
     return Ex12Result(a, bs, ex12_relative_error(bs, a))

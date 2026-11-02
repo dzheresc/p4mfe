@@ -10,7 +10,7 @@ requires-python = ">=3.10"
 dependencies = ["numpy>=1.24"]
 
 [project.optional-dependencies]
-dev = ["pytest>=7"]
+dev = ["pytest>=7", "pyink>=24"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -18,3 +18,9 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--import-mode=importlib"
+
+# Google Python style: https://google.github.io/styleguide/pyguide.html
+[tool.pyink]
+line-length = 80
+pyink-indentation = 4
+pyink-use-majority-quotes = true

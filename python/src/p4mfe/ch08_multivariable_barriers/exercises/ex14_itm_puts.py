@@ -25,7 +25,14 @@ class Ex14Row:
 
 def ex14_table() -> list[Ex14Row]:
     rows = []
-    for K, T in [(45, 0.5), (45, 0.25), (48, 0.5), (48, 0.25), (51, 0.5), (51, 0.25)]:
+    for K, T in [
+        (45, 0.5),
+        (45, 0.25),
+        (48, 0.5),
+        (48, 0.25),
+        (51, 0.5),
+        (51, 0.25),
+    ]:
         v = bs_put(EX14_S, K, T, EX14_SIGMA, EX14_R)
         intrinsic = max(K - EX14_S, 0.0)
         rows.append(Ex14Row(float(K), T, v, intrinsic, intrinsic > v))

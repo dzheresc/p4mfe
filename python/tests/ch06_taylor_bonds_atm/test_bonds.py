@@ -59,8 +59,12 @@ def test_flat_curve_matches_yield_metrics():
     assert m.duration == pytest.approx(my.duration, abs=1e-12)
     assert m.convexity == pytest.approx(my.convexity, abs=1e-12)
     for dr in (-0.01, 0.0005, 0.02):
-        assert shifted_curve_price(cf, flat, dr) == pytest.approx(bond_price(cf, y + dr), abs=1e-12)
-        assert yield_change_from_shift(cf, flat, dr) == pytest.approx(dr, abs=1e-12)
+        assert shifted_curve_price(cf, flat, dr) == pytest.approx(
+            bond_price(cf, y + dr), abs=1e-12
+        )
+        assert yield_change_from_shift(cf, flat, dr) == pytest.approx(
+            dr, abs=1e-12
+        )
 
 
 @pytest.mark.parametrize("dr", [-0.005, 0.001, 0.01])
@@ -72,7 +76,9 @@ def test_taylor_approximation_of_shifted_price(dr):
     err1 = abs(price_approx_duration(m.price, m.duration, dr) - exact)
     assert err2 < err1 / 10
     assert err2 < m.price * (10 * abs(dr)) ** 3 / 6
-    assert yield_change_from_shift(cf, zero_curve, dr) / dr == pytest.approx(1.0, abs=5e-3)
+    assert yield_change_from_shift(cf, zero_curve, dr) / dr == pytest.approx(
+        1.0, abs=5e-3
+    )
 
 
 # 6.6 -----------------------------------------------------------------------
@@ -83,9 +89,13 @@ def test_duration_convexity_connections():
     assert cash_flow_dispersion(cf, y) > 0
     h = 1e-6
     dD = (bond_duration(cf, y + h) - bond_duration(cf, y - h)) / (2 * h)
-    assert dD == pytest.approx(duration_derivative(m.duration, m.convexity), abs=1e-6)
+    assert dD == pytest.approx(
+        duration_derivative(m.duration, m.convexity), abs=1e-6
+    )
     assert dD < 0
-    assert cash_flow_dispersion(bond_cash_flows(4.0, 0.0, 2), y) == pytest.approx(0.0, abs=1e-12)
+    assert cash_flow_dispersion(
+        bond_cash_flows(4.0, 0.0, 2), y
+    ) == pytest.approx(0.0, abs=1e-12)
 
 
 @pytest.mark.parametrize("m", [1, 2, 12])
@@ -93,20 +103,37 @@ def test_discrete_convexity(m):
     cf = bond_cash_flows(3.0, 0.05, 2)
     y, h = 0.06, 1e-5
     B = bond_price_discrete(cf, y, m)
-    fd = (bond_price_discrete(cf, y + h, m) - 2 * B + bond_price_discrete(cf, y - h, m)) / h**2 / B
+    fd = (
+        (
+            bond_price_discrete(cf, y + h, m)
+            - 2 * B
+            + bond_price_discrete(cf, y - h, m)
+        )
+        / h**2
+        / B
+    )
     assert convexity_discrete(cf, y, m) == pytest.approx(fd, abs=1e-3)
-    assert convexity_discrete(cf, y, 1_000_000) == pytest.approx(bond_convexity(cf, y), abs=1e-4)
+    assert convexity_discrete(cf, y, 1_000_000) == pytest.approx(
+        bond_convexity(cf, y), abs=1e-4
+    )
 
 
 def test_portfolio_averages():
     y = 0.05
     b1, b2 = bond_cash_flows(2.0, 0.04, 2), bond_cash_flows(9.0, 0.06, 2)
     n1, n2 = 30, 70
-    both = CashFlows(np.concatenate([b1.times, b2.times]), np.concatenate([n1 * b1.amounts, n2 * b2.amounts]))
+    both = CashFlows(
+        np.concatenate([b1.times, b2.times]),
+        np.concatenate([n1 * b1.amounts, n2 * b2.amounts]),
+    )
     m1, m2, mp = bond_metrics(b1, y), bond_metrics(b2, y), bond_metrics(both, y)
     V = [n1 * m1.price, n2 * m2.price]
-    assert portfolio_duration(V, [m1.duration, m2.duration]) == pytest.approx(mp.duration, abs=1e-12)
-    assert portfolio_convexity(V, [m1.convexity, m2.convexity]) == pytest.approx(mp.convexity, abs=1e-12)
+    assert portfolio_duration(V, [m1.duration, m2.duration]) == pytest.approx(
+        mp.duration, abs=1e-12
+    )
+    assert portfolio_convexity(
+        V, [m1.convexity, m2.convexity]
+    ) == pytest.approx(mp.convexity, abs=1e-12)
     with pytest.raises(ValueError):
         portfolio_duration([1, -1], [2, 3])
 
@@ -118,15 +145,26 @@ def test_dollar_risk_and_dv01():
     r = bond_dollar_risk(cf, y)
     assert r.dollar_duration == pytest.approx(dollar_duration(cf, y), abs=1e-12)
     assert r.dv01() == pytest.approx(dv01(cf, y), abs=1e-15)
-    assert r.dollar_convexity == pytest.approx(dollar_convexity(cf, y), abs=1e-12)
-    assert duration_from_dollar(r) == pytest.approx(bond_duration(cf, y), abs=1e-12)
-    assert convexity_from_dollar(r) == pytest.approx(bond_convexity(cf, y), abs=1e-12)
-    assert dv01_reprice(cf, y) == pytest.approx(r.dv01() + 0.5 * r.dollar_convexity * 1e-8, abs=1e-8)
+    assert r.dollar_convexity == pytest.approx(
+        dollar_convexity(cf, y), abs=1e-12
+    )
+    assert duration_from_dollar(r) == pytest.approx(
+        bond_duration(cf, y), abs=1e-12
+    )
+    assert convexity_from_dollar(r) == pytest.approx(
+        bond_convexity(cf, y), abs=1e-12
+    )
+    assert dv01_reprice(cf, y) == pytest.approx(
+        r.dv01() + 0.5 * r.dollar_convexity * 1e-8, abs=1e-8
+    )
     assert abs(dv01_reprice(cf, y) - r.dv01()) > 1e-6
     assert dv01_central(cf, y) == pytest.approx(r.dv01(), abs=1e-8)
     for dy in (-0.01, 0.002):
         dV = bond_price(cf, y + dy) - r.value
-        assert abs(value_change_approx_convexity(r, dy) - dV) < abs(value_change_approx(r, dy) - dV) / 10
+        assert (
+            abs(value_change_approx_convexity(r, dy) - dV)
+            < abs(value_change_approx(r, dy) - dV) / 10
+        )
 
 
 def test_zero_value_portfolio():
@@ -137,7 +175,9 @@ def test_zero_value_portfolio():
     assert p.value == pytest.approx(0.0, abs=1e-12)
     assert p.dollar_duration < 0
     with pytest.raises(ZeroDivisionError):
-        duration_from_dollar(DollarRisk(0.0, p.dollar_duration, p.dollar_convexity))
+        duration_from_dollar(
+            DollarRisk(0.0, p.dollar_duration, p.dollar_convexity)
+        )
 
 
 # 6.7.2 ---------------------------------------------------------------------
@@ -155,7 +195,12 @@ def test_immunization():
     q = duration_hedge_units(P, H1)
 
     def value(dy, u1, u2, cash):
-        return 1000 * bond_price(port_cf, y + dy) + u1 * bond_price(h1_cf, y + dy) + u2 * bond_price(h2_cf, y + dy) + cash
+        return (
+            1000 * bond_price(port_cf, y + dy)
+            + u1 * bond_price(h1_cf, y + dy)
+            + u2 * bond_price(h2_cf, y + dy)
+            + cash
+        )
 
     for dy in (-0.01, -0.001, 0.005):
         immunized = value(dy, im.units1, im.units2, im.cash)

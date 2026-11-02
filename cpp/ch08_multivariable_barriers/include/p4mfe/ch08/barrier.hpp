@@ -16,57 +16,66 @@
 //   up-and-out put:    W = value of (K - S_T)^+ 1{S_T < B}  (mirror image).
 // Knock-in = vanilla - knock-out (in-out parity).
 
-#include <p4mfe/ch03/black_scholes.hpp>
-#include <p4mfe/ch04/in_the_money.hpp>
-
 #include <cmath>
 #include <concepts>
+#include <p4mfe/ch03/black_scholes.hpp>
+#include <p4mfe/ch04/in_the_money.hpp>
 
 namespace p4mfe::ch08 {
 
 using ch01::OptionType;
 
 // ---------------------------------------------------------------- 8.9 ------
-[[nodiscard]] inline double image_exponent(double sigma, double r, double q = 0.0) noexcept {
-    return 2.0 * (r - q) / (sigma * sigma) - 1.0;
+[[nodiscard]] inline double image_exponent(double sigma, double r,
+                                           double q = 0.0) noexcept {
+  return 2.0 * (r - q) / (sigma * sigma) - 1.0;
 }
 
 // V*(S) = (B/S)^(k1 - 1) V(B^2/S).
 template <std::invocable<double> V>
-[[nodiscard]] double barrier_image(V&& v, double S, double B, double sigma, double r, double q = 0.0) {
-    return std::pow(B / S, image_exponent(sigma, r, q)) * v(B * B / S);
+[[nodiscard]] double barrier_image(V&& v, double S, double B, double sigma,
+                                   double r, double q = 0.0) {
+  return std::pow(B / S, image_exponent(sigma, r, q)) * v(B * B / S);
 }
 
-[[nodiscard]] inline double down_and_out_call(double S, double K, double B, double T, double sigma, double r,
+[[nodiscard]] inline double down_and_out_call(double S, double K, double B,
+                                              double T, double sigma, double r,
                                               double q = 0.0) {
-    if (S <= B) return 0.0;
-    const auto W = [&](double s) {
-        if (B <= K) return ch03::bs_call(s, K, T, sigma, r, q);
-        return ch03::bs_call(s, B, T, sigma, r, q) +
-               (B - K) * ch04::cash_or_nothing(OptionType::Call, s, B, T, sigma, r, q);
-    };
-    return W(S) - barrier_image(W, S, B, sigma, r, q);
+  if (S <= B) return 0.0;
+  const auto W = [&](double s) {
+    if (B <= K) return ch03::bs_call(s, K, T, sigma, r, q);
+    return ch03::bs_call(s, B, T, sigma, r, q) +
+           (B - K) *
+               ch04::cash_or_nothing(OptionType::Call, s, B, T, sigma, r, q);
+  };
+  return W(S) - barrier_image(W, S, B, sigma, r, q);
 }
 
-[[nodiscard]] inline double down_and_in_call(double S, double K, double B, double T, double sigma, double r,
+[[nodiscard]] inline double down_and_in_call(double S, double K, double B,
+                                             double T, double sigma, double r,
                                              double q = 0.0) {
-    return ch03::bs_call(S, K, T, sigma, r, q) - down_and_out_call(S, K, B, T, sigma, r, q);
+  return ch03::bs_call(S, K, T, sigma, r, q) -
+         down_and_out_call(S, K, B, T, sigma, r, q);
 }
 
-[[nodiscard]] inline double up_and_out_put(double S, double K, double B, double T, double sigma, double r,
+[[nodiscard]] inline double up_and_out_put(double S, double K, double B,
+                                           double T, double sigma, double r,
                                            double q = 0.0) {
-    if (S >= B) return 0.0;
-    const auto W = [&](double s) {
-        if (B >= K) return ch03::bs_put(s, K, T, sigma, r, q);
-        return ch03::bs_put(s, B, T, sigma, r, q) +
-               (K - B) * ch04::cash_or_nothing(OptionType::Put, s, B, T, sigma, r, q);
-    };
-    return W(S) - barrier_image(W, S, B, sigma, r, q);
+  if (S >= B) return 0.0;
+  const auto W = [&](double s) {
+    if (B >= K) return ch03::bs_put(s, K, T, sigma, r, q);
+    return ch03::bs_put(s, B, T, sigma, r, q) +
+           (K - B) *
+               ch04::cash_or_nothing(OptionType::Put, s, B, T, sigma, r, q);
+  };
+  return W(S) - barrier_image(W, S, B, sigma, r, q);
 }
 
-[[nodiscard]] inline double up_and_in_put(double S, double K, double B, double T, double sigma, double r,
+[[nodiscard]] inline double up_and_in_put(double S, double K, double B,
+                                          double T, double sigma, double r,
                                           double q = 0.0) {
-    return ch03::bs_put(S, K, T, sigma, r, q) - up_and_out_put(S, K, B, T, sigma, r, q);
+  return ch03::bs_put(S, K, T, sigma, r, q) -
+         up_and_out_put(S, K, B, T, sigma, r, q);
 }
 
 }  // namespace p4mfe::ch08

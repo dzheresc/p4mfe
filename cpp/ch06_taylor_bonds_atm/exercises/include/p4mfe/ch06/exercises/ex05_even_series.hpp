@@ -19,13 +19,19 @@ namespace p4mfe::ch06::ex {
 //
 // Partial sums with terms k = 1..n and k = 0..n, reusing chapter 6's
 // log1p_series (ln(1 + z) at z = -x^2) and geometric_series (at x^2).
-[[nodiscard]] inline double ex05_log_series(double x, unsigned n) { return log1p_series(-x * x, n); }
-[[nodiscard]] inline double ex05_inverse_series(double x, unsigned n) { return geometric_series(x * x, n); }
+[[nodiscard]] inline double ex05_log_series(double x, unsigned n) {
+  return log1p_series(-x * x, n);
+}
+[[nodiscard]] inline double ex05_inverse_series(double x, unsigned n) {
+  return geometric_series(x * x, n);
+}
 
 // Coefficient of x^m in each series (zero for odd m).
 [[nodiscard]] constexpr double ex05_log_coefficient(unsigned m) noexcept {
-    return (m == 0 || m % 2 != 0) ? 0.0 : -2.0 / static_cast<double>(m);
+  return (m == 0 || m % 2 != 0) ? 0.0 : -2.0 / static_cast<double>(m);
 }
-[[nodiscard]] constexpr double ex05_inverse_coefficient(unsigned m) noexcept { return m % 2 == 0 ? 1.0 : 0.0; }
+[[nodiscard]] constexpr double ex05_inverse_coefficient(unsigned m) noexcept {
+  return m % 2 == 0 ? 1.0 : 0.0;
+}
 
 }  // namespace p4mfe::ch06::ex

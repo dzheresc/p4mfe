@@ -36,7 +36,9 @@ def solve_linear(A, b) -> np.ndarray:
         raise RuntimeError("singular matrix") from e
 
 
-def newton_nd(F: VectorFn, jacobian: Callable, x0, tol: Tolerances = Tolerances()) -> NdRootResult:
+def newton_nd(
+    F: VectorFn, jacobian: Callable, x0, tol: Tolerances = Tolerances()
+) -> NdRootResult:
     x = np.array(x0, dtype=float)
     fx = np.asarray(F(x), dtype=float)
     if fx.shape != x.shape:
@@ -48,7 +50,9 @@ def newton_nd(F: VectorFn, jacobian: Callable, x0, tol: Tolerances = Tolerances(
         k += 1
         fx = np.asarray(F(x), dtype=float)
         step = float(np.linalg.norm(s))
-        if (np.linalg.norm(fx) <= tol.approx and step <= tol.consec) or step == 0:
+        if (
+            np.linalg.norm(fx) <= tol.approx and step <= tol.consec
+        ) or step == 0:
             return NdRootResult(x, k)
     raise RuntimeError("newton_nd: no convergence within max_iter")
 
@@ -58,7 +62,9 @@ class Difference(Enum):
     CENTRAL = "central"
 
 
-def finite_difference_jacobian(F: VectorFn, x, h: float = 1e-6, scheme: Difference = Difference.FORWARD) -> np.ndarray:
+def finite_difference_jacobian(
+    F: VectorFn, x, h: float = 1e-6, scheme: Difference = Difference.FORWARD
+) -> np.ndarray:
     """Forward differences are O(h) accurate (the book's choice); central ones O(h^2)."""
     x = np.array(x, dtype=float)
     f0 = np.asarray(F(x), dtype=float)
@@ -74,6 +80,12 @@ def finite_difference_jacobian(F: VectorFn, x, h: float = 1e-6, scheme: Differen
 
 
 def approximate_newton_nd(
-    F: VectorFn, x0, tol: Tolerances = Tolerances(), h: float = 1e-6, scheme: Difference = Difference.FORWARD
+    F: VectorFn,
+    x0,
+    tol: Tolerances = Tolerances(),
+    h: float = 1e-6,
+    scheme: Difference = Difference.FORWARD,
 ) -> NdRootResult:
-    return newton_nd(F, lambda x: finite_difference_jacobian(F, x, h, scheme), x0, tol)
+    return newton_nd(
+        F, lambda x: finite_difference_jacobian(F, x, h, scheme), x0, tol
+    )

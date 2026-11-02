@@ -34,7 +34,9 @@ class Ex05Tree:
 def ex05_distribution(t: Ex05Tree = Ex05Tree()) -> DiscreteDistribution:
     n = t.steps
     values = [t.S0 * t.u**j * t.d ** (n - j) for j in range(n + 1)]
-    probs = [math.comb(n, j) * t.p**j * (1 - t.p) ** (n - j) for j in range(n + 1)]
+    probs = [
+        math.comb(n, j) * t.p**j * (1 - t.p) ** (n - j) for j in range(n + 1)
+    ]
     return DiscreteDistribution(values, probs)
 
 
@@ -69,7 +71,9 @@ def ex07_conditional_tail(alpha: float, t: float, s: float) -> float:
 
 
 def ex08_mean_abs(mu: float, sigma: float) -> float:
-    return mu * (1 - 2 * norm_cdf(-mu / sigma)) + 2 * sigma * norm_pdf(mu / sigma)
+    return mu * (1 - 2 * norm_cdf(-mu / sigma)) + 2 * sigma * norm_pdf(
+        mu / sigma
+    )
 
 
 def ex08_second_moment(mu: float, sigma: float) -> float:

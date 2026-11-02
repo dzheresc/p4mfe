@@ -16,7 +16,9 @@ from dataclasses import dataclass
 from typing import Sequence
 
 
-def recursion_terms(a: Sequence[float], init: Sequence[float], count: int) -> list[float]:
+def recursion_terms(
+    a: Sequence[float], init: Sequence[float], count: int
+) -> list[float]:
     """x_0..x_{count-1} for x_{n+k} = sum_{i<k} a[i] x_{n+i}."""
     k = len(a)
     if k == 0 or len(init) != k:
@@ -41,14 +43,22 @@ class SecondOrderRecursion:
         return (self.c1 * self.lambda1**n + self.c2 * self.lambda2**n).real
 
 
-def solve_second_order(a: float, b: float, x0: float, x1: float, rel_tol: float = 1e-12) -> SecondOrderRecursion:
+def solve_second_order(
+    a: float, b: float, x0: float, x1: float, rel_tol: float = 1e-12
+) -> SecondOrderRecursion:
     disc = cmath.sqrt(a * a + 4 * b)
     l1, l2 = (a + disc) / 2, (a - disc) / 2
     if abs(disc) <= rel_tol * max(1.0, abs(a)):
         lam = a / 2
         if lam == 0:
             raise ValueError("a = b = 0 (x_n = 0 for n >= 2)")
-        return SecondOrderRecursion(complex(lam), complex(lam), complex(x0), complex(x1 / lam - x0), True)
+        return SecondOrderRecursion(
+            complex(lam),
+            complex(lam),
+            complex(x0),
+            complex(x1 / lam - x0),
+            True,
+        )
     c2 = (x1 - l1 * x0) / (l2 - l1)
     return SecondOrderRecursion(l1, l2, x0 - c2, c2, False)
 

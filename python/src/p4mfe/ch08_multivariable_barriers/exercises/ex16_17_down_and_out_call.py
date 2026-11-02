@@ -29,8 +29,9 @@ class Ex16Market:
 
 def ex16_formula_846(m: Ex16Market = Ex16Market()) -> float:
     p = 2 * (m.r - m.q) / m.sigma**2 - 1
-    return (bs_call(m.S, m.K, m.T, m.sigma, m.r, m.q)
-            - (m.B / m.S) ** p * bs_call(m.B * m.B / m.S, m.K, m.T, m.sigma, m.r, m.q))
+    return bs_call(m.S, m.K, m.T, m.sigma, m.r, m.q) - (
+        m.B / m.S
+    ) ** p * bs_call(m.B * m.B / m.S, m.K, m.T, m.sigma, m.r, m.q)
 
 
 def ex16_value(m: Ex16Market = Ex16Market()) -> float:
@@ -44,7 +45,9 @@ def ex17_bracket(S: float, K: float, B: float, T: float, sigma: float) -> float:
     return B * norm_cdf(d1) - S * K / B * norm_cdf(d1 - st)
 
 
-def ex17_n_d2_over_b(S: float, K: float, B: float, T: float, sigma: float) -> float:
+def ex17_n_d2_over_b(
+    S: float, K: float, B: float, T: float, sigma: float
+) -> float:
     st = sigma * math.sqrt(T)
     d2 = (math.log(B * B / (S * K)) - 0.5 * sigma**2 * T) / st
     return norm_cdf(d2) / B

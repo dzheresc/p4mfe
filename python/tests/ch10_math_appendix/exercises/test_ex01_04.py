@@ -39,7 +39,9 @@ def test_ex01_parts_one_and_two(f):
 def test_ex01_general_rule(f):
     for i in range(1, 5):
         for j in range(1, 5):
-            assert parity(lambda x: ex01_h(f, i, j, x), XS, 1e-10) == ex01_predicted_parity(i, j)
+            assert parity(
+                lambda x: ex01_h(f, i, j, x), XS, 1e-10
+            ) == ex01_predicted_parity(i, j)
 
 
 def test_ex02_numerators_match_the_book():
@@ -53,7 +55,9 @@ def test_ex02_closed_forms():
         for x in (-0.7, 0.3, 0.9, 1.1, 2.0):
             for j in range(4):
                 direct = sum_kj_xk(n, j, x)
-                assert ex02_t_closed_form(n, j, x) == pytest.approx(direct, rel=1e-9, abs=1e-9)
+                assert ex02_t_closed_form(n, j, x) == pytest.approx(
+                    direct, rel=1e-9, abs=1e-9
+                )
 
 
 def test_ex02_lhopital_gives_the_sums():
@@ -61,7 +65,9 @@ def test_ex02_lhopital_gives_the_sums():
         for j in (2, 3):
             N = ex02_numerator(n, j)
             assert all(ex02_derivative_at_one(N, r) == 0 for r in range(j + 1))
-        assert ex02_derivative_at_one(ex02_numerator(n, 2), 3) == -n * (n + 1) * (2 * n + 1)
+        assert ex02_derivative_at_one(ex02_numerator(n, 2), 3) == -n * (
+            n + 1
+        ) * (2 * n + 1)
         assert ex02_sum_by_lhopital(n, 2) == sum_k2(n)
         assert ex02_sum_by_lhopital(n, 3) == sum_k3(n)
     for n in range(1, 51):
@@ -86,7 +92,9 @@ def test_ex04_recursions_reproduce_sum_of_squares():
     y = ex04_terms_10_93(60)
     for i in range(60):
         assert x[i] == y[i] == sum_k2(i + 1)
-    assert list(ex04_cubic()) == pytest.approx([0, 1 / 6, 0.5, 1 / 3], abs=1e-12)
+    assert list(ex04_cubic()) == pytest.approx(
+        [0, 1 / 6, 0.5, 1 / 3], abs=1e-12
+    )
     P = list(EX04_RECURSION) + [-1.0]
     for z in (-1.5, 0.2, 2.0, 3.0):
         assert -polynomial_value(P, z) == pytest.approx((z - 1) ** 4, abs=1e-12)

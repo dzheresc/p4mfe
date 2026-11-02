@@ -3,10 +3,9 @@
 // zero strike, rho of a put from Put-Call parity, and the Delta of an
 // asset-or-nothing call.
 
+#include <cmath>
 #include <p4mfe/ch03/black_scholes.hpp>
 #include <p4mfe/normal.hpp>
-
-#include <cmath>
 
 namespace p4mfe::ch03::ex {
 
@@ -23,10 +22,14 @@ namespace p4mfe::ch03::ex {
 //   P = 45 e^(-0.03) N(-d2) - 50 e^(-0.01) N(-d1) = 0.675922.
 // Check with Put-Call parity: C - P = 50 e^(-0.01) - 45 e^(-0.03) = 5.832443.
 struct Ex12Market {
-    double S = 50.0, K = 45.0, T = 0.5, sigma = 0.2, r = 0.06, q = 0.02;
+  double S = 50.0, K = 45.0, T = 0.5, sigma = 0.2, r = 0.06, q = 0.02;
 };
-[[nodiscard]] inline double ex12_call(const Ex12Market& m = {}) { return bs_call(m.S, m.K, m.T, m.sigma, m.r, m.q); }
-[[nodiscard]] inline double ex12_put(const Ex12Market& m = {}) { return bs_put(m.S, m.K, m.T, m.sigma, m.r, m.q); }
+[[nodiscard]] inline double ex12_call(const Ex12Market& m = {}) {
+  return bs_call(m.S, m.K, m.T, m.sigma, m.r, m.q);
+}
+[[nodiscard]] inline double ex12_put(const Ex12Market& m = {}) {
+  return bs_put(m.S, m.K, m.T, m.sigma, m.r, m.q);
+}
 
 // ----------------------------------------------------------- Exercise 13 ---
 // What is the value of a European put option with strike K = 0? What is the
@@ -45,26 +48,33 @@ struct Ex12Market {
 // hold one share and deliver it. For q = 0: buy one share and hold it. This is
 // a static hedge (Delta = e^(-q(T-t)) at all times, Gamma = 0).
 [[nodiscard]] inline double ex13_put_zero_strike() { return 0.0; }
-[[nodiscard]] inline double ex13_call_zero_strike(double S, double T, double q = 0.0) { return S * std::exp(-q * T); }
+[[nodiscard]] inline double ex13_call_zero_strike(double S, double T,
+                                                  double q = 0.0) {
+  return S * std::exp(-q * T);
+}
 
 // ----------------------------------------------------------- Exercise 14 ---
 // Use rho(C) = K (T-t) e^(-r(T-t)) N(d2) and the Put-Call parity to obtain
 //   rho(P) = -K (T-t) e^(-r(T-t)) N(-d2).
 //
 // Put-Call parity: P = C - S e^(-q(T-t)) + K e^(-r(T-t)). The term
-// S e^(-q(T-t)) does not depend on r, and d/dr K e^(-r(T-t)) = -K (T-t) e^(-r(T-t)), so
+// S e^(-q(T-t)) does not depend on r, and d/dr K e^(-r(T-t)) = -K (T-t)
+// e^(-r(T-t)), so
 //   rho(P) = rho(C) - K (T-t) e^(-r(T-t))
 //          = K (T-t) e^(-r(T-t)) (N(d2) - 1) = -K (T-t) e^(-r(T-t)) N(-d2),
 // using 1 - N(x) = N(-x).
-[[nodiscard]] inline double ex14_rho_put_from_parity(double S, double K, double T, double sigma, double r,
-                                                     double q = 0.0) {
-    return bs_greeks(OptionType::Call, S, K, T, sigma, r, q).rho - K * T * std::exp(-r * T);
+[[nodiscard]] inline double ex14_rho_put_from_parity(double S, double K,
+                                                     double T, double sigma,
+                                                     double r, double q = 0.0) {
+  return bs_greeks(OptionType::Call, S, K, T, sigma, r, q).rho -
+         K * T * std::exp(-r * T);
 }
 
 // ----------------------------------------------------------- Exercise 15 ---
 // The value of a European asset-or-nothing call with strike K and maturity T
 // on a lognormal asset with volatility 30% paying dividends at rate q is
-//   C_AoN = S e^(-qT) N(d1),  d1 = (ln(S/K) + (r - q + sigma^2/2) T) / (sigma sqrt(T)).
+//   C_AoN = S e^(-qT) N(d1),  d1 = (ln(S/K) + (r - q + sigma^2/2) T) / (sigma
+//   sqrt(T)).
 // Find the Delta of the asset-or-nothing call.
 //
 // By the product rule, with d(d1)/dS = 1/(S sigma sqrt(T)):
@@ -73,14 +83,19 @@ struct Ex12Market {
 //   phi(d1) = e^(-d1^2/2)/sqrt(2 pi). With sigma = 0.3:
 //   Delta(C_AoN) = e^(-qT) (N(d1) + phi(d1) / (0.3 sqrt(T))).
 // The first term is the Delta of a plain call; the second, always positive,
-// comes from the jump in the payoff at K (it is K times the Delta of the cash-or-
-// nothing call K 1_{S_T > K}, since C_AoN = C + K * CashOrNothing).
-[[nodiscard]] inline double ex15_aon_call(double S, double K, double T, double sigma, double r, double q = 0.0) {
-    return S * std::exp(-q * T) * norm_cdf(bs_d1_d2(S, K, T, sigma, r, q).d1);
+// comes from the jump in the payoff at K (it is K times the Delta of the
+// cash-or- nothing call K 1_{S_T > K}, since C_AoN = C + K * CashOrNothing).
+[[nodiscard]] inline double ex15_aon_call(double S, double K, double T,
+                                          double sigma, double r,
+                                          double q = 0.0) {
+  return S * std::exp(-q * T) * norm_cdf(bs_d1_d2(S, K, T, sigma, r, q).d1);
 }
-[[nodiscard]] inline double ex15_aon_delta(double S, double K, double T, double sigma, double r, double q = 0.0) {
-    const double d1 = bs_d1_d2(S, K, T, sigma, r, q).d1;
-    return std::exp(-q * T) * (norm_cdf(d1) + norm_pdf(d1) / (sigma * std::sqrt(T)));
+[[nodiscard]] inline double ex15_aon_delta(double S, double K, double T,
+                                           double sigma, double r,
+                                           double q = 0.0) {
+  const double d1 = bs_d1_d2(S, K, T, sigma, r, q).d1;
+  return std::exp(-q * T) *
+         (norm_cdf(d1) + norm_pdf(d1) / (sigma * std::sqrt(T)));
 }
 
 }  // namespace p4mfe::ch03::ex

@@ -15,23 +15,28 @@ A waiver line is a qualified name (or a prefix of one, e.g. a namespace),
 followed by `#` and the reason. Exit status 1 if an unexecuted function is
 not waived. Overloads share a name and count as one.
 """
+
 import glob
 import json
 import re
 import sys
 
-DECL = re.compile(r"^(?:\[\[nodiscard\]\]\s*)?(?:inline\s+|constexpr\s+)*"
-                  r"(?!return\b|if\b|for\b|while\b|using\b|struct\b|class\b|enum\b|namespace\b|template\b)"
-                  r"[\w:<>,&*\s]*?\b([a-z_][a-z0-9_]*)\s*\(")
+DECL = re.compile(
+    r"^(?:\[\[nodiscard\]\]\s*)?(?:inline\s+|constexpr\s+)*"
+    r"(?!return\b|if\b|for\b|while\b|using\b|struct\b|class\b|enum\b|namespace\b|template\b)"
+    r"[\w:<>,&*\s]*?\b([a-z_][a-z0-9_]*)\s*\("
+)
 
 
 def declarations(root: str) -> list:
     """[(qualified name, header path relative to root, first line, end line)]."""
     out = []
-    for path in sorted(glob.glob(f"{root}/cpp/*/include/p4mfe/**/*.hpp", recursive=True)):
+    for path in sorted(
+        glob.glob(f"{root}/cpp/*/include/p4mfe/**/*.hpp", recursive=True)
+    ):
         if "/exercises/" in path or "/bench_support/" in path:
             continue
-        rel = path[len(root) + 1:]
+        rel = path[len(root) + 1 :]
         lines = open(path).read().splitlines()
         ns, found, boundaries = [], [], []
         for i, line in enumerate(lines, start=1):
@@ -65,7 +70,10 @@ def executed_lines(data: dict) -> dict:
     out = {}
     for f in data["files"]:
         out.setdefault(f["file"], set()).update(
-            ln["line_number"] for ln in f.get("lines", []) if ln.get("count", 0) > 0)
+            ln["line_number"]
+            for ln in f.get("lines", [])
+            if ln.get("count", 0) > 0
+        )
     return out
 
 
@@ -86,10 +94,16 @@ def main() -> int:
         prev = status.get(name, (False, rel))
         status[name] = (prev[0] or hit, prev[1])
     missing = {n: p for n, (hit, p) in status.items() if not hit}
-    waived = {n: p for n, p in missing.items() if any(n == w or n.startswith(w) for w in waivers)}
+    waived = {
+        n: p
+        for n, p in missing.items()
+        if any(n == w or n.startswith(w) for w in waivers)
+    }
     unwaived = {n: p for n, p in missing.items() if n not in waived}
-    print(f"public functions: {len(status)}; executed: {len(status) - len(missing)}; "
-          f"not executed: {len(missing)} ({len(waived)} waived)")
+    print(
+        f"public functions: {len(status)}; executed: {len(status) - len(missing)}; "
+        f"not executed: {len(missing)} ({len(waived)} waived)"
+    )
     for name, path in sorted(unwaived.items(), key=lambda x: (x[1], x[0])):
         print(f"  {path}: {name}")
     return 1 if unwaived else 0

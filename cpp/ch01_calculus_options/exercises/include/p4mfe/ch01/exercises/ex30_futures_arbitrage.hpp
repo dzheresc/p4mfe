@@ -19,32 +19,33 @@
 // (If the market price were above F, do the opposite: short futures, buy
 // e^(-qT) units of the index with borrowed money.)
 
-#include <p4mfe/ch01/forwards.hpp>
-
 #include <cmath>
 #include <optional>
+#include <p4mfe/ch01/forwards.hpp>
 
 namespace p4mfe::ch01::ex {
 
 struct FuturesArbitrage {
-    double futures;  // +1 long, -1 short
-    double units;    // index units at t = 0 (+ long, - short); |units| e^(qT) = 1 at T
-    double cash;     // lent (+) or borrowed (-) at t = 0
-    double profit;   // riskless profit at T
+  double futures;  // +1 long, -1 short
+  double
+      units;  // index units at t = 0 (+ long, - short); |units| e^(qT) = 1 at T
+  double cash;    // lent (+) or borrowed (-) at t = 0
+  double profit;  // riskless profit at T
 };
 
-[[nodiscard]] inline std::optional<FuturesArbitrage> futures_arbitrage(double S, double F_market, double T, double r,
-                                                                       double q = 0.0, double tol = 1e-9) {
-    const double F = forward_price(S, T, r, q);
-    const double gap = F - F_market;  // > 0: futures cheap
-    if (std::abs(gap) <= tol) return std::nullopt;
-    const double sign = gap > 0.0 ? 1.0 : -1.0;
-    const double units = -sign * std::exp(-q * T);
-    return FuturesArbitrage{sign, units, -units * S, std::abs(gap)};
+[[nodiscard]] inline std::optional<FuturesArbitrage> futures_arbitrage(
+    double S, double F_market, double T, double r, double q = 0.0,
+    double tol = 1e-9) {
+  const double F = forward_price(S, T, r, q);
+  const double gap = F - F_market;  // > 0: futures cheap
+  if (std::abs(gap) <= tol) return std::nullopt;
+  const double sign = gap > 0.0 ? 1.0 : -1.0;
+  const double units = -sign * std::exp(-q * T);
+  return FuturesArbitrage{sign, units, -units * S, std::abs(gap)};
 }
 
 [[nodiscard]] inline std::optional<FuturesArbitrage> ex30_arbitrage() {
-    return futures_arbitrage(12000.0, 12100.0, 0.25, 0.08, 0.03);
+  return futures_arbitrage(12000.0, 12100.0, 0.25, 0.08, 0.03);
 }
 
 }  // namespace p4mfe::ch01::ex

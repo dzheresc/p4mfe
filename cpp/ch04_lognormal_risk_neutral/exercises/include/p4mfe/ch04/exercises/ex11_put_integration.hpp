@@ -3,12 +3,11 @@
 // a finite interval, priced with the Midpoint and Simpson's rules and checked
 // against Black-Scholes.
 
+#include <cmath>
+#include <cstddef>
 #include <p4mfe/ch02/integration.hpp>
 #include <p4mfe/ch03/black_scholes.hpp>
 #include <p4mfe/ch04/asset_model.hpp>
-
-#include <cmath>
-#include <cstddef>
 #include <vector>
 
 namespace p4mfe::ch04::ex {
@@ -26,7 +25,8 @@ namespace p4mfe::ch04::ex {
 // and 9; every function takes the market as a parameter.
 //
 // Under the risk-neutral measure S_T is lognormal with density
-//   f(x) = 1/(x sigma sqrt(2 pi T)) exp(-(ln(x/S_0) - (r - q - sigma^2/2) T)^2 / (2 sigma^2 T)), x > 0.
+//   f(x) = 1/(x sigma sqrt(2 pi T)) exp(-(ln(x/S_0) - (r - q - sigma^2/2) T)^2
+//   / (2 sigma^2 T)), x > 0.
 // The payoff (K - x)^+ vanishes for x >= K, so
 //   P = e^(-rT) E_RN[(K - S_T)^+] = e^(-rT) Integral_0^K (K - x) f(x) dx,
 // an integral over the finite interval [0, K]. The integrand is smooth on
@@ -45,35 +45,41 @@ namespace p4mfe::ch04::ex {
 // already within 5e-7 of P_BS at n = 2048, but the stopping test compares
 // successive approximations, which is all one can do without P_BS.)
 struct Ex11Market {
-    double S0 = 50.0, K = 50.0, T = 0.5, sigma = 0.3, r = 0.04, q = 0.02;
+  double S0 = 50.0, K = 50.0, T = 0.5, sigma = 0.3, r = 0.04, q = 0.02;
 };
 // e^(-rT) (K - x) f(x), the integrand on [0, K].
 [[nodiscard]] inline double ex11_integrand(double x, const Ex11Market& m = {}) {
-    return std::exp(-m.r * m.T) * (m.K - x) * price_pdf(x, m.S0, m.T, m.sigma, m.r, m.q);
+  return std::exp(-m.r * m.T) * (m.K - x) *
+         price_pdf(x, m.S0, m.T, m.sigma, m.r, m.q);
 }
 [[nodiscard]] inline double ex11_put_bs(const Ex11Market& m = {}) {
-    return ch03::bs_put(m.S0, m.K, m.T, m.sigma, m.r, m.q);
+  return ch03::bs_put(m.S0, m.K, m.T, m.sigma, m.r, m.q);
 }
-[[nodiscard]] inline double ex11_put_numeric(std::size_t n, ch02::Rule rule, const Ex11Market& m = {}) {
-    return ch02::integrate([&](double x) { return ex11_integrand(x, m); }, 0.0, m.K, n, rule);
+[[nodiscard]] inline double ex11_put_numeric(std::size_t n, ch02::Rule rule,
+                                             const Ex11Market& m = {}) {
+  return ch02::integrate([&](double x) { return ex11_integrand(x, m); }, 0.0,
+                         m.K, n, rule);
 }
 struct Ex11Step {
-    std::size_t n;
-    double value;
-    double error;  // value - P_BS
+  std::size_t n;
+  double value;
+  double error;  // value - P_BS
 };
 // Every approximation of the run n = n0, 2 n0, ..., up to the first n with
 // |I_n - I_(n/2)| < tol; the last entry is the accepted value.
-[[nodiscard]] inline std::vector<Ex11Step> ex11_run(ch02::Rule rule, double tol = 5e-7, std::size_t n0 = 4,
+[[nodiscard]] inline std::vector<Ex11Step> ex11_run(ch02::Rule rule,
+                                                    double tol = 5e-7,
+                                                    std::size_t n0 = 4,
                                                     const Ex11Market& m = {}) {
-    const double exact = ex11_put_bs(m);
-    std::vector<Ex11Step> steps;
-    for (std::size_t n = n0; n <= (std::size_t{1} << 24); n *= 2) {
-        const double v = ex11_put_numeric(n, rule, m);
-        steps.push_back({n, v, v - exact});
-        if (steps.size() > 1 && std::abs(v - steps[steps.size() - 2].value) < tol) break;
-    }
-    return steps;
+  const double exact = ex11_put_bs(m);
+  std::vector<Ex11Step> steps;
+  for (std::size_t n = n0; n <= (std::size_t{1} << 24); n *= 2) {
+    const double v = ex11_put_numeric(n, rule, m);
+    steps.push_back({n, v, v - exact});
+    if (steps.size() > 1 && std::abs(v - steps[steps.size() - 2].value) < tol)
+      break;
+  }
+  return steps;
 }
 
 }  // namespace p4mfe::ch04::ex

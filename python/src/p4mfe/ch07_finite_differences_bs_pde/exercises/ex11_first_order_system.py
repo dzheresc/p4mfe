@@ -52,4 +52,6 @@ def ex11_ode_residual(s: Ex11Solution, k: int) -> float:
     """y'' - 2y' + x^2 y at node k, derivatives of the first component by central differences."""
     h = s.x[1] - s.x[0]
     ym, y, yp = s.Y[k - 1, 0], s.Y[k, 0], s.Y[k + 1, 0]
-    return float((yp - 2 * y + ym) / h**2 - 2 * (yp - ym) / (2 * h) + s.x[k] ** 2 * y)
+    return float(
+        (yp - 2 * y + ym) / h**2 - 2 * (yp - ym) / (2 * h) + s.x[k] ** 2 * y
+    )

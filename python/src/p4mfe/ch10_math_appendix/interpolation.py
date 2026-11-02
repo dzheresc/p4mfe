@@ -40,12 +40,16 @@ def lagrange_basis(xs: Sequence[float], i: int, x: float) -> float:
     return v
 
 
-def lagrange_interpolate(xs: Sequence[float], ys: Sequence[float], x: float) -> float:
+def lagrange_interpolate(
+    xs: Sequence[float], ys: Sequence[float], x: float
+) -> float:
     _check_nodes(xs, len(ys))
     return sum(y * lagrange_basis(xs, i, x) for i, y in enumerate(ys))
 
 
-def divided_differences(xs: Sequence[float], ys: Sequence[float]) -> list[float]:
+def divided_differences(
+    xs: Sequence[float], ys: Sequence[float]
+) -> list[float]:
     """Newton coefficients c_k = f[x_0, ..., x_k]."""
     _check_nodes(xs, len(ys))
     c = [float(y) for y in ys]
@@ -56,7 +60,9 @@ def divided_differences(xs: Sequence[float], ys: Sequence[float]) -> list[float]
     return c
 
 
-def newton_interpolate(xs: Sequence[float], c: Sequence[float], x: float) -> float:
+def newton_interpolate(
+    xs: Sequence[float], c: Sequence[float], x: float
+) -> float:
     if len(c) == 0 or len(c) > len(xs):
         raise ValueError("size mismatch")
     v = c[-1]
@@ -65,7 +71,9 @@ def newton_interpolate(xs: Sequence[float], c: Sequence[float], x: float) -> flo
     return v
 
 
-def interpolating_polynomial(xs: Sequence[float], ys: Sequence[float]) -> np.ndarray:
+def interpolating_polynomial(
+    xs: Sequence[float], ys: Sequence[float]
+) -> np.ndarray:
     """Monomial coefficients a_0..a_n (Vandermonde system; small n only)."""
     _check_nodes(xs, len(ys))
     V = np.vander(np.asarray(xs, float), increasing=True)

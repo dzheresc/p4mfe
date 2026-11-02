@@ -24,7 +24,11 @@ class Ex10System:
     rhs: np.ndarray
 
     def matrix(self) -> np.ndarray:
-        return np.diag(self.diag) + np.diag(self.lower[1:], -1) + np.diag(self.upper[:-1], 1)
+        return (
+            np.diag(self.diag)
+            + np.diag(self.lower[1:], -1)
+            + np.diag(self.upper[:-1], 1)
+        )
 
 
 def ex10_row(i: float) -> tuple[float, float, float]:
@@ -35,7 +39,9 @@ def ex10_system(n: int, y0: float = 1.0, yn: float = 0.5) -> Ex10System:
     if n < 2:
         raise ValueError("need n >= 2")
     rows = np.array([ex10_row(i) for i in range(1, n)], dtype=float)
-    s = Ex10System(rows[:, 0].copy(), rows[:, 1].copy(), rows[:, 2].copy(), np.zeros(n - 1))
+    s = Ex10System(
+        rows[:, 0].copy(), rows[:, 1].copy(), rows[:, 2].copy(), np.zeros(n - 1)
+    )
     s.rhs[0] -= s.lower[0] * y0
     s.rhs[-1] -= s.upper[-1] * yn
     s.lower[0] = 0.0

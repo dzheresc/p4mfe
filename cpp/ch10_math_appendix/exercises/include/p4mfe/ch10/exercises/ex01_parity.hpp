@@ -1,10 +1,9 @@
 #pragma once
 // Exercise 1 (section 10.10): parity of x^i f(x^j) for an odd function f.
 
-#include <p4mfe/ch10/parity.hpp>
-
 #include <cmath>
 #include <concepts>
+#include <p4mfe/ch10/parity.hpp>
 
 namespace p4mfe::ch10::ex {
 
@@ -23,7 +22,8 @@ namespace p4mfe::ch10::ex {
 // if i + j is odd and even if i + j is even.
 //   (-x)^j = (-1)^j x^j, and f(-y) = -f(y), i.e. f((-1)^j y) = (-1)^j f(y)
 // (for j even trivially, for j odd by oddness). Hence
-//   h(-x) = (-1)^i x^i f((-1)^j x^j) = (-1)^i x^i (-1)^j f(x^j) = (-1)^(i+j) h(x).
+//   h(-x) = (-1)^i x^i f((-1)^j x^j) = (-1)^i x^i (-1)^j f(x^j) = (-1)^(i+j)
+//   h(x).
 // So h is even when i + j is even and odd when i + j is odd. Parts (i) and
 // (ii) are the cases (i, j) = (1, 1), (2, 1), (0, 2), (0, 3); the argument
 // works for i = 0 as well.
@@ -31,12 +31,14 @@ namespace p4mfe::ch10::ex {
 // h(x) = x^i f(x^j).
 template <std::invocable<double> F>
 [[nodiscard]] double ex01_h(F&& f, unsigned i, unsigned j, double x) {
-    return std::pow(x, static_cast<double>(i)) * f(std::pow(x, static_cast<double>(j)));
+  return std::pow(x, static_cast<double>(i)) *
+         f(std::pow(x, static_cast<double>(j)));
 }
 
 // The parity predicted by (iii): (-1)^(i+j).
-[[nodiscard]] constexpr Parity ex01_predicted_parity(unsigned i, unsigned j) noexcept {
-    return (i + j) % 2 == 0 ? Parity::Even : Parity::Odd;
+[[nodiscard]] constexpr Parity ex01_predicted_parity(unsigned i,
+                                                     unsigned j) noexcept {
+  return (i + j) % 2 == 0 ? Parity::Even : Parity::Odd;
 }
 
 }  // namespace p4mfe::ch10::ex

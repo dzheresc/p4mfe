@@ -23,12 +23,22 @@ def atm_price_approx(S: float, T: float, sigma: float) -> float:
     return sigma * S * math.sqrt(T) * _INV_SQRT_2PI
 
 
-def atm_call_approx(S: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
-    return atm_price_approx(S, T, sigma) * (1 - 0.5 * (r + q) * T) + 0.5 * (r - q) * T * S
+def atm_call_approx(
+    S: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
+    return (
+        atm_price_approx(S, T, sigma) * (1 - 0.5 * (r + q) * T)
+        + 0.5 * (r - q) * T * S
+    )
 
 
-def atm_put_approx(S: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
-    return atm_price_approx(S, T, sigma) * (1 - 0.5 * (r + q) * T) - 0.5 * (r - q) * T * S
+def atm_put_approx(
+    S: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
+    return (
+        atm_price_approx(S, T, sigma) * (1 - 0.5 * (r + q) * T)
+        - 0.5 * (r - q) * T * S
+    )
 
 
 def atm_implied_vol_approx(price: float, S: float, T: float) -> float:
@@ -37,7 +47,9 @@ def atm_implied_vol_approx(price: float, S: float, T: float) -> float:
     return price / (S * math.sqrt(T) * _INV_SQRT_2PI)
 
 
-def atm_greeks_approx(option_type: OptionType, S: float, T: float, sigma: float) -> Greeks:
+def atm_greeks_approx(
+    option_type: OptionType, S: float, T: float, sigma: float
+) -> Greeks:
     """First order in sigma sqrt(T), r = q = 0; see the C++ header."""
     sT = sigma * math.sqrt(T)
     half_d = 0.5 * sT * _INV_SQRT_2PI
@@ -60,9 +72,13 @@ def norm_cdf_linear(x: float) -> float:
     return 0.5 + x * _INV_SQRT_2PI
 
 
-def atm_call_linearized(S: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+def atm_call_linearized(
+    S: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
     d1, d2 = bs_d1_d2(S, S, T, sigma, r, q)
-    return S * math.exp(-q * T) * norm_cdf_linear(d1) - S * math.exp(-r * T) * norm_cdf_linear(d2)
+    return S * math.exp(-q * T) * norm_cdf_linear(d1) - S * math.exp(
+        -r * T
+    ) * norm_cdf_linear(d2)
 
 
 # 6.8.3 ---------------------------------------------------------------------

@@ -25,8 +25,14 @@ def independent_joint_pdf(f_X: ArrayFn, f_Y: ArrayFn) -> Callable:
     return lambda x, y: f_X(x) * f_Y(y)
 
 
-def sum_pdf(f_X: ArrayFn, f_Y: ArrayFn, z: float, lo: float = -math.inf, hi: float = math.inf,
-            tol: float = 1e-10) -> float:
+def sum_pdf(
+    f_X: ArrayFn,
+    f_Y: ArrayFn,
+    z: float,
+    lo: float = -math.inf,
+    hi: float = math.inf,
+    tol: float = 1e-10,
+) -> float:
     """f_{X+Y}(z) = int_lo^hi f_X(x) f_Y(z - x) dx; [lo, hi] is where the
     integrand can be nonzero (pass it for densities with bounded support)."""
     if not lo < hi:
@@ -35,7 +41,9 @@ def sum_pdf(f_X: ArrayFn, f_Y: ArrayFn, z: float, lo: float = -math.inf, hi: flo
 
 
 # 4.3.1 ---------------------------------------------------------------------
-def independent_normal_combination(a: Sequence[float], X: Sequence[NormalParams]) -> NormalParams:
+def independent_normal_combination(
+    a: Sequence[float], X: Sequence[NormalParams]
+) -> NormalParams:
     """sum a_i X_i: mean sum a_i mu_i, variance sum a_i^2 sigma_i^2."""
     if len(a) != len(X):
         raise ValueError("sizes differ")
@@ -50,10 +58,14 @@ def independent_normal_sum(X: Sequence[NormalParams]) -> NormalParams:
 
 
 # 4.3.2 ---------------------------------------------------------------------
-def independent_lognormal_product(log_Y: Sequence[NormalParams], a: Sequence[float] | None = None) -> NormalParams:
+def independent_lognormal_product(
+    log_Y: Sequence[NormalParams], a: Sequence[float] | None = None
+) -> NormalParams:
     """prod Y_i^(a_i) (a_i = 1 by default) for independent lognormal Y_i given
     by the normal parameters of ln(Y_i); returns those of ln(product)."""
-    return independent_normal_combination([1.0] * len(log_Y) if a is None else a, log_Y)
+    return independent_normal_combination(
+        [1.0] * len(log_Y) if a is None else a, log_Y
+    )
 
 
 __all__ = [

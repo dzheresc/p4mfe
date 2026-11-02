@@ -30,7 +30,9 @@ def ex10_moment(n: int) -> float:
 
 def ex10_moment_numerical(n: int, tol: float = 1e-11) -> float:
     """After x = e^(-s): -int_0^inf s e^(-(n+1) s) ds."""
-    return improper_integral(lambda s: -s * np.exp(-(n + 1) * s), 0.0, math.inf, tol).value
+    return improper_integral(
+        lambda s: -s * np.exp(-(n + 1) * s), 0.0, math.inf, tol
+    ).value
 
 
 def ex10_partial_sum(N: int) -> float:

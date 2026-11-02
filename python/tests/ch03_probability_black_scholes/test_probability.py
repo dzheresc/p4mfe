@@ -26,10 +26,15 @@ def test_fair_die():
     die = DiscreteDistribution([1, 2, 3, 4, 5, 6], [1 / 6] * 6)
     assert die.mean() == pytest.approx(3.5, abs=1e-14)
     assert die.variance() == pytest.approx(35 / 12, abs=1e-14)
-    assert die.expected_value(lambda x: x * x) - 3.5**2 == pytest.approx(35 / 12, abs=1e-13)
+    assert die.expected_value(lambda x: x * x) - 3.5**2 == pytest.approx(
+        35 / 12, abs=1e-13
+    )
 
 
-@pytest.mark.parametrize("values,probs", [([1, 2], [0.5, 0.6]), ([1, 2], [1.5, -0.5]), ([1, 2], [1.0])])
+@pytest.mark.parametrize(
+    "values,probs",
+    [([1, 2], [0.5, 0.6]), ([1, 2], [1.5, -0.5]), ([1, 2], [1.0])],
+)
 def test_discrete_rejects_bad_probabilities(values, probs):
     with pytest.raises(ValueError):
         DiscreteDistribution(values, probs)
@@ -38,7 +43,9 @@ def test_discrete_rejects_bad_probabilities(values, probs):
 def test_exponential():
     lam = 2.0
     X = exponential_distribution(lam)
-    assert X.expected_value(lambda x: np.ones_like(x)) == pytest.approx(1.0, abs=1e-8)
+    assert X.expected_value(lambda x: np.ones_like(x)) == pytest.approx(
+        1.0, abs=1e-8
+    )
     assert X.mean() == pytest.approx(1 / lam, abs=1e-8)
     assert X.variance() == pytest.approx(1 / lam**2, abs=1e-8)
     assert X.cdf(1.0) == pytest.approx(1 - math.exp(-lam), abs=1e-8)
@@ -50,11 +57,17 @@ def test_standard_normal_moments():
     assert Z.mean() == pytest.approx(0.0, abs=1e-9)
     assert Z.variance() == pytest.approx(1.0, abs=1e-8)
     assert Z.cdf(1.0) == pytest.approx(norm_cdf(1.0), abs=1e-8)
-    assert Z.expected_value(lambda x: np.exp(0.5 * x)) == pytest.approx(std_normal_mgf(0.5), abs=1e-8)
+    assert Z.expected_value(lambda x: np.exp(0.5 * x)) == pytest.approx(
+        std_normal_mgf(0.5), abs=1e-8
+    )
 
 
 def test_joint_covariance_correlation():
-    joint = [JointOutcome(0, 1, 1 / 3), JointOutcome(1, 3, 1 / 3), JointOutcome(2, 5, 1 / 3)]
+    joint = [
+        JointOutcome(0, 1, 1 / 3),
+        JointOutcome(1, 3, 1 / 3),
+        JointOutcome(2, 5, 1 / 3),
+    ]
     assert covariance(joint) == pytest.approx(4 / 3, abs=1e-14)
     assert correlation(joint) == pytest.approx(1.0, abs=1e-14)
     coins = [JointOutcome(x, y, 0.25) for x in (0, 1) for y in (0, 1)]
@@ -75,4 +88,6 @@ def test_sample_estimators():
     assert sample_correlation(x, [-v for v in x]) == pytest.approx(-1.0)
     rng = np.random.default_rng(0)
     a = rng.standard_normal(1000)
-    np.testing.assert_allclose(sample_covariance(a, 2 * a), np.cov(a, 2 * a)[0, 1])
+    np.testing.assert_allclose(
+        sample_covariance(a, 2 * a), np.cov(a, 2 * a)[0, 1]
+    )

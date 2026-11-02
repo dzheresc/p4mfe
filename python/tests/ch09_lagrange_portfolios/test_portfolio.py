@@ -27,7 +27,9 @@ from p4mfe.ch09_lagrange_portfolios.portfolio import (
 )
 
 MU = np.array([0.08, 0.12, 0.15])
-SIGMA = covariance_matrix([0.15, 0.20, 0.30], [[1.0, 0.3, 0.1], [0.3, 1.0, 0.4], [0.1, 0.4, 1.0]])
+SIGMA = covariance_matrix(
+    [0.15, 0.20, 0.30], [[1.0, 0.3, 0.1], [0.3, 1.0, 0.4], [0.1, 0.4, 1.0]]
+)
 
 
 # 9.2 -----------------------------------------------------------------------
@@ -61,7 +63,9 @@ def test_min_variance(target):
     w = min_variance_portfolio(MU, SIGMA, target)
     assert w.sum() == pytest.approx(1)
     assert portfolio_mean(w, MU) == pytest.approx(target)
-    assert portfolio_variance(w, SIGMA) == pytest.approx(frontier_variance(MU, SIGMA, target))
+    assert portfolio_variance(w, SIGMA) == pytest.approx(
+        frontier_variance(MU, SIGMA, target)
+    )
 
     def var(x):
         return portfolio_variance(x, SIGMA)
@@ -71,27 +75,44 @@ def test_min_variance(target):
 
     r = lagrange_stationary_point(var, cons, [1 / 3] * 3)
     assert r.x == pytest.approx(w, abs=1e-7)
-    assert classify_constrained(var, cons, r.x, r.lam) is CriticalPointType.MINIMUM
+    assert (
+        classify_constrained(var, cons, r.x, r.lam) is CriticalPointType.MINIMUM
+    )
 
 
 def test_two_fund_separation():
-    w1, w2 = min_variance_portfolio(MU, SIGMA, 0.1), min_variance_portfolio(MU, SIGMA, 0.2)
-    assert min_variance_portfolio(MU, SIGMA, 0.13) == pytest.approx(0.7 * w1 + 0.3 * w2)
+    w1, w2 = min_variance_portfolio(MU, SIGMA, 0.1), min_variance_portfolio(
+        MU, SIGMA, 0.2
+    )
+    assert min_variance_portfolio(MU, SIGMA, 0.13) == pytest.approx(
+        0.7 * w1 + 0.3 * w2
+    )
 
 
 def test_with_cash():
     rf = 0.03
     t = tangency_portfolio(MU, SIGMA, rf)
     assert t.sum() == pytest.approx(1)
-    assert portfolio_variance(t, SIGMA) == pytest.approx(frontier_variance(MU, SIGMA, portfolio_mean(t, MU)))
+    assert portfolio_variance(t, SIGMA) == pytest.approx(
+        frontier_variance(MU, SIGMA, portfolio_mean(t, MU))
+    )
     for target in (0.06, 0.1, 0.14, 0.2):
-        assert sharpe_ratio(min_variance_portfolio(MU, SIGMA, target), MU, SIGMA, rf) <= \
-            sharpe_ratio(t, MU, SIGMA, rf) + 1e-12
+        assert (
+            sharpe_ratio(
+                min_variance_portfolio(MU, SIGMA, target), MU, SIGMA, rf
+            )
+            <= sharpe_ratio(t, MU, SIGMA, rf) + 1e-12
+        )
     for target in (0.05, 0.1, 0.2):
         w = min_variance_portfolio_with_cash(MU, SIGMA, rf, target)
-        assert rf * (1 - w.sum()) + portfolio_mean(w, MU) == pytest.approx(target)
+        assert rf * (1 - w.sum()) + portfolio_mean(w, MU) == pytest.approx(
+            target
+        )
         assert w / w.sum() == pytest.approx(t)
-        assert portfolio_variance(w, SIGMA) <= frontier_variance(MU, SIGMA, target) + 1e-15
+        assert (
+            portfolio_variance(w, SIGMA)
+            <= frontier_variance(MU, SIGMA, target) + 1e-15
+        )
 
 
 # 9.4 -----------------------------------------------------------------------
@@ -112,7 +133,9 @@ def test_max_return(s):
 
     r = lagrange_stationary_point(ret, cons, w + np.array([0.02, -0.02, 0.0]))
     assert ret(r.x) == pytest.approx(m, abs=1e-8)
-    assert classify_constrained(ret, cons, r.x, r.lam) is CriticalPointType.MAXIMUM
+    assert (
+        classify_constrained(ret, cons, r.x, r.lam) is CriticalPointType.MAXIMUM
+    )
 
 
 def test_max_return_errors_and_cash():

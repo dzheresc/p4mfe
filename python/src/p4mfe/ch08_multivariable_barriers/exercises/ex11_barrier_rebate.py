@@ -19,12 +19,22 @@ from p4mfe.normal import norm_cdf
 from .ex09_10_heat_change_of_variables import ex09_coefficients
 
 
-def ex11_u_boundary(tau: float, B: float, K: float, R: float, sigma: float, r: float, q: float = 0.0) -> float:
+def ex11_u_boundary(
+    tau: float,
+    B: float,
+    K: float,
+    R: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
+) -> float:
     c = ex09_coefficients(sigma, r, q)
     return R * (B / K) ** c.a * math.exp(c.b * tau)
 
 
-def ex11_rebate_value(S: float, B: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+def ex11_rebate_value(
+    S: float, B: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
     """Value of 1 paid when S first hits B < S, if before T."""
     if S <= B:
         return 1.0
@@ -33,16 +43,37 @@ def ex11_rebate_value(S: float, B: float, T: float, sigma: float, r: float, q: f
         raise ValueError("needs a^2 + 2r/sigma^2 >= 0")
     l, st, h = math.sqrt(c.b), sigma * math.sqrt(T), math.log(B / S)
     z = h / st + l * st
-    return math.exp((c.a + l) * h) * norm_cdf(z) + math.exp((c.a - l) * h) * norm_cdf(z - 2 * l * st)
+    return math.exp((c.a + l) * h) * norm_cdf(z) + math.exp(
+        (c.a - l) * h
+    ) * norm_cdf(z - 2 * l * st)
 
 
-def ex11_down_and_out_call_with_rebate(S: float, K: float, B: float, R: float, T: float, sigma: float, r: float,
-                                       q: float = 0.0) -> float:
-    return down_and_out_call(S, K, B, T, sigma, r, q) + R * ex11_rebate_value(S, B, T, sigma, r, q)
+def ex11_down_and_out_call_with_rebate(
+    S: float,
+    K: float,
+    B: float,
+    R: float,
+    T: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
+) -> float:
+    return down_and_out_call(S, K, B, T, sigma, r, q) + R * ex11_rebate_value(
+        S, B, T, sigma, r, q
+    )
 
 
-def ex11_heat_fd(S: float, K: float, B: float, R: float, T: float, sigma: float, r: float, q: float = 0.0,
-                 nx: int = 400) -> float:
+def ex11_heat_fd(
+    S: float,
+    K: float,
+    B: float,
+    R: float,
+    T: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
+    nx: int = 400,
+) -> float:
     if not (B < S and B < K):
         raise ValueError("need B < S and B < K")
     c = ex09_coefficients(sigma, r, q)
@@ -58,9 +89,19 @@ def ex11_heat_fd(S: float, K: float, B: float, R: float, T: float, sigma: float,
 
     def right(tau):
         th = 2 * tau / sigma**2
-        return math.exp(c.a * x_max + c.b * tau) * (S_max * math.exp(-q * th) - K * math.exp(-r * th))
+        return math.exp(c.a * x_max + c.b * tau) * (
+            S_max * math.exp(-q * th) - K * math.exp(-r * th)
+        )
 
-    g = solve_heat_explicit(u0, lambda tau: ex11_u_boundary(tau, B, K, R, sigma, r, q), right, x_min, x_max,
-                            tau_final, nx, nt)
+    g = solve_heat_explicit(
+        u0,
+        lambda tau: ex11_u_boundary(tau, B, K, R, sigma, r, q),
+        right,
+        x_min,
+        x_max,
+        tau_final,
+        nx,
+        nt,
+    )
     x = math.log(S / K)
     return float(math.exp(-c.a * x - c.b * tau_final) * np.interp(x, g.x, g.u))

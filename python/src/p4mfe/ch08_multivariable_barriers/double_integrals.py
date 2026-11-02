@@ -18,21 +18,48 @@ Fn2 = Callable[[float, np.ndarray], np.ndarray]
 
 
 # 8.2 -----------------------------------------------------------------------
-def double_integral(f: Fn2, a: float, b: float, c: float, d: float, nx: int = 200, ny: int = 200,
-                    rule: Rule = Rule.SIMPSON) -> float:
+def double_integral(
+    f: Fn2,
+    a: float,
+    b: float,
+    c: float,
+    d: float,
+    nx: int = 200,
+    ny: int = 200,
+    rule: Rule = Rule.SIMPSON,
+) -> float:
     """int_a^b int_c^d f(x, y) dy dx."""
+
     def inner(xs):
-        return np.array([integrate(lambda y: f(x, y), c, d, ny, rule) for x in np.atleast_1d(xs)])
+        return np.array(
+            [
+                integrate(lambda y: f(x, y), c, d, ny, rule)
+                for x in np.atleast_1d(xs)
+            ]
+        )
 
     return integrate(inner, a, b, nx, rule)
 
 
-def double_integral_region(f: Fn2, a: float, b: float, y_lo: Callable[[float], float],
-                           y_hi: Callable[[float], float], nx: int = 200, ny: int = 200,
-                           rule: Rule = Rule.SIMPSON) -> float:
+def double_integral_region(
+    f: Fn2,
+    a: float,
+    b: float,
+    y_lo: Callable[[float], float],
+    y_hi: Callable[[float], float],
+    nx: int = 200,
+    ny: int = 200,
+    rule: Rule = Rule.SIMPSON,
+) -> float:
     """int_a^b int_{y_lo(x)}^{y_hi(x)} f(x, y) dy dx."""
+
     def inner(xs):
-        return np.array([integrate(lambda y: f(x, y), y_lo(x), y_hi(x), ny, rule) for x in np.atleast_1d(xs)])
+        return np.array(
+            [
+                integrate(lambda y: f(x, y), y_lo(x), y_hi(x), ny, rule)
+                for x in np.atleast_1d(xs)
+            ]
+        )
 
     return integrate(inner, a, b, nx, rule)
 
@@ -49,8 +76,16 @@ def jacobian_determinant(T: Callable, u, v):
     return np.abs(xu * yv - xv * yu)
 
 
-def change_of_variables_integral(f: Fn2, T: Callable, u0: float, u1: float, v0: float, v1: float,
-                                 nu: int = 200, nv: int = 200) -> float:
+def change_of_variables_integral(
+    f: Fn2,
+    T: Callable,
+    u0: float,
+    u1: float,
+    v0: float,
+    v1: float,
+    nu: int = 200,
+    nv: int = 200,
+) -> float:
     def g(u, v):
         x, y = T(u, v)
         return f(x, y) * jacobian_determinant(T, u, v)
@@ -63,9 +98,17 @@ def from_polar(r, theta):
     return r * np.cos(theta), r * np.sin(theta)
 
 
-def polar_integral(f: Fn2, r0: float, r1: float, theta0: float = 0.0, theta1: float = 2 * math.pi,
-                   nr: int = 200, ntheta: int = 200) -> float:
+def polar_integral(
+    f: Fn2,
+    r0: float,
+    r1: float,
+    theta0: float = 0.0,
+    theta1: float = 2 * math.pi,
+    nr: int = 200,
+    ntheta: int = 200,
+) -> float:
     """int int f(r cos theta, r sin theta) r dr dtheta."""
+
     def g(r, theta):
         x, y = from_polar(r, theta)
         return f(x, y) * r

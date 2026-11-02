@@ -47,7 +47,10 @@ def test_ex15():
 
 @pytest.mark.parametrize("y", [0.02, 0.06, 0.12])
 def test_ex16(y):
-    ms = [ex16_metrics(10.0, c, 2, y) for c in (0.0, 0.01, 0.03, 0.05, 0.08, 0.15, 0.5)]
+    ms = [
+        ex16_metrics(10.0, c, 2, y)
+        for c in (0.0, 0.01, 0.03, 0.05, 0.08, 0.15, 0.5)
+    ]
     assert all(a.price < b.price for a, b in zip(ms, ms[1:]))
     assert all(a.duration > b.duration for a, b in zip(ms, ms[1:]))
     assert ms[0].duration == pytest.approx(10.0)
@@ -61,7 +64,9 @@ def test_ex17():
     for y in (0.01, 0.05, 0.1):
         m = bond_metrics(cf, y)
         assert (m.duration, m.convexity) == pytest.approx((10.0, 100.0))
-        assert bond_price(cf, y + 0.001) / m.price - 1 == pytest.approx(ex17_exact_relative_change(), abs=1e-14)
+        assert bond_price(cf, y + 0.001) / m.price - 1 == pytest.approx(
+            ex17_exact_relative_change(), abs=1e-14
+        )
 
 
 def test_ex18():
@@ -71,12 +76,21 @@ def test_ex18():
     m = bond_metrics(cf, y)
     true_price = bond_price(cf, y - 0.005)
     assert true_price > ex18_new_price(m.price, m.duration, -0.005)
-    assert true_price == pytest.approx(price_approx_duration_convexity(m.price, m.duration, m.convexity, -0.005), abs=1e-3)
+    assert true_price == pytest.approx(
+        price_approx_duration_convexity(
+            m.price, m.duration, m.convexity, -0.005
+        ),
+        abs=1e-3,
+    )
 
 
 def test_ex19():
-    for cf in (bond_cash_flows(2.5, 0.06, 2), bond_cash_flows(14 / 12, 0.08, 4),
-               bond_cash_flows(30.0, 0.04, 2), bond_cash_flows(7.0, 0.0, 1)):
+    for cf in (
+        bond_cash_flows(2.5, 0.06, 2),
+        bond_cash_flows(14 / 12, 0.08, 4),
+        bond_cash_flows(30.0, 0.04, 2),
+        bond_cash_flows(7.0, 0.0, 1),
+    ):
         for y in (0.01, 0.05, 0.09):
             m = bond_metrics(cf, y)
             slope = ex19_duration_slope(cf, y)

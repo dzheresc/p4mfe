@@ -2,9 +2,8 @@
 // Exercises 25-27 (section 1.12): stock vs. calls, replicating a
 // piecewise-linear payoff, and synthesizing a range digital with calls.
 
-#include <p4mfe/ch01/exercises/portfolio.hpp>
-
 #include <algorithm>
+#include <p4mfe/ch01/exercises/portfolio.hpp>
 #include <span>
 #include <stdexcept>
 
@@ -27,12 +26,15 @@ namespace p4mfe::ch01::ex {
 // return if the view is right, total loss if S(T) <= 35.
 inline constexpr double ex25_spot = 35.0;
 inline constexpr double ex25_call_price = 4.0;
-[[nodiscard]] inline double ex25_stock_return(double ST) { return ST / ex25_spot - 1.0; }
+[[nodiscard]] inline double ex25_stock_return(double ST) {
+  return ST / ex25_spot - 1.0;
+}
 [[nodiscard]] inline double ex25_call_return(double ST) {
-    return std::max(ST - ex25_spot, 0.0) / ex25_call_price - 1.0;
+  return std::max(ST - ex25_spot, 0.0) / ex25_call_price - 1.0;
 }
 // Crossover where both returns agree: S = S0^2 / (S0 - c) = 1225/31.
-inline constexpr double ex25_crossover = ex25_spot * ex25_spot / (ex25_spot - ex25_call_price);
+inline constexpr double ex25_crossover =
+    ex25_spot * ex25_spot / (ex25_spot - ex25_call_price);
 
 // ----------------------------------------------------------- Exercise 26 ---
 // Build, from plain vanilla options with maturity T, cash, and the asset
@@ -45,34 +47,38 @@ inline constexpr double ex25_crossover = ex25_spot * ex25_spot / (ex25_spot - ex
 // linear with V(0) = 0 and slopes 2, -1, 1. Start with V(0) in cash and the
 // first slope in shares, then add (new slope - old slope) calls at each kink:
 //   V(T) = 2 S(T) - 3 (S(T) - 20)^+ + 2 (S(T) - 40)^+,
-// i.e. long 2 shares, short 3 calls with strike 20, long 2 calls with strike 40.
-// Check: S = 30: 60 - 30 = 30 = 60 - 30; S = 50: 100 - 90 + 20 = 30 = 50 - 20.
+// i.e. long 2 shares, short 3 calls with strike 20, long 2 calls with
+// strike 40. Check: S = 30: 60 - 30 = 30 = 60 - 30; S = 50: 100 - 90 + 20 = 30
+// = 50 - 20.
 //
 // replicate_piecewise_linear does this for any continuous piecewise-linear
 // payoff on [0, inf): v0 = V(0), slopes[i] on the i-th piece, kinks[i]
 // separating piece i from piece i + 1 (so slopes.size() == kinks.size() + 1).
-[[nodiscard]] inline Portfolio replicate_piecewise_linear(double v0, std::span<const double> slopes,
-                                                          std::span<const double> kinks) {
-    if (slopes.size() != kinks.size() + 1)
-        throw std::invalid_argument("replicate_piecewise_linear: need one more slope than kinks");
-    if (!std::is_sorted(kinks.begin(), kinks.end()))
-        throw std::invalid_argument("replicate_piecewise_linear: kinks must be increasing");
-    Portfolio p{v0, slopes[0], {}};
-    for (std::size_t i = 0; i < kinks.size(); ++i)
-        if (const double dq = slopes[i + 1] - slopes[i]; dq != 0.0) p.options.push_back(call(kinks[i], dq));
-    return p;
+[[nodiscard]] inline Portfolio replicate_piecewise_linear(
+    double v0, std::span<const double> slopes, std::span<const double> kinks) {
+  if (slopes.size() != kinks.size() + 1)
+    throw std::invalid_argument(
+        "replicate_piecewise_linear: need one more slope than kinks");
+  if (!std::is_sorted(kinks.begin(), kinks.end()))
+    throw std::invalid_argument(
+        "replicate_piecewise_linear: kinks must be increasing");
+  Portfolio p{v0, slopes[0], {}};
+  for (std::size_t i = 0; i < kinks.size(); ++i)
+    if (const double dq = slopes[i + 1] - slopes[i]; dq != 0.0)
+      p.options.push_back(call(kinks[i], dq));
+  return p;
 }
 
 [[nodiscard]] inline double ex26_target(double ST) {
-    if (ST < 20.0) return 2.0 * ST;
-    if (ST < 40.0) return 60.0 - ST;
-    return ST - 20.0;
+  if (ST < 20.0) return 2.0 * ST;
+  if (ST < 40.0) return 60.0 - ST;
+  return ST - 20.0;
 }
 
 [[nodiscard]] inline Portfolio ex26_portfolio() {
-    const double slopes[] = {2.0, -1.0, 1.0};
-    const double kinks[] = {20.0, 40.0};
-    return replicate_piecewise_linear(0.0, slopes, kinks);
+  const double slopes[] = {2.0, -1.0, 1.0};
+  const double kinks[] = {20.0, 40.0};
+  return replicate_piecewise_linear(0.0, slopes, kinks);
 }
 
 // ----------------------------------------------------------- Exercise 27 ---
@@ -90,15 +96,21 @@ inline constexpr double ex25_crossover = ex25_spot * ex25_spot / (ex25_spot - ex
 // derivative and differs from it only on those ramps. (Shifting the ramps
 // outward to [K1 - eps, K1] and [K2, K2 + eps] gives a portfolio that never
 // pays less.) As eps -> 0 the replication becomes exact.
-[[nodiscard]] inline double ex27_target(double ST, double c, double K1, double K2) {
-    return (K1 <= ST && ST <= K2) ? c : 0.0;
+[[nodiscard]] inline double ex27_target(double ST, double c, double K1,
+                                        double K2) {
+  return (K1 <= ST && ST <= K2) ? c : 0.0;
 }
 
-[[nodiscard]] inline Portfolio ex27_range_digital(double c, double K1, double K2, double eps) {
-    if (!(0.0 < K1 && K1 < K2)) throw std::invalid_argument("ex27: need 0 < K1 < K2");
-    if (!(eps > 0.0 && 2.0 * eps <= K2 - K1)) throw std::invalid_argument("ex27: need 0 < 2 eps <= K2 - K1");
-    const double n = c / eps;
-    return {0.0, 0.0, {call(K1, n), call(K1 + eps, -n), call(K2 - eps, -n), call(K2, n)}};
+[[nodiscard]] inline Portfolio ex27_range_digital(double c, double K1,
+                                                  double K2, double eps) {
+  if (!(0.0 < K1 && K1 < K2))
+    throw std::invalid_argument("ex27: need 0 < K1 < K2");
+  if (!(eps > 0.0 && 2.0 * eps <= K2 - K1))
+    throw std::invalid_argument("ex27: need 0 < 2 eps <= K2 - K1");
+  const double n = c / eps;
+  return {0.0,
+          0.0,
+          {call(K1, n), call(K1 + eps, -n), call(K2 - eps, -n), call(K2, n)}};
 }
 
 }  // namespace p4mfe::ch01::ex

@@ -15,7 +15,9 @@ from p4mfe.ch04_lognormal_risk_neutral.independent import independent_normal_com
 
 
 def ex01_sum_independent() -> NormalParams:
-    return independent_normal_sum([NormalParams(0.0, 1.0), NormalParams(0.0, 1.0)])
+    return independent_normal_sum(
+        [NormalParams(0.0, 1.0), NormalParams(0.0, 1.0)]
+    )
 
 
 def ex01_sum_as_written(z: float) -> float:
@@ -23,4 +25,6 @@ def ex01_sum_as_written(z: float) -> float:
 
 
 def ex02_average(mu: float, sigma: float, n: int) -> NormalParams:
-    return independent_normal_combination([1.0 / n] * n, [NormalParams(mu, sigma * sigma)] * n)
+    return independent_normal_combination(
+        [1.0 / n] * n, [NormalParams(mu, sigma * sigma)] * n
+    )

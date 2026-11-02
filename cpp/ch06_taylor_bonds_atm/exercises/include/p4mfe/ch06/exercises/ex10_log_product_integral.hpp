@@ -1,10 +1,9 @@
 #pragma once
 // Exercise 10 (section 6.11): int_0^1 ln(1 - x) ln(x) dx = 2 - pi^2/6.
 
-#include <p4mfe/ch02/integration.hpp>
-
 #include <cmath>
 #include <numbers>
+#include <p4mfe/ch02/integration.hpp>
 
 namespace p4mfe::ch06::ex {
 
@@ -23,7 +22,8 @@ namespace p4mfe::ch06::ex {
 // integral is allowed (monotone convergence).
 //
 // (iii) Integrating by parts, for n >= 0,
-//   int_0^1 x^n ln x dx = [x^(n+1) ln x / (n+1)]_0^1 - int_0^1 x^n/(n+1) dx = -1/(n+1)^2,
+//   int_0^1 x^n ln x dx = [x^(n+1) ln x / (n+1)]_0^1 - int_0^1 x^n/(n+1) dx =
+//   -1/(n+1)^2,
 // so
 //   I = sum_{n>=1} 1 / (n (n+1)^2).
 // (The book prints the summation index as k with n in the summand; the sum is
@@ -32,34 +32,41 @@ namespace p4mfe::ch06::ex {
 // (iv) Partial fractions: 1/(n(n+1)^2) = 1/n - 1/(n+1) - 1/(n+1)^2. The first
 // two telescope to 1, and sum_{n>=1} 1/(n+1)^2 = pi^2/6 - 1, so
 //   I = 1 - (pi^2/6 - 1) = 2 - pi^2/6 = 0.355065933151774.
-[[nodiscard]] inline double ex10_integrand(double x) { return std::log1p(-x) * std::log(x); }
-inline constexpr double ex10_exact = 2.0 - std::numbers::pi * std::numbers::pi / 6.0;
+[[nodiscard]] inline double ex10_integrand(double x) {
+  return std::log1p(-x) * std::log(x);
+}
+inline constexpr double ex10_exact =
+    2.0 - std::numbers::pi * std::numbers::pi / 6.0;
 
 // The integral by chapter 2's midpoint-rule driver, which never evaluates the
 // endpoints where the logs are infinite.
 [[nodiscard]] inline double ex10_numerical(double tol = 1e-10) {
-    return ch02::improper_integral(ex10_integrand, 0.0, 1.0, tol).value;
+  return ch02::improper_integral(ex10_integrand, 0.0, 1.0, tol).value;
 }
 // int_0^1 x^n ln x dx = -1/(n+1)^2, and the same numerically.
 [[nodiscard]] constexpr double ex10_moment(unsigned n) noexcept {
-    const double m = static_cast<double>(n) + 1.0;
-    return -1.0 / (m * m);
+  const double m = static_cast<double>(n) + 1.0;
+  return -1.0 / (m * m);
 }
-// Numerically after x = e^(-s): int_0^1 x^n ln x dx = -int_0^inf s e^(-(n+1) s) ds,
-// which removes the ln singularity at 0 (for n = 0 the midpoint rule on
-// [0, 1] would converge only like h).
-[[nodiscard]] inline double ex10_moment_numerical(unsigned n, double tol = 1e-11) {
-    const double m = static_cast<double>(n) + 1.0;
-    return ch02::improper_integral([m](double s) { return -s * std::exp(-m * s); }, 0.0, ch02::infinity, tol).value;
+// Numerically after x = e^(-s): int_0^1 x^n ln x dx = -int_0^inf s e^(-(n+1) s)
+// ds, which removes the ln singularity at 0 (for n = 0 the midpoint rule on [0,
+// 1] would converge only like h).
+[[nodiscard]] inline double ex10_moment_numerical(unsigned n,
+                                                  double tol = 1e-11) {
+  const double m = static_cast<double>(n) + 1.0;
+  return ch02::improper_integral(
+             [m](double s) { return -s * std::exp(-m * s); }, 0.0,
+             ch02::infinity, tol)
+      .value;
 }
 // Partial sum sum_{n=1}^N 1/(n(n+1)^2); the tail is below 1/(2 N^2).
 [[nodiscard]] inline double ex10_partial_sum(unsigned N) noexcept {
-    double s = 0.0;
-    for (unsigned n = N; n >= 1; --n) {  // smallest terms first
-        const double m = static_cast<double>(n);
-        s += 1.0 / (m * (m + 1.0) * (m + 1.0));
-    }
-    return s;
+  double s = 0.0;
+  for (unsigned n = N; n >= 1; --n) {  // smallest terms first
+    const double m = static_cast<double>(n);
+    s += 1.0 / (m * (m + 1.0) * (m + 1.0));
+  }
+  return s;
 }
 
 }  // namespace p4mfe::ch06::ex

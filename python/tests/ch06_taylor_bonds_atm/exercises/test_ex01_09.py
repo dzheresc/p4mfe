@@ -58,11 +58,19 @@ from p4mfe.ch06_taylor_bonds_atm.taylor_series import binomial_series
 
 def test_ex01_cubic_taylor_of_sqrt():
     f = lambda x: math.sqrt(1 + x)  # noqa: E731
-    assert derivative(f, 0.0) == pytest.approx(EX01_DERIVATIVES_AT_ZERO[1], abs=1e-8)
-    assert second_derivative(f, 0.0) == pytest.approx(EX01_DERIVATIVES_AT_ZERO[2], abs=1e-5)
+    assert derivative(f, 0.0) == pytest.approx(
+        EX01_DERIVATIVES_AT_ZERO[1], abs=1e-8
+    )
+    assert second_derivative(f, 0.0) == pytest.approx(
+        EX01_DERIVATIVES_AT_ZERO[2], abs=1e-5
+    )
     for x in (-0.5, -0.1, 0.0, 0.2, 0.7):
-        assert ex01_cubic(x) == pytest.approx(ex01_cubic_from_derivatives(x), abs=1e-15)
-        assert ex01_cubic(x) == pytest.approx(binomial_series(x, 0.5, 3), abs=1e-15)
+        assert ex01_cubic(x) == pytest.approx(
+            ex01_cubic_from_derivatives(x), abs=1e-15
+        )
+        assert ex01_cubic(x) == pytest.approx(
+            binomial_series(x, 0.5, 3), abs=1e-15
+        )
     for x in (1e-2, -1e-2, 1e-3):
         err = f(x) - ex01_cubic(x)
         assert err / x**4 == pytest.approx(EX01_ERROR_COEFFICIENT, rel=0.1)
@@ -104,8 +112,12 @@ def test_ex04_quadratic_taylor_of_exp_g():
 
 @pytest.mark.parametrize("x", [-0.9, -0.5, 0.1, 0.6, 0.8])
 def test_ex05_even_series(x):
-    assert ex05_log_series(x, 400) == pytest.approx(math.log1p(-x * x), abs=1e-12)
-    assert ex05_inverse_series(x, 400) == pytest.approx(1 / (1 - x * x), abs=1e-12)
+    assert ex05_log_series(x, 400) == pytest.approx(
+        math.log1p(-x * x), abs=1e-12
+    )
+    assert ex05_inverse_series(x, 400) == pytest.approx(
+        1 / (1 - x * x), abs=1e-12
+    )
     s = sum(ex05_log_coefficient(m) * x**m for m in range(21))
     g = sum(ex05_inverse_coefficient(m) * x**m for m in range(21))
     assert s == pytest.approx(ex05_log_series(x, 10), abs=1e-14)
@@ -134,7 +146,9 @@ def test_ex06_bounds_for_e():
 def test_ex07_log_ratio_series(x):
     assert ex07_series(x, 2000) == pytest.approx(ex07_function(x), abs=1e-12)
     assert ex07_series(x, 2000) == pytest.approx(2 * math.atanh(x), abs=1e-12)
-    assert ex07_series(x, 10) == pytest.approx(ex07_series_from_log1p(x, 10), abs=1e-14)
+    assert ex07_series(x, 10) == pytest.approx(
+        ex07_series_from_log1p(x, 10), abs=1e-14
+    )
     assert EX07_RADIUS == 1.0
     assert ex07_series(1.1, 200) > 1e6
 
@@ -143,7 +157,9 @@ def test_ex07_log_ratio_series(x):
 def test_ex08_cosh_series(x):
     f = ex08_function(x)
     assert ex08_series(x, 60) == pytest.approx(f, rel=1e-13)
-    assert ex08_series(x, 8) == pytest.approx(ex08_series_from_exp(x, 8), rel=1e-12)
+    assert ex08_series(x, 8) == pytest.approx(
+        ex08_series_from_exp(x, 8), rel=1e-12
+    )
     assert math.isinf(EX08_RADIUS)
 
 
@@ -157,6 +173,8 @@ def test_ex09_log_series_converges(x):
             assert abs(err) <= ex09_middle_bound(x, n) + 1e-12
             assert ex09_middle_bound(x, n) <= ex09_bound(x, n) + 1e-12
         else:
-            assert ex09_error_negative(x, n) == pytest.approx(abs(err), abs=1e-10)
+            assert ex09_error_negative(x, n) == pytest.approx(
+                abs(err), abs=1e-10
+            )
     assert abs(ex09_error(x, 600)) < 1e-12
     assert ex09_bound(x, 600) < 1e-12

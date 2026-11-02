@@ -42,7 +42,9 @@ def ex09_n_minus_d2(m: Ex09Market = Ex09Market()) -> float:
 
 
 def ex10_atm_call_delta(r: float, q: float, sigma: float, T: float) -> float:
-    return math.exp(-q * T) * norm_cdf((r - q + 0.5 * sigma * sigma) * math.sqrt(T) / sigma)
+    return math.exp(-q * T) * norm_cdf(
+        (r - q + 0.5 * sigma * sigma) * math.sqrt(T) / sigma
+    )
 
 
 def ex10_threshold_q(r: float, sigma: float, T: float) -> float:
@@ -61,4 +63,6 @@ def ex10_threshold_q(r: float, sigma: float, T: float) -> float:
 
 
 def ex10_threshold_q_approx(r: float, sigma: float, T: float) -> float:
-    return (r + 0.5 * sigma * sigma) / (1.0 + sigma * math.sqrt(math.pi * T / 2.0))
+    return (r + 0.5 * sigma * sigma) / (
+        1.0 + sigma * math.sqrt(math.pi * T / 2.0)
+    )

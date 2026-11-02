@@ -31,4 +31,6 @@ def ex04_terms_10_93(count: int) -> list[float]:
 
 
 def ex04_cubic() -> np.ndarray:
-    return interpolating_polynomial([1.0, 2.0, 3.0, 4.0], [1.0, 5.0, 14.0, 30.0])
+    return interpolating_polynomial(
+        [1.0, 2.0, 3.0, 4.0], [1.0, 5.0, 14.0, 30.0]
+    )

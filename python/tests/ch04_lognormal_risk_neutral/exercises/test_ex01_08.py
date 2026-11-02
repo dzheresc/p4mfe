@@ -50,12 +50,19 @@ def test_ex02(n):
 
 def test_ex03_ex04():
     S, u, d, p = 40, 1.1, 0.92, 0.55
-    assert ex03_moment(1, S, u, d, p) == pytest.approx((p * u + (1 - p) * d) * S)
-    assert ex03_moment(2, S, u, d, p) == pytest.approx((p * u * u + (1 - p) * d * d) * S * S)
+    assert ex03_moment(1, S, u, d, p) == pytest.approx(
+        (p * u + (1 - p) * d) * S
+    )
+    assert ex03_moment(2, S, u, d, p) == pytest.approx(
+        (p * u * u + (1 - p) * d * d) * S * S
+    )
     r, sigma, dt = 0.05, 0.3, 0.25
-    assert risk_neutral_expectation(lambda x: x, S, dt, sigma, r) == pytest.approx(ex04_first_moment(S, r, dt), abs=1e-7)
-    assert risk_neutral_expectation(lambda x: x * x, S, dt, sigma, r) == pytest.approx(
-        ex04_second_moment(S, r, sigma, dt), abs=1e-5)
+    assert risk_neutral_expectation(
+        lambda x: x, S, dt, sigma, r
+    ) == pytest.approx(ex04_first_moment(S, r, dt), abs=1e-7)
+    assert risk_neutral_expectation(
+        lambda x: x * x, S, dt, sigma, r
+    ) == pytest.approx(ex04_second_moment(S, r, sigma, dt), abs=1e-5)
 
 
 @pytest.mark.parametrize("dt", [1 / 252, 1 / 12, 0.5])
@@ -64,8 +71,12 @@ def test_ex05_crr(dt):
     s = ex05_crr(r, sigma, dt)
     assert s.u * s.d == pytest.approx(1.0, abs=1e-12)
     assert 0 < s.p < 1 and s.u > 1
-    assert moment_residuals(s, r, sigma, dt) == pytest.approx((0.0, 0.0), abs=1e-12)
-    assert ex05_residual_460(s.u, s.d, r, sigma, dt) == pytest.approx(0.0, abs=1e-12)
+    assert moment_residuals(s, r, sigma, dt) == pytest.approx(
+        (0.0, 0.0), abs=1e-12
+    )
+    assert ex05_residual_460(s.u, s.d, r, sigma, dt) == pytest.approx(
+        0.0, abs=1e-12
+    )
 
 
 def test_ex05_equivalence():
@@ -73,13 +84,17 @@ def test_ex05_equivalence():
     g, d = math.exp(r * dt), 0.9
     u = g + g * g * math.expm1(sigma * sigma * dt) / (g - d)
     s = BinomialStep(u, d, (g - d) / (u - d))
-    assert moment_residuals(s, r, sigma, dt) == pytest.approx((0.0, 0.0), abs=1e-12)
+    assert moment_residuals(s, r, sigma, dt) == pytest.approx(
+        (0.0, 0.0), abs=1e-12
+    )
 
 
 def test_ex06():
     s = ex06_equal_probability(0.04, 0.3, 1 / 12)
     assert s.p == 0.5
-    assert moment_residuals(s, 0.04, 0.3, 1 / 12) == pytest.approx((0.0, 0.0), abs=1e-12)
+    assert moment_residuals(s, 0.04, 0.3, 1 / 12) == pytest.approx(
+        (0.0, 0.0), abs=1e-12
+    )
     with pytest.raises(ValueError):
         ex06_equal_probability(0.04, 1.0, 1.0)
 
@@ -96,8 +111,9 @@ def test_ex07():
         for rn in (False, True):
             i = ex07_interval(0.99, T, rn)
             mu = A.r if rn else A.mu
-            assert price_cdf(i.hi, A.S0, T, A.sigma, mu, A.q) - price_cdf(i.lo, A.S0, T, A.sigma, mu, A.q) == \
-                pytest.approx(0.99, abs=1e-9)
+            assert price_cdf(i.hi, A.S0, T, A.sigma, mu, A.q) - price_cdf(
+                i.lo, A.S0, T, A.sigma, mu, A.q
+            ) == pytest.approx(0.99, abs=1e-9)
 
 
 def test_ex08():
@@ -107,4 +123,6 @@ def test_ex08():
     assert (n.win, n.lose) == pytest.approx((0.063202, 0.317628), abs=1e-6)
     c = ex08_normal(True)
     assert (c.win, c.lose) == pytest.approx((0.076603, 0.354127), abs=1e-6)
-    assert sum(binomial_pmf(k, 100, EX08_P_BLACK) for k in range(101)) == pytest.approx(1.0)
+    assert sum(
+        binomial_pmf(k, 100, EX08_P_BLACK) for k in range(101)
+    ) == pytest.approx(1.0)

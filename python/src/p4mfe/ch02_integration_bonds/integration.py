@@ -48,7 +48,9 @@ def simpson_rule(f: ArrayFn, a: float, b: float, n: int) -> float:
     h = (b - a) / n
     nodes = f(a + np.arange(n + 1) * h)
     mids = f(a + (np.arange(n) + 0.5) * h)
-    return float(h / 6 * (2 * np.sum(nodes) - nodes[0] - nodes[-1] + 4 * np.sum(mids)))
+    return float(
+        h / 6 * (2 * np.sum(nodes) - nodes[0] - nodes[-1] + 4 * np.sum(mids))
+    )
 
 
 class Rule(Enum):
@@ -57,10 +59,16 @@ class Rule(Enum):
     SIMPSON = "simpson"
 
 
-_RULES = {Rule.MIDPOINT: midpoint_rule, Rule.TRAPEZOIDAL: trapezoidal_rule, Rule.SIMPSON: simpson_rule}
+_RULES = {
+    Rule.MIDPOINT: midpoint_rule,
+    Rule.TRAPEZOIDAL: trapezoidal_rule,
+    Rule.SIMPSON: simpson_rule,
+}
 
 
-def integrate(f: ArrayFn, a: float, b: float, n: int, rule: Rule = Rule.SIMPSON) -> float:
+def integrate(
+    f: ArrayFn, a: float, b: float, n: int, rule: Rule = Rule.SIMPSON
+) -> float:
     return _RULES[rule](f, a, b, n)
 
 
@@ -71,7 +79,9 @@ class IntegrationResult:
     intervals: int  # n of the accepted approximation
 
 
-def _refine(approx: Callable[[int], float], tol: float, n0: int, max_n: int) -> IntegrationResult:
+def _refine(
+    approx: Callable[[int], float], tol: float, n0: int, max_n: int
+) -> IntegrationResult:
     """Double n from n0 until |I_2n - I_n| < tol; return I_2n."""
     if tol <= 0:
         raise ValueError("tolerance must be positive")
@@ -110,7 +120,9 @@ def integrate_to_tolerance(
     n = max(n0, 1)
     h = (b - a) / n
     ends = float(np.sum(f(np.array([a, b]))))
-    nodes = float(np.sum(f(a + np.arange(1, n) * h)))  # The n - 1 interior grid points.
+    nodes = float(
+        np.sum(f(a + np.arange(1, n) * h))
+    )  # The n - 1 interior grid points.
 
     def midpoint_sum() -> float:
         return float(np.sum(f(a + (np.arange(n) + 0.5) * h)))
@@ -134,7 +146,9 @@ def integrate_to_tolerance(
     raise RuntimeError("integration did not reach the tolerance")
 
 
-def observed_order(f: ArrayFn, a: float, b: float, exact: float, n: int, rule: Rule) -> float:
+def observed_order(
+    f: ArrayFn, a: float, b: float, exact: float, n: int, rule: Rule
+) -> float:
     """log2(|err_n| / |err_2n|): ~2 for midpoint/trapezoidal, ~4 for Simpson."""
     e1 = abs(integrate(f, a, b, n, rule) - exact)
     e2 = abs(integrate(f, a, b, 2 * n, rule) - exact)
@@ -145,16 +159,27 @@ def observed_order(f: ArrayFn, a: float, b: float, exact: float, n: int, rule: R
 def _improper_midpoint(f: ArrayFn, a: float, b: float, n: int) -> float:
     lo_inf, hi_inf = math.isinf(a), math.isinf(b)
     if lo_inf and hi_inf:
-        return _improper_midpoint(f, a, 0.0, n) + _improper_midpoint(f, 0.0, b, n)
+        return _improper_midpoint(f, a, 0.0, n) + _improper_midpoint(
+            f, 0.0, b, n
+        )
     if hi_inf:  # x = a + t/(1-t), dx = dt/(1-t)^2
-        return midpoint_rule(lambda t: f(a + t / (1 - t)) / (1 - t) ** 2, 0.0, 1.0, n)
+        return midpoint_rule(
+            lambda t: f(a + t / (1 - t)) / (1 - t) ** 2, 0.0, 1.0, n
+        )
     if lo_inf:  # x = b - t/(1-t)
-        return midpoint_rule(lambda t: f(b - t / (1 - t)) / (1 - t) ** 2, 0.0, 1.0, n)
+        return midpoint_rule(
+            lambda t: f(b - t / (1 - t)) / (1 - t) ** 2, 0.0, 1.0, n
+        )
     return midpoint_rule(f, a, b, n)
 
 
 def improper_integral(
-    f: ArrayFn, a: float, b: float, tol: float = 1e-9, n0: int = 8, max_n: int = 1 << 24
+    f: ArrayFn,
+    a: float,
+    b: float,
+    tol: float = 1e-9,
+    n0: int = 8,
+    max_n: int = 1 << 24,
 ) -> IntegrationResult:
     """Integral of f over [a, b] with a possibly -inf and b possibly +inf.
 
@@ -178,20 +203,30 @@ def gamma_function(x: float, tol: float = 1e-9) -> float:
     if x <= 0:
         raise ValueError("x must be positive")
     if x >= 2 or x == 1:
-        return improper_integral(lambda t: t ** (x - 1) * np.exp(-t), 0.0, math.inf, tol).value
+        return improper_integral(
+            lambda t: t ** (x - 1) * np.exp(-t), 0.0, math.inf, tol
+        ).value
     k = math.ceil(2 / x)
 
     def integrand(s):
-        with np.errstate(over="ignore"):  # s^k overflows to inf far out; e^(-inf) = 0.
-            return k * s ** (k * x - 1) * np.exp(-s ** k)
+        with np.errstate(
+            over="ignore"
+        ):  # s^k overflows to inf far out; e^(-inf) = 0.
+            return k * s ** (k * x - 1) * np.exp(-(s**k))
 
     return improper_integral(integrand, 0.0, math.inf, tol).value
 
 
 # 2.2 -----------------------------------------------------------------------
 def improper_integral_derivative(
-    f: Callable[[np.ndarray, float], np.ndarray], a: float, b: float, t: float, tol: float = 1e-9
+    f: Callable[[np.ndarray, float], np.ndarray],
+    a: float,
+    b: float,
+    t: float,
+    tol: float = 1e-9,
 ) -> float:
     """d/dt int_a^b f(x, t) dx = int_a^b df/dt(x, t) dx (constant limits)."""
     h = _EPS ** (1 / 3) * max(1.0, abs(t))
-    return improper_integral(lambda x: (f(x, t + h) - f(x, t - h)) / (2 * h), a, b, tol).value
+    return improper_integral(
+        lambda x: (f(x, t + h) - f(x, t - h)) / (2 * h), a, b, tol
+    ).value

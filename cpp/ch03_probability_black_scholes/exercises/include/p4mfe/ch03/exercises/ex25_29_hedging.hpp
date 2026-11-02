@@ -2,10 +2,9 @@
 // Exercises 25-29 (section 3.11): Delta, Delta-Gamma and Delta-Gamma-vega
 // neutral hedges, and the value of a Delta-hedged position as the spot moves.
 
+#include <cmath>
 #include <p4mfe/ch03/black_scholes.hpp>
 #include <p4mfe/ch03/hedging.hpp>
-
-#include <cmath>
 #include <stdexcept>
 
 namespace p4mfe::ch03::ex {
@@ -19,21 +18,27 @@ namespace p4mfe::ch03::ex {
 //   0.4 x - 0.5 y  = -5000      (Delta)
 //   0.05 x + 0.07 y =  200      (Gamma)
 // Solving (determinant 0.4*0.07 + 0.5*0.05 = 0.053):
-//   x = (-5000*0.07 + 0.5*200)/0.053 = -4716.98,  y = (0.4*200 + 0.05*5000)/0.053 = 6226.42,
+//   x = (-5000*0.07 + 0.5*200)/0.053 = -4716.98,  y = (0.4*200 +
+//   0.05*5000)/0.053 = 6226.42,
 // i.e. sell 4717 calls and buy 6226 puts.
 // If the asset can be traded too (Delta 1, Gamma 0), one option is enough:
 //   buy 200/0.05 = 4000 calls (Delta +1600), then sell 6600 shares; or
 //   buy 200/0.07 = 2857.14 puts (Delta -1428.57), then sell 3571.43 shares.
 struct TwoOptionHedge {
-    double calls;
-    double puts;
+  double calls;
+  double puts;
 };
 // Units of two options that zero both the Delta and the Gamma.
-[[nodiscard]] inline TwoOptionHedge ex25_options_only(double port_delta, double port_gamma, double dc, double gc,
+[[nodiscard]] inline TwoOptionHedge ex25_options_only(double port_delta,
+                                                      double port_gamma,
+                                                      double dc, double gc,
                                                       double dp, double gp) {
-    const double det = dc * gp - dp * gc;
-    if (det == 0.0) throw std::invalid_argument("ex25: the two options have proportional (Delta, Gamma)");
-    return {(-port_delta * gp + dp * port_gamma) / det, (-dc * port_gamma + gc * port_delta) / det};
+  const double det = dc * gp - dp * gc;
+  if (det == 0.0)
+    throw std::invalid_argument(
+        "ex25: the two options have proportional (Delta, Gamma)");
+  return {(-port_delta * gp + dp * port_gamma) / det,
+          (-dc * port_gamma + gc * port_delta) / det};
 }
 
 // ----------------------------------------------------------- Exercise 26 ---
@@ -46,7 +51,8 @@ struct TwoOptionHedge {
 // Delta(C) = N(d1) = 0.653501, so short 1000 * 0.653501 = 653.5 shares
 // (about 654).
 [[nodiscard]] inline double ex26_shares() {
-    return delta_hedge_shares(1000.0 * bs_greeks(OptionType::Call, 92.0, 90.0, 0.25, 0.2, 0.05).delta);
+  return delta_hedge_shares(
+      1000.0 * bs_greeks(OptionType::Call, 92.0, 90.0, 0.25, 0.2, 0.05).delta);
 }
 
 // ----------------------------------------------------------- Exercise 27 ---
@@ -70,24 +76,27 @@ struct TwoOptionHedge {
 //       option, less one day of Theta).
 // (iv)  Unhedged, the options lose 1000 * (9.634877 - 8.453123) = 1181.75.
 struct Ex27Result {
-    double premium;         // 1000 C(0)
-    double shares;          // Delta hedge (negative: short)
-    double cash;            // money market balance after the trades
-    double position_value;  // options + shares, next day
-    double portfolio_value; // options + shares + cash with interest, next day
-    double unhedged_loss;   // 1000 (C(0) - C(next day))
+  double premium;          // 1000 C(0)
+  double shares;           // Delta hedge (negative: short)
+  double cash;             // money market balance after the trades
+  double position_value;   // options + shares, next day
+  double portfolio_value;  // options + shares + cash with interest, next day
+  double unhedged_loss;    // 1000 (C(0) - C(next day))
 };
-[[nodiscard]] inline Ex27Result ex27(double dt = 1.0 / 252.0, double S1 = 98.0) {
-    constexpr double n = 1000.0, S = 100.0, K = 100.0, T = 0.5, sigma = 0.3, r = 0.05;
-    const double C0 = bs_call(S, K, T, sigma, r);
-    const auto pos = delta_hedge(n, C0, bs_greeks(OptionType::Call, S, K, T, sigma, r).delta, S);
-    const double C1 = bs_call(S1, K, T - dt, sigma, r);
-    return {n * C0,
-            pos.shares,
-            pos.cash,
-            n * C1 + pos.shares * S1,
-            pos.value(C1, S1, r, dt),
-            n * (C0 - C1)};
+[[nodiscard]] inline Ex27Result ex27(double dt = 1.0 / 252.0,
+                                     double S1 = 98.0) {
+  constexpr double n = 1000.0, S = 100.0, K = 100.0, T = 0.5, sigma = 0.3,
+                   r = 0.05;
+  const double C0 = bs_call(S, K, T, sigma, r);
+  const auto pos = delta_hedge(
+      n, C0, bs_greeks(OptionType::Call, S, K, T, sigma, r).delta, S);
+  const double C1 = bs_call(S1, K, T - dt, sigma, r);
+  return {n * C0,
+          pos.shares,
+          pos.cash,
+          n * C1 + pos.shares * S1,
+          pos.value(C1, S1, r, dt),
+          n * (C0 - C1)};
 }
 
 // ----------------------------------------------------------- Exercise 28 ---
@@ -107,26 +116,27 @@ struct Ex27Result {
 //       (23392.85 if the cash earns no interest). Delta-neutral now needs
 //       511.13 shares: sell 291.64 shares.
 struct Ex28Result {
-    double value0;       // (i)
-    double port_delta0;  // Delta before hedging
-    double shares1;      // shares held after (ii)
-    double cash1;        // cash after (ii)
-    double value1;       // (iii), one month later before rebalancing
-    double shares2;      // shares held after rebalancing in (iii)
+  double value0;       // (i)
+  double port_delta0;  // Delta before hedging
+  double shares1;      // shares held after (ii)
+  double cash1;        // cash after (ii)
+  double value1;       // (iii), one month later before rebalancing
+  double shares2;      // shares held after rebalancing in (iii)
 };
 [[nodiscard]] inline Ex28Result ex28() {
-    constexpr double n = 1000.0, K = 25.0, T = 0.5, sigma = 0.3, r = 0.04, S0 = 20.0, S1 = 24.0, dt = 1.0 / 12.0;
-    constexpr double shares0 = 400.0, cash0 = 10000.0;
-    const double P0 = bs_put(S0, K, T, sigma, r);
-    const double D0 = bs_greeks(OptionType::Put, S0, K, T, sigma, r).delta;
-    const double value0 = n * P0 + shares0 * S0 + cash0;
-    const double port_delta0 = n * D0 + shares0;
-    const double shares1 = shares0 + delta_hedge_shares(port_delta0);
-    const double cash1 = cash0 - (shares1 - shares0) * S0;
-    const double P1 = bs_put(S1, K, T - dt, sigma, r);
-    const double D1 = bs_greeks(OptionType::Put, S1, K, T - dt, sigma, r).delta;
-    const double value1 = n * P1 + shares1 * S1 + cash1 * std::exp(r * dt);
-    return {value0, port_delta0, shares1, cash1, value1, -n * D1};
+  constexpr double n = 1000.0, K = 25.0, T = 0.5, sigma = 0.3, r = 0.04,
+                   S0 = 20.0, S1 = 24.0, dt = 1.0 / 12.0;
+  constexpr double shares0 = 400.0, cash0 = 10000.0;
+  const double P0 = bs_put(S0, K, T, sigma, r);
+  const double D0 = bs_greeks(OptionType::Put, S0, K, T, sigma, r).delta;
+  const double value0 = n * P0 + shares0 * S0 + cash0;
+  const double port_delta0 = n * D0 + shares0;
+  const double shares1 = shares0 + delta_hedge_shares(port_delta0);
+  const double cash1 = cash0 - (shares1 - shares0) * S0;
+  const double P1 = bs_put(S1, K, T - dt, sigma, r);
+  const double D1 = bs_greeks(OptionType::Put, S1, K, T - dt, sigma, r).delta;
+  const double value1 = n * P1 + shares1 * S1 + cash1 * std::exp(r * dt);
+  return {value0, port_delta0, shares1, cash1, value1, -n * D1};
 }
 
 // ----------------------------------------------------------- Exercise 29 ---
@@ -143,16 +153,17 @@ struct Ex28Result {
 // 300 + 0.2 (-670) - 0.8 (-110) = 254, removed by z = -254 shares.
 // Sell 670 calls, sell 110 puts and sell 254 shares.
 struct Ex29Hedge {
-    double calls;
-    double puts;
-    double shares;
+  double calls;
+  double puts;
+  double shares;
 };
-[[nodiscard]] inline Ex29Hedge ex29_hedge(double pd = 300.0, double pg = 100.0, double pv = 89.0) {
-    constexpr double cd = 0.2, cg = 0.1, cv = 0.1, qd = -0.8, qg = 0.3, qv = 0.2;
-    const double det = cg * qv - qg * cv;
-    const double x = (-pg * qv + qg * pv) / det;
-    const double y = (-cg * pv + cv * pg) / det;
-    return {x, y, -(pd + x * cd + y * qd)};
+[[nodiscard]] inline Ex29Hedge ex29_hedge(double pd = 300.0, double pg = 100.0,
+                                          double pv = 89.0) {
+  constexpr double cd = 0.2, cg = 0.1, cv = 0.1, qd = -0.8, qg = 0.3, qv = 0.2;
+  const double det = cg * qv - qg * cv;
+  const double x = (-pg * qv + qg * pv) / det;
+  const double y = (-cg * pv + cv * pg) / det;
+  return {x, y, -(pd + x * cd + y * qd)};
 }
 
 }  // namespace p4mfe::ch03::ex

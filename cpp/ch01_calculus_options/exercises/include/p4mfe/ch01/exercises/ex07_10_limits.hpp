@@ -23,12 +23,12 @@ namespace p4mfe::ch01::ex {
 //
 // Returns the three quantities, lower < e < upper.
 struct Ex07Bounds {
-    double lower;  // (1 + 1/x)^x
-    double upper;  // (1 + 1/x)^(x+1)
+  double lower;  // (1 + 1/x)^x
+  double upper;  // (1 + 1/x)^(x+1)
 };
 [[nodiscard]] inline Ex07Bounds ex07_e_bounds(double x) {
-    const double l = std::log1p(1.0 / x);  // ln(1 + 1/x), accurate for large x
-    return {std::exp(x * l), std::exp((x + 1.0) * l)};
+  const double l = std::log1p(1.0 / x);  // ln(1 + 1/x), accurate for large x
+  return {std::exp(x * l), std::exp((x + 1.0) * l)};
 }
 
 // ------------------------------------------------------------ Exercise 8 ---
@@ -51,21 +51,21 @@ inline constexpr double ex08_exp_limit = 1.0 / 6.0;
 // which follows from sqrt(1+x) - 1 = x / (sqrt(1+x) + 1) twice. So the first
 // quotient is exactly -1 / (2 (sqrt(1+x) + 1)^2), which -> -1/8.
 [[nodiscard]] inline double ex08_sqrt_quotient(double x) {
-    const double s = std::sqrt(1.0 + x) + 1.0;
-    return -1.0 / (2.0 * s * s);
+  const double s = std::sqrt(1.0 + x) + 1.0;
+  return -1.0 / (2.0 * s * s);
 }
 // e^x - 1 - x - x^2/2 = expm1(x) - x - x^2/2; for |x| < 1e-2 use the series
 // sum_{k>=3} x^k / k! directly to avoid cancellation.
 [[nodiscard]] inline double ex08_exp_quotient(double x) {
-    if (std::abs(x) < 1e-2) {
-        double term = 1.0 / 6.0, sum = 0.0;  // x^(k-3) * 3!/k! / 6
-        for (int k = 3; k < 12; ++k) {
-            sum += term;
-            term *= x / static_cast<double>(k + 1);
-        }
-        return sum;
+  if (std::abs(x) < 1e-2) {
+    double term = 1.0 / 6.0, sum = 0.0;  // x^(k-3) * 3!/k! / 6
+    for (int k = 3; k < 12; ++k) {
+      sum += term;
+      term *= x / static_cast<double>(k + 1);
     }
-    return (std::expm1(x) - x - 0.5 * x * x) / (x * x * x);
+    return sum;
+  }
+  return (std::expm1(x) - x - 0.5 * x * x) / (x * x * x);
 }
 
 // ------------------------------------------------------------ Exercise 9 ---
@@ -77,19 +77,22 @@ inline constexpr double ex08_exp_limit = 1.0 / 6.0;
 //   sqrt(x^2 - 4x + 1) - x = (1 - 4x) / (sqrt(x^2 - 4x + 1) + x) -> -4/2 = -2,
 //   so the limit is -1/2.
 // (ii) Same trick with x - 2:
-//   sqrt(x^2 - 4x + 1) - (x - 2) = (x^2 - 4x + 1 - (x-2)^2) / (sqrt(...) + x - 2)
-//                                = -3 / (sqrt(x^2 - 4x + 1) + x - 2)  ->  0 from below,
+//   sqrt(x^2 - 4x + 1) - (x - 2) = (x^2 - 4x + 1 - (x-2)^2) / (sqrt(...) + x -
+//   2)
+//                                = -3 / (sqrt(x^2 - 4x + 1) + x - 2)  ->  0
+//                                from below,
 //   so 1/(...) = -(sqrt(x^2 - 4x + 1) + x - 2) / 3  ->  -infinity
 //   (it behaves like -2x/3).
 inline constexpr double ex09_limit_i = -0.5;
-inline constexpr double ex09_limit_ii = -std::numeric_limits<double>::infinity();
+inline constexpr double ex09_limit_ii =
+    -std::numeric_limits<double>::infinity();
 
 // Stable forms of the two expressions (valid for x > 2 + sqrt(3)).
 [[nodiscard]] inline double ex09_expr_i(double x) {
-    return (std::sqrt(x * x - 4.0 * x + 1.0) + x) / (1.0 - 4.0 * x);
+  return (std::sqrt(x * x - 4.0 * x + 1.0) + x) / (1.0 - 4.0 * x);
 }
 [[nodiscard]] inline double ex09_expr_ii(double x) {
-    return -(std::sqrt(x * x - 4.0 * x + 1.0) + x - 2.0) / 3.0;
+  return -(std::sqrt(x * x - 4.0 * x + 1.0) + x - 2.0) / 3.0;
 }
 
 // ----------------------------------------------------------- Exercise 10 ---
@@ -100,6 +103,8 @@ inline constexpr double ex09_limit_ii = -std::numeric_limits<double>::infinity()
 // With y = x - 1:  1 - 1/x = 1 - 1/(y+1) = 1/(1 + 1/y), so
 //   (1 - 1/x)^x = 1 / (1 + 1/y)^(y+1) = 1 / ((1 + 1/y)^y (1 + 1/y))
 //              -> 1 / (e * 1) = 1/e   as y -> infinity.
-[[nodiscard]] inline double ex10_expr(double x) { return std::exp(x * std::log1p(-1.0 / x)); }
+[[nodiscard]] inline double ex10_expr(double x) {
+  return std::exp(x * std::log1p(-1.0 / x));
+}
 
 }  // namespace p4mfe::ch01::ex

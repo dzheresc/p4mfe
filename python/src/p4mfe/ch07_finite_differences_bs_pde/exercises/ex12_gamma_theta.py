@@ -29,4 +29,7 @@ def ex12_lhs(m: Ex12Market, option_type: OptionType = OptionType.CALL) -> float:
 
 def ex12_rhs(m: Ex12Market) -> float:
     _, d2 = bs_d1_d2(m.S, m.K, m.tau, m.sigma, m.r, 0.0)
-    return 1.0 / (1.0 + m.sigma / (2.0 * m.r * math.sqrt(m.tau)) * norm_pdf(d2) / norm_cdf(d2))
+    return 1.0 / (
+        1.0
+        + m.sigma / (2.0 * m.r * math.sqrt(m.tau)) * norm_pdf(d2) / norm_cdf(d2)
+    )

@@ -31,7 +31,11 @@ def ex11_crr(r: float, sigma: float, dt: float) -> Ex11Tree:
 
 def ex11_approx(r: float, sigma: float, dt: float) -> Ex11Tree:
     s = sigma * math.sqrt(dt)
-    return Ex11Tree(math.exp(s), math.exp(-s), 0.5 + 0.5 * (r / sigma - 0.5 * sigma) * math.sqrt(dt))
+    return Ex11Tree(
+        math.exp(s),
+        math.exp(-s),
+        0.5 + 0.5 * (r / sigma - 0.5 * sigma) * math.sqrt(dt),
+    )
 
 
 def ex11_u_coefficient(r: float, sigma: float) -> float:

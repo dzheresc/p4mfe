@@ -2,12 +2,11 @@
 // Exercises 22-24 (section 3.11): Gamma and vega of ATM calls across
 // maturities, and no-arbitrage bounds for calls and puts.
 
+#include <array>
+#include <cmath>
 #include <p4mfe/ch01/options.hpp>
 #include <p4mfe/ch03/black_scholes.hpp>
 #include <p4mfe/normal.hpp>
-
-#include <array>
-#include <cmath>
 
 namespace p4mfe::ch03::ex {
 
@@ -32,8 +31,10 @@ inline constexpr std::array<double, 3> ex22_maturities{1.0 / 24.0, 0.25, 1.0};
 // with the spot, so a Delta hedge on a short-dated ATM option goes stale
 // quickly and must be rebalanced much more often (and Delta-Gamma hedging
 // matters most) than for long-dated options.
-[[nodiscard]] inline double ex22_atm_gamma(double T, double S = 50.0, double sigma = 0.3, double r = 0.05) {
-    return bs_greeks(OptionType::Call, S, S, T, sigma, r).gamma;
+[[nodiscard]] inline double ex22_atm_gamma(double T, double S = 50.0,
+                                           double sigma = 0.3,
+                                           double r = 0.05) {
+  return bs_greeks(OptionType::Call, S, S, T, sigma, r).gamma;
 }
 
 // ----------------------------------------------------------- Exercise 23 ---
@@ -56,20 +57,26 @@ inline constexpr std::array<double, 3> ex22_maturities{1.0 / 24.0, 0.25, 1.0};
 //   tau = 1:     vega = 19.7240
 // (per unit of sigma; per 1 vol point divide by 100: 0.041, 0.099, 0.197).
 //
-// (iii) d(vega)/d(tau) = S [phi(d1)/(2 sqrt(tau)) + sqrt(tau) phi'(d1) d(d1)/d(tau)]
-//                      = S [phi(d1)/(2 sqrt(tau)) - sqrt(tau) d1 phi(d1) sigma/(4 sqrt(tau))]
-//                      = S phi(d1) / (2 sqrt(tau)) * (1 - sigma^2 tau / 4).
+// (iii) d(vega)/d(tau) = S [phi(d1)/(2 sqrt(tau)) + sqrt(tau) phi'(d1)
+// d(d1)/d(tau)]
+//                      = S [phi(d1)/(2 sqrt(tau)) - sqrt(tau) d1 phi(d1)
+//                      sigma/(4 sqrt(tau))] = S phi(d1) / (2 sqrt(tau)) * (1 -
+//                      sigma^2 tau / 4).
 // This is positive for tau < 4/sigma^2 (= 44.4 years for sigma = 0.3), so for
 // all realistic maturities ATM vega increases with maturity, roughly like
 // sqrt(tau): the 1-year vega is about sqrt(24) = 4.9 times the 15-day vega
 // (4.85 exactly), as in (ii). Long-dated options are the most exposed to
 // volatility.
-[[nodiscard]] inline double ex23_atm_vega(double T, double S = 50.0, double sigma = 0.3, double r = 0.0) {
-    return bs_greeks(OptionType::Call, S, S, T, sigma, r).vega;
+[[nodiscard]] inline double ex23_atm_vega(double T, double S = 50.0,
+                                          double sigma = 0.3, double r = 0.0) {
+  return bs_greeks(OptionType::Call, S, S, T, sigma, r).vega;
 }
-[[nodiscard]] inline double ex23_vega_maturity_slope(double tau, double S = 50.0, double sigma = 0.3) {
-    const double d1 = 0.5 * sigma * std::sqrt(tau);
-    return S * norm_pdf(d1) / (2.0 * std::sqrt(tau)) * (1.0 - sigma * sigma * tau / 4.0);
+[[nodiscard]] inline double ex23_vega_maturity_slope(double tau,
+                                                     double S = 50.0,
+                                                     double sigma = 0.3) {
+  const double d1 = 0.5 * sigma * std::sqrt(tau);
+  return S * norm_pdf(d1) / (2.0 * std::sqrt(tau)) *
+         (1.0 - sigma * sigma * tau / 4.0);
 }
 
 // ----------------------------------------------------------- Exercise 24 ---
@@ -95,11 +102,15 @@ inline constexpr std::array<double, 3> ex22_maturities{1.0 / 24.0, 0.25, 1.0};
 // P = C - S e^(-qT) + K e^(-rT): subtract S e^(-qT) - K e^(-rT) throughout,
 // and C >= 0 gives the positive part of the lower bound.
 // Black-Scholes prices always lie inside (ch01::call_bounds / put_bounds).
-[[nodiscard]] inline ch01::PriceBounds ex24_put_bounds(double S, double K, double T, double r, double q = 0.0) {
-    return {K * std::exp(-r * T) - S * std::exp(-q * T), K * std::exp(-r * T)};
+[[nodiscard]] inline ch01::PriceBounds ex24_put_bounds(double S, double K,
+                                                       double T, double r,
+                                                       double q = 0.0) {
+  return {K * std::exp(-r * T) - S * std::exp(-q * T), K * std::exp(-r * T)};
 }
-[[nodiscard]] inline ch01::PriceBounds ex24_call_bounds(double S, double K, double T, double r, double q = 0.0) {
-    return {S * std::exp(-q * T) - K * std::exp(-r * T), S * std::exp(-q * T)};
+[[nodiscard]] inline ch01::PriceBounds ex24_call_bounds(double S, double K,
+                                                        double T, double r,
+                                                        double q = 0.0) {
+  return {S * std::exp(-q * T) - K * std::exp(-r * T), S * std::exp(-q * T)};
 }
 
 }  // namespace p4mfe::ch03::ex

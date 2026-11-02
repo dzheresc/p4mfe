@@ -27,7 +27,9 @@ EX08_OVERNIGHT = 0.05
 
 
 def ex08_curve() -> ZeroCurve:
-    return bootstrap_zero_curve(EX08_QUOTES, 2, ZeroCurve(np.array([0.0]), np.array([EX08_OVERNIGHT])))
+    return bootstrap_zero_curve(
+        EX08_QUOTES, 2, ZeroCurve(np.array([0.0]), np.array([EX08_OVERNIGHT]))
+    )
 
 
 def ex08_hint_residual(c: ZeroCurve) -> float:

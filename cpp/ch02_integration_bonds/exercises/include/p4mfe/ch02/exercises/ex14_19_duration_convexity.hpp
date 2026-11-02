@@ -7,9 +7,8 @@
 //   B(y) = sum_i c_i e^(-y t_i),  D = -B'/B = (1/B) sum_i t_i c_i e^(-y t_i),
 //   C = B''/B = (1/B) sum_i t_i^2 c_i e^(-y t_i).
 
-#include <p4mfe/ch02/bonds.hpp>
-
 #include <cmath>
+#include <p4mfe/ch02/bonds.hpp>
 
 namespace p4mfe::ch02::ex {
 
@@ -18,11 +17,13 @@ namespace p4mfe::ch02::ex {
 // maturity is 9%. What are the price, duration and convexity of the bond?
 //
 // Cash flows: 3 at t = 0.5, 1, 1.5, 2 and 103 at t = 2.5. With y = 0.09:
-//   B = 3 (e^(-0.045) + e^(-0.09) + e^(-0.135) + e^(-0.18)) + 103 e^(-0.225) = 92.9839,
-//   D = (1/B) sum t_i c_i e^(-0.09 t_i) = 2.352418,
-//   C = (1/B) sum t_i^2 c_i e^(-0.09 t_i) = 5.736739.
+//   B = 3 (e^(-0.045) + e^(-0.09) + e^(-0.135) + e^(-0.18)) + 103 e^(-0.225)
+//   = 92.9839, D = (1/B) sum t_i c_i e^(-0.09 t_i) = 2.352418, C = (1/B) sum
+//   t_i^2 c_i e^(-0.09 t_i) = 5.736739.
 // The bond trades below par since its 6% coupon is under the 9% yield.
-[[nodiscard]] inline BondMetrics ex14_metrics() { return bond_metrics(bond_cash_flows(2.5, 0.06, 2), 0.09); }
+[[nodiscard]] inline BondMetrics ex14_metrics() {
+  return bond_metrics(bond_cash_flows(2.5, 0.06, 2), 0.09);
+}
 
 // ----------------------------------------------------------- Exercise 15 ---
 // The yield of a 14 month quarterly coupon bond with 8% coupon rate is 7%.
@@ -35,7 +36,7 @@ namespace p4mfe::ch02::ex {
 // (B is the full price, which includes the interest accrued since the last
 // coupon date one month ago.)
 [[nodiscard]] inline BondMetrics ex15_metrics() {
-    return bond_metrics(bond_cash_flows(14.0 / 12.0, 0.08, 4), 0.07);
+  return bond_metrics(bond_cash_flows(14.0 / 12.0, 0.08, 4), 0.07);
 }
 
 // ----------------------------------------------------------- Exercise 16 ---
@@ -58,8 +59,9 @@ namespace p4mfe::ch02::ex {
 // coupons alone. Financially: a bond paying more of its value sooner is less
 // exposed to the yield, since less of its value sits at long maturities where
 // a yield change compounds over more years.
-[[nodiscard]] inline BondMetrics ex16_metrics(double T, double coupon_rate, int freq, double y) {
-    return bond_metrics(bond_cash_flows(T, coupon_rate, freq), y);
+[[nodiscard]] inline BondMetrics ex16_metrics(double T, double coupon_rate,
+                                              int freq, double y) {
+  return bond_metrics(bond_cash_flows(T, coupon_rate, freq), y);
 }
 
 // ----------------------------------------------------------- Exercise 17 ---
@@ -72,11 +74,13 @@ namespace p4mfe::ch02::ex {
 // relative change is e^(-10 * 0.001) - 1 = -0.9950%. So the price drops by
 // about 1% (0.995% exactly), whatever the current yield.
 inline constexpr double ex17_duration_estimate = -0.01;
-[[nodiscard]] inline double ex17_exact_relative_change(double T = 10.0, double dy = 0.001) {
-    return std::expm1(-T * dy);
+[[nodiscard]] inline double ex17_exact_relative_change(double T = 10.0,
+                                                       double dy = 0.001) {
+  return std::expm1(-T * dy);
 }
-[[nodiscard]] inline double ex17_convexity_estimate(double T = 10.0, double dy = 0.001) {
-    return -T * dy + 0.5 * T * T * dy * dy;
+[[nodiscard]] inline double ex17_convexity_estimate(double T = 10.0,
+                                                    double dy = 0.001) {
+  return -T * dy + 0.5 * T * T * dy * dy;
 }
 
 // ----------------------------------------------------------- Exercise 18 ---
@@ -87,8 +91,9 @@ inline constexpr double ex17_duration_estimate = -0.01;
 //   B(y + dy) ~ B (1 - D dy) = 102 (1 + 3.5 * 0.005) = 103.785.
 // The true value is a little higher, since convexity adds B C dy^2 / 2 > 0
 // (for example C ~ 15 would add about 0.019).
-[[nodiscard]] inline double ex18_new_price(double B = 102.0, double D = 3.5, double dy = -0.005) {
-    return price_approx_duration(B, D, dy);
+[[nodiscard]] inline double ex18_new_price(double B = 102.0, double D = 3.5,
+                                           double dy = -0.005) {
+  return price_approx_duration(B, D, dy);
 }
 
 // ----------------------------------------------------------- Exercise 19 ---
@@ -97,13 +102,14 @@ inline constexpr double ex17_duration_estimate = -0.01;
 //
 // D = -B'/B, so by the quotient rule
 //   dD/dy = -(B'' B - (B')^2) / B^2 = -B''/B + (B'/B)^2 = -C + D^2,
-// hence C = D^2 - dD/dy. (So dD/dy = D^2 - C = -(1/B) sum (t_i - D)^2 c_i e^(-y t_i) <= 0:
-// C - D^2 is the variance of the cash flow times under the present value
-// weights, and duration falls as the yield rises.)
+// hence C = D^2 - dD/dy. (So dD/dy = D^2 - C = -(1/B) sum (t_i - D)^2 c_i e^(-y
+// t_i) <= 0: C - D^2 is the variance of the cash flow times under the present
+// value weights, and duration falls as the yield rises.)
 
 // dD/dy by a central difference, to check the identity numerically.
-[[nodiscard]] inline double ex19_duration_slope(const CashFlows& cf, double y, double h = 1e-5) {
-    return (bond_duration(cf, y + h) - bond_duration(cf, y - h)) / (2.0 * h);
+[[nodiscard]] inline double ex19_duration_slope(const CashFlows& cf, double y,
+                                                double h = 1e-5) {
+  return (bond_duration(cf, y + h) - bond_duration(cf, y - h)) / (2.0 * h);
 }
 
 }  // namespace p4mfe::ch02::ex

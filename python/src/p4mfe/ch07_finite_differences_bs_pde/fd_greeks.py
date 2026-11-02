@@ -27,8 +27,15 @@ class FdSteps:
 
 
 # 7.3 -----------------------------------------------------------------------
-def fd_greeks(V: Pricer, S: float, T: float, sigma: float, r: float, h: FdSteps = FdSteps(),
-              scheme: FdScheme = FdScheme.CENTRAL) -> Greeks:
+def fd_greeks(
+    V: Pricer,
+    S: float,
+    T: float,
+    sigma: float,
+    r: float,
+    h: FdSteps = FdSteps(),
+    scheme: FdScheme = FdScheme.CENTRAL,
+) -> Greeks:
     def in_S(s):
         return V(s, T, sigma, r)
 
@@ -36,11 +43,30 @@ def fd_greeks(V: Pricer, S: float, T: float, sigma: float, r: float, h: FdSteps 
         delta=first_difference(in_S, S, h.dS, scheme),
         gamma=second_central_difference(in_S, S, h.dS),
         vega=first_difference(lambda v: V(S, T, v, r), sigma, h.dsigma, scheme),
-        theta=first_difference(lambda t: V(S, T - t, sigma, r), 0.0, h.dT, scheme),
+        theta=first_difference(
+            lambda t: V(S, T - t, sigma, r), 0.0, h.dT, scheme
+        ),
         rho=first_difference(lambda x: V(S, T, sigma, x), r, h.dr, scheme),
     )
 
 
-def bs_fd_greeks(option_type: OptionType, S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0,
-                 h: FdSteps = FdSteps(), scheme: FdScheme = FdScheme.CENTRAL) -> Greeks:
-    return fd_greeks(lambda s, t, v, x: bs_price(option_type, s, K, t, v, x, q), S, T, sigma, r, h, scheme)
+def bs_fd_greeks(
+    option_type: OptionType,
+    S: float,
+    K: float,
+    T: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
+    h: FdSteps = FdSteps(),
+    scheme: FdScheme = FdScheme.CENTRAL,
+) -> Greeks:
+    return fd_greeks(
+        lambda s, t, v, x: bs_price(option_type, s, K, t, v, x, q),
+        S,
+        T,
+        sigma,
+        r,
+        h,
+        scheme,
+    )

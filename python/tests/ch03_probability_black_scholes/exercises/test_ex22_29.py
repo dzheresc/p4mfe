@@ -23,15 +23,25 @@ from p4mfe.ch03_probability_black_scholes.hedging import delta_gamma_hedge
 
 
 def test_ex22_23():
-    for T, g, v in zip(EX22_MATURITIES, (0.130022, 0.052530, 0.025296), (4.069779, 9.945546, 19.723967)):
+    for T, g, v in zip(
+        EX22_MATURITIES,
+        (0.130022, 0.052530, 0.025296),
+        (4.069779, 9.945546, 19.723967),
+    ):
         assert ex22_atm_gamma(T) == pytest.approx(g, abs=1e-6)
         assert ex23_atm_vega(T) == pytest.approx(v, abs=1e-6)
     for tau in (0.1, 1.0, 10.0, 44.0, 60.0):
         h = 1e-5
-        assert ex23_vega_maturity_slope(tau) == pytest.approx((ex23_atm_vega(tau + h) - ex23_atm_vega(tau - h)) / (2 * h), abs=1e-6)
+        assert ex23_vega_maturity_slope(tau) == pytest.approx(
+            (ex23_atm_vega(tau + h) - ex23_atm_vega(tau - h)) / (2 * h),
+            abs=1e-6,
+        )
     assert ex23_vega_maturity_slope(44.0) > 0 > ex23_vega_maturity_slope(45.0)
-    assert bs_greeks(OptionType.PUT, 50, 55, 0.7, 0.3, 0.02, 0.01).vega == pytest.approx(
-        bs_greeks(OptionType.CALL, 50, 55, 0.7, 0.3, 0.02, 0.01).vega)
+    assert bs_greeks(
+        OptionType.PUT, 50, 55, 0.7, 0.3, 0.02, 0.01
+    ).vega == pytest.approx(
+        bs_greeks(OptionType.CALL, 50, 55, 0.7, 0.3, 0.02, 0.01).vega
+    )
 
 
 def test_ex24():
@@ -39,18 +49,30 @@ def test_ex24():
     for S in (60.0, 100.0, 140.0):
         for sigma in (0.05, 0.3, 1.5):
             for q in (0.0, 0.03):
-                cb, pb = ex24_call_bounds(S, K, T, r, q), ex24_put_bounds(S, K, T, r, q)
-                C, P = bs_call(S, K, T, sigma, r, q), bs_put(S, K, T, sigma, r, q)
+                cb, pb = ex24_call_bounds(S, K, T, r, q), ex24_put_bounds(
+                    S, K, T, r, q
+                )
+                C, P = bs_call(S, K, T, sigma, r, q), bs_put(
+                    S, K, T, sigma, r, q
+                )
                 assert cb.lower <= C + 1e-12 and C <= cb.upper + 1e-12
                 assert pb.lower <= P + 1e-12 and P <= pb.upper + 1e-12
-                assert put_from_call(0.0, S, K, T, r, q) == pytest.approx(pb.lower, abs=1e-12)
-                assert put_from_call(cb.upper, S, K, T, r, q) == pytest.approx(pb.upper, abs=1e-12)
-                assert max(pb.lower, 0.0) == pytest.approx(put_bounds(S, K, T, r, q).lower, abs=1e-12)
+                assert put_from_call(0.0, S, K, T, r, q) == pytest.approx(
+                    pb.lower, abs=1e-12
+                )
+                assert put_from_call(cb.upper, S, K, T, r, q) == pytest.approx(
+                    pb.upper, abs=1e-12
+                )
+                assert max(pb.lower, 0.0) == pytest.approx(
+                    put_bounds(S, K, T, r, q).lower, abs=1e-12
+                )
 
 
 def test_ex25():
     h = ex25_options_only(5000, -200, 0.4, 0.05, -0.5, 0.07)
-    assert h.calls == pytest.approx(-4716.98, abs=0.01) and h.puts == pytest.approx(6226.42, abs=0.01)
+    assert h.calls == pytest.approx(
+        -4716.98, abs=0.01
+    ) and h.puts == pytest.approx(6226.42, abs=0.01)
     assert 5000 + 0.4 * h.calls - 0.5 * h.puts == pytest.approx(0, abs=1e-9)
     assert -200 + 0.05 * h.calls + 0.07 * h.puts == pytest.approx(0, abs=1e-9)
     c = delta_gamma_hedge(5000, -200, 0.4, 0.05)
@@ -78,4 +100,6 @@ def test_ex29():
     assert (h.calls, h.puts, h.shares) == pytest.approx((-670, -110, -254))
     assert 100 + 0.1 * h.calls + 0.3 * h.puts == pytest.approx(0, abs=1e-9)
     assert 89 + 0.1 * h.calls + 0.2 * h.puts == pytest.approx(0, abs=1e-9)
-    assert math.isclose(300 + 0.2 * h.calls - 0.8 * h.puts + h.shares, 0, abs_tol=1e-9)
+    assert math.isclose(
+        300 + 0.2 * h.calls - 0.8 * h.puts + h.shares, 0, abs_tol=1e-9
+    )
