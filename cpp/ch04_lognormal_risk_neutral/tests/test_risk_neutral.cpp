@@ -43,7 +43,7 @@ TEST(Ch04AssetModel, MomentsAndMedian) {
 TEST(Ch04AssetModel, DensityIntegratesToMoments) {
   const ch03::ContinuousDistribution S{
       [](double x) { return price_pdf(x, S0, T, sigma, mu, q); }, 0.0,
-      ch02::infinity};
+      ch02::kInfinity};
   EXPECT_NEAR(ch03::mean(S), price_mean(S0, T, mu, q), 1e-7);
   EXPECT_NEAR(ch03::cdf(S, 45.0), price_cdf(45.0, S0, T, sigma, mu, q), 1e-8);
 }
@@ -98,10 +98,10 @@ TEST(Ch04RiskNeutral, DerivationRestrictsToExerciseRegion) {
     return p == 0.0 ? 0.0 : ST(z) * p;
   };
   const double asset_part =
-      ch02::improper_integral(weighted, -d2, ch02::infinity, 1e-10).value;
+      ch02::ImproperIntegral(weighted, -d2, ch02::kInfinity, 1e-10).value;
   const double cash_part =
-      ch02::improper_integral([](double z) { return norm_pdf(z); }, -d2,
-                              ch02::infinity, 1e-10)
+      ch02::ImproperIntegral([](double z) { return norm_pdf(z); }, -d2,
+                             ch02::kInfinity, 1e-10)
           .value;
   EXPECT_NEAR(asset_part, S0 * std::exp((r - q) * T) * norm_cdf(d1),
               1e-8);  // completing the square

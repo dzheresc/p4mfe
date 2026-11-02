@@ -37,11 +37,11 @@ template <std::invocable<double> FX, std::invocable<double> FY>
 // integrator converges slowly across jumps of the integrand.
 template <std::invocable<double> FX, std::invocable<double> FY>
 [[nodiscard]] double sum_pdf(const FX& f_X, const FY& f_Y, double z,
-                             double lo = -ch02::infinity,
-                             double hi = ch02::infinity, double tol = 1e-10) {
+                             double lo = -ch02::kInfinity,
+                             double hi = ch02::kInfinity, double tol = 1e-10) {
   if (!(lo < hi)) return 0.0;
-  return ch02::improper_integral([&](double x) { return f_X(x) * f_Y(z - x); },
-                                 lo, hi, tol)
+  return ch02::ImproperIntegral([&](double x) { return f_X(x) * f_Y(z - x); },
+                                lo, hi, tol)
       .value;
 }
 

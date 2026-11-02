@@ -41,7 +41,7 @@ inline constexpr double ex10_exact =
 // The integral by chapter 2's midpoint-rule driver, which never evaluates the
 // endpoints where the logs are infinite.
 [[nodiscard]] inline double ex10_numerical(double tol = 1e-10) {
-  return ch02::improper_integral(ex10_integrand, 0.0, 1.0, tol).value;
+  return ch02::ImproperIntegral(ex10_integrand, 0.0, 1.0, tol).value;
 }
 // int_0^1 x^n ln x dx = -1/(n+1)^2, and the same numerically.
 [[nodiscard]] constexpr double ex10_moment(unsigned n) noexcept {
@@ -54,9 +54,8 @@ inline constexpr double ex10_exact =
 [[nodiscard]] inline double ex10_moment_numerical(unsigned n,
                                                   double tol = 1e-11) {
   const double m = static_cast<double>(n) + 1.0;
-  return ch02::improper_integral(
-             [m](double s) { return -s * std::exp(-m * s); }, 0.0,
-             ch02::infinity, tol)
+  return ch02::ImproperIntegral([m](double s) { return -s * std::exp(-m * s); },
+                                0.0, ch02::kInfinity, tol)
       .value;
 }
 // Partial sum sum_{n=1}^N 1/(n(n+1)^2); the tail is below 1/(2 N^2).

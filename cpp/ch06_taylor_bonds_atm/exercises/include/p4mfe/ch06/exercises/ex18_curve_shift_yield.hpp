@@ -38,7 +38,7 @@ namespace p4mfe::ch06::ex {
   return 0.025 + std::exp(-t / 100.0) / 100.0 + t / (100.0 * (t + 1.0));
 }
 [[nodiscard]] inline ch02::CashFlows ex18_cash_flows() {
-  return ch02::bond_cash_flows(4.0, 0.06, 2);
+  return ch02::BondCashFlows(4.0, 0.06, 2);
 }
 
 struct Ex18Result {
@@ -46,8 +46,8 @@ struct Ex18Result {
 };
 [[nodiscard]] inline Ex18Result ex18_solve() {
   const auto cf = ex18_cash_flows();
-  const double B = ch02::bond_price_from_zero_rate(cf, ex18_zero_rate);
-  return {B, ch02::bond_yield(cf, B)};
+  const double B = ch02::BondPriceFromZeroRate(cf, ex18_zero_rate);
+  return {B, ch02::BondYield(cf, B)};
 }
 
 inline constexpr std::array<double, 5> ex18_shifts{0.001, 0.002, 0.005, 0.01,

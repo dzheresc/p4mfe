@@ -33,7 +33,7 @@ namespace p4mfe::ch03 {
   if (x == 0.0) return 0.5;
   const auto g = [](double t) { return std::exp(-0.5 * t * t); };
   // Integrate over [0, |x|] so the interval is never reversed.
-  const double I = ch02::integrate_to_tolerance(g, 0.0, std::abs(x), tol).value;
+  const double I = ch02::IntegrateToTolerance(g, 0.0, std::abs(x), tol).value;
   const double half_mass = I * std::numbers::inv_sqrtpi / std::numbers::sqrt2;
   return x > 0.0 ? 0.5 + half_mass : 0.5 - half_mass;
 }

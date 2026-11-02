@@ -43,8 +43,8 @@ template <std::invocable<double> G>
 [[nodiscard]] double ex08_integral(G&& g, double K, double x,
                                    std::size_t n = 64) {
   const auto fg = [&](double S) { return ex08_f(S, K, x) * g(S); };
-  return ch02::simpson_rule(fg, K - x, K, n) +
-         ch02::simpson_rule(fg, K, K + x, n);
+  return ch02::SimpsonRule(fg, K - x, K, n) +
+         ch02::SimpsonRule(fg, K, K + x, n);
 }
 
 }  // namespace p4mfe::ch07::ex

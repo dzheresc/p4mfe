@@ -28,8 +28,8 @@ using ch02::CashFlows;
 template <std::invocable<double> Z>
 [[nodiscard]] double shifted_curve_price(const CashFlows& cf, Z&& zero,
                                          double dr) {
-  return ch02::bond_price_from_zero_rate(
-      cf, [&](double t) { return zero(t) + dr; });
+  return ch02::BondPriceFromZeroRate(cf,
+                                     [&](double t) { return zero(t) + dr; });
 }
 
 // Price, duration and convexity with respect to a parallel shift of the curve.
@@ -52,17 +52,16 @@ template <std::invocable<double> Z>
 [[nodiscard]] double shifted_curve_price_approx(const CashFlows& cf, Z&& zero,
                                                 double dr) {
   const auto m = curve_shift_metrics(cf, zero);
-  return ch02::price_approx_duration_convexity(m.price, m.duration, m.convexity,
-                                               dr);
+  return ch02::PriceApproxDurationConvexity(m.price, m.duration, m.convexity,
+                                            dr);
 }
 
 // Change in the bond's yield caused by a parallel shift dr of the zero curve.
 template <std::invocable<double> Z>
 [[nodiscard]] double yield_change_from_shift(const CashFlows& cf, Z&& zero,
                                              double dr) {
-  const double y0 =
-      ch02::bond_yield(cf, ch02::bond_price_from_zero_rate(cf, zero));
-  const double y1 = ch02::bond_yield(cf, shifted_curve_price(cf, zero, dr));
+  const double y0 = ch02::BondYield(cf, ch02::BondPriceFromZeroRate(cf, zero));
+  const double y1 = ch02::BondYield(cf, shifted_curve_price(cf, zero, dr));
   return y1 - y0;
 }
 

@@ -21,7 +21,7 @@ TEST(Ch04Lognormal, MomentsFromMgf) {
   EXPECT_NEAR(m2 - m1 * m1, lognormal_variance(mu, sigma), 1e-14);
   const ch03::ContinuousDistribution Y{
       [=](double y) { return lognormal_pdf(y, mu, sigma); }, 0.0,
-      ch02::infinity};
+      ch02::kInfinity};
   for (double n : {3.0, 0.5, -1.0})
     EXPECT_NEAR(
         ch03::expected_value(Y, [n](double y) { return std::pow(y, n); }),
@@ -87,10 +87,10 @@ TEST(Ch04Independent, JointDensityFactorsAndCovarianceVanishes) {
   // E[(X + 1) Y] = E[X + 1] E[Y] = 1 for independent X, Y: integrate the
   // factored density over a box that holds all but ~1e-14 of the mass.
   const auto inner = [&](double x) {
-    return ch02::simpson_rule([&](double y) { return (x + 1.0) * y * f(x, y); },
-                              0.0, 40.0, 400);
+    return ch02::SimpsonRule([&](double y) { return (x + 1.0) * y * f(x, y); },
+                             0.0, 40.0, 400);
   };
-  EXPECT_NEAR(ch02::simpson_rule(inner, -9.0, 9.0, 200), 1.0, 1e-6);
+  EXPECT_NEAR(ch02::SimpsonRule(inner, -9.0, 9.0, 200), 1.0, 1e-6);
 }
 
 TEST(Ch04Independent, LinearCombinationOfNormals) {

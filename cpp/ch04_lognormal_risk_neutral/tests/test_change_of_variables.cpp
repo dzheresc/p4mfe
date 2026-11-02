@@ -61,7 +61,7 @@ TEST(Ch04ChangeOfVariables, SqrtOfExponentialIsRayleigh) {
       X.pdf, [](double y) { return y * y; }, [](double y) { return y >= 0; });
   for (double y : {0.1, 0.5, 1.0, 2.0})
     EXPECT_NEAR(f(y), 2 * lambda * y * std::exp(-lambda * y * y), 1e-9) << y;
-  const ch03::ContinuousDistribution Y{f, 0.0, ch02::infinity};
+  const ch03::ContinuousDistribution Y{f, 0.0, ch02::kInfinity};
   EXPECT_NEAR(ch03::cdf(Y, 50.0), 1.0, 1e-8);
   EXPECT_NEAR(ch03::mean(Y), 0.5 * std::sqrt(std::numbers::pi / lambda), 1e-8);
 }
@@ -74,6 +74,6 @@ TEST(Ch04ChangeOfVariables, SquareOfStandardNormalIsChiSquared) {
         << y;
   EXPECT_EQ(f(-1.0), 0.0);
   // E[Z^2] = 1, integrating away from the integrable singularity at 0.
-  const ch03::ContinuousDistribution Y{f, 0.0, ch02::infinity};
+  const ch03::ContinuousDistribution Y{f, 0.0, ch02::kInfinity};
   EXPECT_NEAR(ch03::mean(Y, 1e-8), 1.0, 1e-6);
 }

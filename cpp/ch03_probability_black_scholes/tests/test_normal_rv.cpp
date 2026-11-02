@@ -25,7 +25,7 @@ TEST(Ch03Lognormal, MomentsMatchIntegration) {
   const double mu = 0.1, sigma = 0.3;
   const ContinuousDistribution Y{
       [=](double y) { return lognormal_pdf(y, mu, sigma); }, 0.0,
-      p4mfe::ch02::infinity};
+      p4mfe::ch02::kInfinity};
   EXPECT_NEAR(mean(Y), lognormal_mean(mu, sigma), 1e-8);
   EXPECT_NEAR(variance(Y), lognormal_variance(mu, sigma), 1e-8);
   EXPECT_NEAR(lognormal_cdf(std::exp(mu), mu, sigma), 0.5, 1e-15);

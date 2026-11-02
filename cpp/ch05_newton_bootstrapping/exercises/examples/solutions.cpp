@@ -108,7 +108,7 @@ int main() {
   print_curve("", c9);
   std::printf("  r(0, 3) interpolated = %.6f%%\n",
               100 * zero_rate_linear(c9, 3.0));
-  const auto cf3 = ch02::bond_cash_flows(3.0, 0.045, 2);
+  const auto cf3 = ch02::BondCashFlows(3.0, 0.045, 2);
   std::printf(
       "  model price %.6f  market %.6f  relative error %.6f%%  (3y yield "
       "%.6f%%)\n",

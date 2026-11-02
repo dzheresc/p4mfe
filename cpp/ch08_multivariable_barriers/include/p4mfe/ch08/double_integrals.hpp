@@ -34,10 +34,10 @@ template <std::invocable<double, double> F>
 [[nodiscard]] double double_integral(F&& f, double a, double b, double c,
                                      double d, std::size_t nx = 200,
                                      std::size_t ny = 200,
-                                     ch02::Rule rule = ch02::Rule::Simpson) {
-  return ch02::integrate(
+                                     ch02::Rule rule = ch02::Rule::kSimpson) {
+  return ch02::Integrate(
       [&](double x) {
-        return ch02::integrate([&](double y) { return f(x, y); }, c, d, ny,
+        return ch02::Integrate([&](double y) { return f(x, y); }, c, d, ny,
                                rule);
       },
       a, b, nx, rule);
@@ -48,10 +48,10 @@ template <std::invocable<double, double> F, std::invocable<double> Lo,
           std::invocable<double> Hi>
 [[nodiscard]] double double_integral_region(
     F&& f, double a, double b, Lo&& y_lo, Hi&& y_hi, std::size_t nx = 200,
-    std::size_t ny = 200, ch02::Rule rule = ch02::Rule::Simpson) {
-  return ch02::integrate(
+    std::size_t ny = 200, ch02::Rule rule = ch02::Rule::kSimpson) {
+  return ch02::Integrate(
       [&](double x) {
-        return ch02::integrate([&](double y) { return f(x, y); }, y_lo(x),
+        return ch02::Integrate([&](double y) { return f(x, y); }, y_lo(x),
                                y_hi(x), ny, rule);
       },
       a, b, nx, rule);
@@ -117,7 +117,7 @@ template <std::invocable<double, double> F>
 // dx)^2.
 [[nodiscard]] inline double gaussian_square_integral(double R,
                                                      std::size_t n = 400) {
-  const double I = ch02::simpson_rule(
+  const double I = ch02::SimpsonRule(
       [](double x) { return std::exp(-0.5 * x * x); }, -R, R, n);
   return I * I;
 }

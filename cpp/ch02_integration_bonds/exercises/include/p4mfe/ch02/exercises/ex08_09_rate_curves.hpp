@@ -30,7 +30,7 @@ namespace p4mfe::ch02::ex {
 // numerically from r(t) = d/dt (t r(0,t)); the test checks the difference
 // is dr for an arbitrary curve.
 template <std::invocable<double> Z>
-[[nodiscard]] auto ex08_shift(Z zero, double dr) {
+[[nodiscard]] auto Ex08Shift(Z zero, double dr) {
   return [zero, dr](double t) { return zero(t) + dr; };
 }
 
@@ -51,16 +51,16 @@ template <std::invocable<double> Z>
 //   r_2(0,t) = 2 (e^(r_c(0,t)/2) - 1) = 2 (e^0.025 (1 + t/2)^0.005 - 1).
 // At t = 0 all three curves start at their equivalent of 5%: r(0) = 0.05,
 // r_1(0,0) = e^0.05 - 1 = 5.127%, r_2(0,0) = 2(e^0.025 - 1) = 5.063%.
-[[nodiscard]] inline double ex09_zero_rate(double t) {
+[[nodiscard]] inline double Ex09ZeroRate(double t) {
   return 0.05 + 0.01 * std::log1p(0.5 * t);
 }
-[[nodiscard]] inline double ex09_inst_rate(double t) {
-  return ex09_zero_rate(t) + 0.01 * t / (2.0 + t);
+[[nodiscard]] inline double Ex09InstRate(double t) {
+  return Ex09ZeroRate(t) + 0.01 * t / (2.0 + t);
 }
-[[nodiscard]] inline double ex09_annual_zero_rate(double t) {
+[[nodiscard]] inline double Ex09AnnualZeroRate(double t) {
   return std::exp(0.05) * std::pow(1.0 + 0.5 * t, 0.01) - 1.0;
 }
-[[nodiscard]] inline double ex09_semiannual_zero_rate(double t) {
+[[nodiscard]] inline double Ex09SemiannualZeroRate(double t) {
   return 2.0 * (std::exp(0.025) * std::pow(1.0 + 0.5 * t, 0.005) - 1.0);
 }
 

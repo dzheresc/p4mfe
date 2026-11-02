@@ -37,8 +37,8 @@ inline constexpr std::array<double, 4> ex16_yield_changes{0.001, 0.005, 0.01,
   std::array<Ex16Row, 4> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     const double dy = ex16_yield_changes[i];
-    out[i] = {dy, ch02::price_approx_duration(B, D, dy),
-              ch02::price_approx_duration_convexity(B, D, C, dy)};
+    out[i] = {dy, ch02::PriceApproxDuration(B, D, dy),
+              ch02::PriceApproxDurationConvexity(B, D, C, dy)};
   }
   return out;
 }

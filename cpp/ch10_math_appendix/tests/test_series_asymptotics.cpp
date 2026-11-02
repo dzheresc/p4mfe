@@ -27,7 +27,7 @@ TEST(Ch10BigO, SmallH) {
   for (double q : ratios_h2) EXPECT_NEAR(q, 0.5, 0.06);  // bounded, -> 1/2
   // Simpson's rule error is O(h^4): with h = 1/n, from chapter 2.
   const auto simpson_err = [](double h) {
-    return ch02::integrate([](double x) { return std::exp(x); }, 0.0, 1.0,
+    return ch02::Integrate([](double x) { return std::exp(x); }, 0.0, 1.0,
                            static_cast<std::size_t>(std::lround(1.0 / h))) -
            (std::numbers::e - 1.0);
   };

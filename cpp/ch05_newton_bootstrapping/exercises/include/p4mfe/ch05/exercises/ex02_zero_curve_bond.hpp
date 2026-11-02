@@ -34,17 +34,16 @@ struct Ex02Result {
   double yield_semiannual, modified_duration_semiannual;
 };
 [[nodiscard]] inline ch02::CashFlows ex02_cash_flows() {
-  return ch02::bond_cash_flows(2.0, 0.08, 2);
+  return ch02::BondCashFlows(2.0, 0.08, 2);
 }
 
 [[nodiscard]] inline Ex02Result ex02_solve() {
   const auto cf = ex02_cash_flows();
-  const double B = ch02::bond_price_from_zero_rate(cf, ex02_zero_rate);
+  const double B = ch02::BondPriceFromZeroRate(cf, ex02_zero_rate);
   const double y = bond_yield_newton(cf, B).x;
-  const auto m = ch02::bond_metrics(cf, y);
+  const auto m = ch02::ComputeBondMetrics(cf, y);
   const double y2 = 2.0 * (std::exp(y / 2.0) - 1.0);
-  return {B,           y,  m.duration,
-          m.convexity, y2, ch02::modified_duration(cf, y2, 2)};
+  return {B, y, m.duration, m.convexity, y2, ch02::ModifiedDuration(cf, y2, 2)};
 }
 
 }  // namespace p4mfe::ch05::ex

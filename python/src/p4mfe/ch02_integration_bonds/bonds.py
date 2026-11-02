@@ -31,16 +31,16 @@ class CashFlows:
 
 # 2.6 -----------------------------------------------------------------------
 def bond_cash_flows(
-    T: float, coupon_rate: float, freq: int, face: float = 100.0
+    maturity: float, coupon_rate: float, freq: int, face: float = 100.0
 ) -> CashFlows:
     """Coupons face * coupon_rate / freq at T, T - 1/freq, ... > 0; face repaid at T."""
-    if T <= 0 or freq <= 0:
+    if maturity <= 0 or freq <= 0:
         raise ValueError("maturity and freq must be positive")
     coupon = face * coupon_rate / freq
     if coupon == 0:
-        return CashFlows(np.array([T]), np.array([face]))
-    k = math.ceil(T * freq - 1e-9)
-    times = T - np.arange(k - 1, -1, -1) / freq
+        return CashFlows(np.array([maturity]), np.array([face]))
+    k = math.ceil(maturity * freq - 1e-9)
+    times = maturity - np.arange(k - 1, -1, -1) / freq
     amounts = np.full(k, coupon)
     amounts[-1] += face
     return CashFlows(times, amounts)
@@ -69,7 +69,7 @@ def bond_price_from_inst_rate(
 
     The cash flow times must be non-negative and non-decreasing.
     """
-    B, integral, t_prev = 0.0, 0.0, 0.0
+    price, integral, t_prev = 0.0, 0.0, 0.0
     for t, c in zip(cf.times, cf.amounts):
         if t < t_prev:
             raise ValueError(
@@ -78,8 +78,8 @@ def bond_price_from_inst_rate(
         if t > t_prev:
             integral += integrate_to_tolerance(r, t_prev, float(t), tol).value
         t_prev = t
-        B += c * math.exp(-integral)
-    return B
+        price += c * math.exp(-integral)
+    return price
 
 
 # 2.7 -----------------------------------------------------------------------
@@ -92,9 +92,11 @@ class BondMetrics:
 
 def bond_metrics(cf: CashFlows, y: float) -> BondMetrics:
     v = cf.amounts * np.exp(-y * cf.times)
-    B = float(np.sum(v))
+    price = float(np.sum(v))
     return BondMetrics(
-        B, float(np.sum(cf.times * v)) / B, float(np.sum(cf.times**2 * v)) / B
+        price,
+        float(np.sum(cf.times * v)) / price,
+        float(np.sum(cf.times**2 * v)) / price,
     )
 
 
@@ -115,16 +117,16 @@ def dv01(cf: CashFlows, y: float) -> float:
     return dollar_duration(cf, y) / 10_000
 
 
-def price_approx_duration(B: float, D: float, dy: float) -> float:
+def price_approx_duration(price: float, duration: float, dy: float) -> float:
     """B(y + dy) ~ B (1 - D dy)."""
-    return B * (1 - D * dy)
+    return price * (1 - duration * dy)
 
 
 def price_approx_duration_convexity(
-    B: float, D: float, C: float, dy: float
+    price: float, duration: float, convexity: float, dy: float
 ) -> float:
     """B(y + dy) ~ B (1 - D dy + C dy^2 / 2)."""
-    return B * (1 - D * dy + 0.5 * C * dy * dy)
+    return price * (1 - duration * dy + 0.5 * convexity * dy * dy)
 
 
 # 2.8 -----------------------------------------------------------------------
@@ -144,14 +146,16 @@ def modified_duration(cf: CashFlows, y: float, m: int) -> float:
 
 
 # 2.9 -----------------------------------------------------------------------
-def zero_coupon_bond_price(T: float, r: float, face: float = 100.0) -> float:
-    return face * math.exp(-r * T)
+def zero_coupon_bond_price(
+    maturity: float, r: float, face: float = 100.0
+) -> float:
+    return face * math.exp(-r * maturity)
 
 
 def zero_rate_from_zero_coupon_price(
-    price: float, T: float, face: float = 100.0
+    price: float, maturity: float, face: float = 100.0
 ) -> float:
-    return zero_rate_from_discount(price / face, T)
+    return zero_rate_from_discount(price / face, maturity)
 
 
 @dataclass(frozen=True)

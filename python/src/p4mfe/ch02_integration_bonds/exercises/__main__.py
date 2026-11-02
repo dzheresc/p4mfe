@@ -74,12 +74,17 @@ def main() -> None:
         )
         prev = row.error
     print(" 5  g'(100) =", ex05_g_prime(Ex05Params(100, 0.5, 0.3, 0.04), 100.0))
-    mk, K, h = Ex06Market(100, 1, 0.25, 0.03), 100.0, 0.5
+    mk, strike, h = Ex06Market(100, 1, 0.25, 0.03), 100.0, 0.5
     c2 = (
-        ex06_call(mk, K + h) - 2 * ex06_call(mk, K) + ex06_call(mk, K - h)
+        ex06_call(mk, strike + h)
+        - 2 * ex06_call(mk, strike)
+        + ex06_call(mk, strike - h)
     ) / h**2
     print(
-        " 6  d2C/dK2 ~", c2, " e^(-rT) f(K) =", ex06_discounted_density(mk, K)
+        " 6  d2C/dK2 ~",
+        c2,
+        " e^(-rT) f(K) =",
+        ex06_discounted_density(mk, strike),
     )
     f7 = lambda x: math.e ** (-x * x)  # noqa: E731
     print(

@@ -17,19 +17,19 @@ int main() {
               "simpson err");
   for (std::size_t n = 4; n <= 512; n *= 2) {
     std::printf(
-        "%6zu  %14.3e  %14.3e  %14.3e\n", n, midpoint_rule(f, 0, 2, n) - exact,
-        trapezoidal_rule(f, 0, 2, n) - exact, simpson_rule(f, 0, 2, n) - exact);
+        "%6zu  %14.3e  %14.3e  %14.3e\n", n, MidpointRule(f, 0, 2, n) - exact,
+        TrapezoidalRule(f, 0, 2, n) - exact, SimpsonRule(f, 0, 2, n) - exact);
   }
 
   std::printf("\nTolerance 1e-7:\n");
   const struct {
     const char* name;
     Rule rule;
-  } rules[] = {{"midpoint", Rule::Midpoint},
-               {"trapezoidal", Rule::Trapezoidal},
-               {"simpson", Rule::Simpson}};
+  } rules[] = {{"midpoint", Rule::kMidpoint},
+               {"trapezoidal", Rule::kTrapezoidal},
+               {"simpson", Rule::kSimpson}};
   for (const auto& [name, rule] : rules) {
-    const auto res = integrate_to_tolerance(f, 0, 2, 1e-7, rule);
+    const auto res = IntegrateToTolerance(f, 0, 2, 1e-7, rule);
     std::printf("  %-12s n = %6zu  value = %.12f\n", name, res.intervals,
                 res.value);
   }

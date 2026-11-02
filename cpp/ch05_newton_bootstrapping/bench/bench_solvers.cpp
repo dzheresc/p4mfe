@@ -97,7 +97,7 @@ void BM_bond_yield(benchmark::State& state, Solve solve) {
   double worst = 0.0;
   for (const auto& b : u)
     worst = std::max(
-        worst, std::abs(p4mfe::ch02::bond_price(b.cf, solve(b).x) - b.price));
+        worst, std::abs(p4mfe::ch02::BondPrice(b.cf, solve(b).x) - b.price));
   if (!check(state, worst < 1e-6, "bond yield does not reprice")) return;
   for (auto _ : state) {
     double sum = 0.0;

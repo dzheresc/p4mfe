@@ -82,8 +82,8 @@ TEST(Ch05Ex07, ContinuousCurveReprices) {
   for (std::size_t i = 0; i < 6; ++i)
     EXPECT_NEAR(c.rates[i], expected[i], 5e-9);
   for (const auto& bq : q.quotes) {
-    const auto cf = ch02::bond_cash_flows(bq.maturity, bq.coupon_rate, 2);
-    EXPECT_NEAR(ch02::bond_price_from_zero_rate(
+    const auto cf = ch02::BondCashFlows(bq.maturity, bq.coupon_rate, 2);
+    EXPECT_NEAR(ch02::BondPriceFromZeroRate(
                     cf, [&](double t) { return zero_rate_linear(c, t); }),
                 bq.price, 1e-9);
   }
@@ -108,7 +108,7 @@ TEST(Ch05Ex07, SemiannualCurveIsHigher) {
   EXPECT_NEAR(s.rates[1], ex07_to_compounded(c.rates[1], 2), 1e-14);
   // The semiannual curve reprices every bond with semiannual discounting.
   for (const auto& bq : q.quotes) {
-    const auto cf = ch02::bond_cash_flows(bq.maturity, bq.coupon_rate, 2);
+    const auto cf = ch02::BondCashFlows(bq.maturity, bq.coupon_rate, 2);
     double B = 0.0;
     for (std::size_t i = 0; i < cf.times.size(); ++i)
       B += cf.amounts[i] *
@@ -130,8 +130,8 @@ TEST(Ch05Ex08, OvernightAndHint) {
   EXPECT_NEAR(zero_rate_linear(c, 7.0 / 6.0), (3 * c.rates[2] + c.rates[3]) / 4,
               1e-15);
   for (const auto& bq : ex08_quotes()) {
-    const auto cf = ch02::bond_cash_flows(bq.maturity, bq.coupon_rate, 2);
-    EXPECT_NEAR(ch02::bond_price_from_zero_rate(
+    const auto cf = ch02::BondCashFlows(bq.maturity, bq.coupon_rate, 2);
+    EXPECT_NEAR(ch02::BondPriceFromZeroRate(
                     cf, [&](double t) { return zero_rate_linear(c, t); }),
                 bq.price, 1e-9);
   }

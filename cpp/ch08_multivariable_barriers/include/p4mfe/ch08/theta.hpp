@@ -40,8 +40,8 @@ template <std::invocable<double> Payoff>
                : std::exp(-r * tau) *
                      h(ch04::price_from_normal(z, S, tau, sigma, r, q)) * p;
   };
-  return -ch02::improper_integral_derivative(integrand, -ch02::infinity,
-                                             ch02::infinity, T, tol);
+  return -ch02::ImproperIntegralDerivative(integrand, -ch02::kInfinity,
+                                           ch02::kInfinity, T, tol);
 }
 
 }  // namespace p4mfe::ch08

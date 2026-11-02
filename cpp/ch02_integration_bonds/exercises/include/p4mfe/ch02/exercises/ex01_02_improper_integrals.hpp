@@ -26,13 +26,13 @@ namespace p4mfe::ch02::ex {
 //   N(x) - 1/2 = (1/sqrt(2 pi)) sum_{k>=0} (-1)^k x^(2k+1) / (2^k k! (2k+1))
 //              = (1/sqrt(2 pi)) (x - x^3/6 + x^5/40 - ...),
 // so the limit is -1/(6 sqrt(2 pi)) = -0.0664903801...
-inline const double ex01_limit =
+inline const double kEx01Limit =
     -1.0 / (6.0 * std::sqrt(2.0 * std::numbers::pi));
 
 // The quotient itself. N(x) - 1/2 - x/sqrt(2 pi) loses every digit to
 // cancellation for small x, so for |x| < 1 sum the series above (after
 // dividing by x^3); otherwise use norm_cdf directly.
-[[nodiscard]] inline double ex01_quotient(double x) {
+[[nodiscard]] inline double Ex01Quotient(double x) {
   const double inv_sqrt_2pi = 1.0 / std::sqrt(2.0 * std::numbers::pi);
   if (std::abs(x) < 1.0) {
     // sum_{k>=1} (-1)^k x^(2k-2) / (2^k k! (2k+1))
@@ -75,7 +75,7 @@ inline const double ex01_limit =
 //   f(n) = (n-1) f(n-1) = (n-1)(n-2)...1 * f(1) = (n-1)!.
 
 // Bound from (i) on the [0, 1] piece: integral_0^1 x^(a-1) e^(-x) dx < 1/a.
-[[nodiscard]] inline double ex02_left_bound(double a) {
+[[nodiscard]] inline double Ex02LeftBound(double a) {
   if (a <= 0.0) throw std::domain_error("ex02_left_bound: a must be positive");
   return 1.0 / a;
 }
@@ -86,30 +86,30 @@ inline const double ex01_limit =
 //   integral_0^1 x^(a-1) e^(-x) dx = (1/a) integral_0^1 e^(-u^(1/a)) du.
 // For a >= 1 the integrand is bounded and Simpson's rule is used directly
 // (it converges like h^a for 1 < a < 2, where x^(a-1) is not smooth at 0).
-[[nodiscard]] inline double ex02_left_piece(double a, double tol = 1e-10) {
+[[nodiscard]] inline double Ex02LeftPiece(double a, double tol = 1e-10) {
   if (a <= 0.0) throw std::domain_error("ex02_left_piece: a must be positive");
   if (a < 1.0)
-    return integrate_to_tolerance(
+    return IntegrateToTolerance(
                [a](double u) { return std::exp(-std::pow(u, 1.0 / a)); }, 0.0,
                1.0, tol)
                .value /
            a;
-  return integrate_to_tolerance(
+  return IntegrateToTolerance(
              [a](double x) { return std::pow(x, a - 1.0) * std::exp(-x); }, 0.0,
              1.0, tol)
       .value;
 }
-[[nodiscard]] inline double ex02_right_piece(double a, double tol = 1e-10) {
+[[nodiscard]] inline double Ex02RightPiece(double a, double tol = 1e-10) {
   if (a <= 0.0) throw std::domain_error("ex02_right_piece: a must be positive");
-  return improper_integral(
+  return ImproperIntegral(
              [a](double x) { return std::pow(x, a - 1.0) * std::exp(-x); }, 1.0,
-             infinity, tol)
+             kInfinity, tol)
       .value;
 }
 
 // f(a) = left piece + right piece, accurate for every a > 0.
-[[nodiscard]] inline double ex02_gamma(double a, double tol = 1e-10) {
-  return ex02_left_piece(a, tol) + ex02_right_piece(a, tol);
+[[nodiscard]] inline double Ex02Gamma(double a, double tol = 1e-10) {
+  return Ex02LeftPiece(a, tol) + Ex02RightPiece(a, tol);
 }
 
 }  // namespace p4mfe::ch02::ex

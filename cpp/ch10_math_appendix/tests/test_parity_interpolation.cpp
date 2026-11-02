@@ -57,7 +57,7 @@ TEST(Ch10Parity, SymmetricIntegrals) {
   // int_{-a}^{a} e^x = 2 sinh a; odd part integrates to zero.
   const auto f = [](double x) { return std::exp(x) + x * x * x * std::cos(x); };
   EXPECT_NEAR(symmetric_integral(f, 1.5), 2.0 * std::sinh(1.5), 1e-10);
-  EXPECT_NEAR(symmetric_integral(f, 1.5), ch02::integrate(f, -1.5, 1.5, 400),
+  EXPECT_NEAR(symmetric_integral(f, 1.5), ch02::Integrate(f, -1.5, 1.5, 400),
               1e-10);
   EXPECT_NEAR(symmetric_integral([](double x) { return std::sin(x); }, 3.0),
               0.0, 1e-15);

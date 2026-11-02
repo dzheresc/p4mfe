@@ -91,9 +91,9 @@ int main() {
       "Ex 11: put K = 50, T = 0.5, q = 2%, r = 4% (assumed S0 = 50, sigma = "
       "30%)");
   std::printf("  P_BS = %.9f\n", ex11_put_bs());
-  for (auto rule : {ch02::Rule::Midpoint, ch02::Rule::Simpson}) {
+  for (auto rule : {ch02::Rule::kMidpoint, ch02::Rule::kSimpson}) {
     std::printf("  %s rule\n",
-                rule == ch02::Rule::Midpoint ? "Midpoint" : "Simpson's");
+                rule == ch02::Rule::kMidpoint ? "Midpoint" : "Simpson's");
     for (const auto& s : ex11_run(rule))
       std::printf("    n = %4zu  %.9f  error % .3e\n", s.n, s.value, s.error);
   }

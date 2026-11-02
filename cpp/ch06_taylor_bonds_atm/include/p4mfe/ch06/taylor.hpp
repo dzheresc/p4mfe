@@ -83,7 +83,7 @@ template <std::invocable<double> G>
   };
   // Simpson on [min, max]; int_a^x = -int_x^a.
   const double lo = std::min(a, x), hi = std::max(a, x);
-  const double v = ch02::integrate_to_tolerance(integrand, lo, hi, tol).value;
+  const double v = ch02::IntegrateToTolerance(integrand, lo, hi, tol).value;
   return x > a ? v : -v;
 }
 

@@ -58,7 +58,7 @@ TEST(Ch08Ex03, ParabolaAndLine) {
     EXPECT_NEAR((x * x * hi - hi * hi) - (x * x * lo - lo * lo), ex03_inner(x),
                 1e-12);
   }
-  EXPECT_NEAR(ch02::simpson_rule(ex03_inner, 1.0, 2.0, 2), -1.75, 1e-14);
+  EXPECT_NEAR(ch02::SimpsonRule(ex03_inner, 1.0, 2.0, 2), -1.75, 1e-14);
 }
 
 TEST(Ch08Ex04, DiskArea) {

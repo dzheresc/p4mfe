@@ -67,11 +67,11 @@ template <class F, class G>
 [[nodiscard]] CauchySchwarzSides ex11_sides(F&& f, G&& g, double a, double b,
                                             std::size_t n = 1000) {
   const double A =
-      ch02::integrate([&](double x) { return f(x) * f(x); }, a, b, n);
+      ch02::Integrate([&](double x) { return f(x) * f(x); }, a, b, n);
   const double B =
-      ch02::integrate([&](double x) { return f(x) * g(x); }, a, b, n);
+      ch02::Integrate([&](double x) { return f(x) * g(x); }, a, b, n);
   const double C =
-      ch02::integrate([&](double x) { return g(x) * g(x); }, a, b, n);
+      ch02::Integrate([&](double x) { return g(x) * g(x); }, a, b, n);
   return {B, std::sqrt(A) * std::sqrt(C)};
 }
 

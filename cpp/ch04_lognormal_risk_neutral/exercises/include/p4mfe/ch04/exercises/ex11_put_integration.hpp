@@ -57,7 +57,7 @@ struct Ex11Market {
 }
 [[nodiscard]] inline double ex11_put_numeric(std::size_t n, ch02::Rule rule,
                                              const Ex11Market& m = {}) {
-  return ch02::integrate([&](double x) { return ex11_integrand(x, m); }, 0.0,
+  return ch02::Integrate([&](double x) { return ex11_integrand(x, m); }, 0.0,
                          m.K, n, rule);
 }
 struct Ex11Step {

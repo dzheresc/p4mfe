@@ -43,7 +43,7 @@ template <std::invocable<double> Payoff>
                                               double q = 0.0,
                                               double tol = 1e-9) {
   const ch03::ContinuousDistribution Z{[](double z) { return norm_pdf(z); },
-                                       -ch02::infinity, ch02::infinity};
+                                       -ch02::kInfinity, ch02::kInfinity};
   return ch03::expected_value(
       Z, [&](double z) { return g(price_from_normal(z, S0, T, sigma, r, q)); },
       tol);
