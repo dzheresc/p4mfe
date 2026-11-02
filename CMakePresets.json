@@ -1,6 +1,10 @@
 {
   "version": 2,
-  "cmakeMinimumRequired": { "major": 3, "minor": 20, "patch": 0 },
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
   "configurePresets": [
     {
       "name": "bench",
@@ -24,10 +28,33 @@
         "P4MFE_BUILD_BENCHMARKS": "ON",
         "P4MFE_BUILD_TESTS": "OFF"
       }
+    },
+    {
+      "name": "bench-coverage",
+      "displayName": "Benchmarks with gcov coverage (smoke tier only)",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/bench-coverage",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "--coverage -O0",
+        "CMAKE_EXE_LINKER_FLAGS": "--coverage",
+        "P4MFE_BUILD_BENCHMARKS": "ON",
+        "P4MFE_BUILD_TESTS": "OFF"
+      }
     }
   ],
   "buildPresets": [
-    { "name": "bench", "configurePreset": "bench" },
-    { "name": "bench-profile", "configurePreset": "bench-profile" }
+    {
+      "name": "bench",
+      "configurePreset": "bench"
+    },
+    {
+      "name": "bench-profile",
+      "configurePreset": "bench-profile"
+    },
+    {
+      "name": "bench-coverage",
+      "configurePreset": "bench-coverage"
+    }
   ]
 }

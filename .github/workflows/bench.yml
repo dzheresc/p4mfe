@@ -1,0 +1,76 @@
+name: bench
+
+# Records a full benchmark run on a GitHub runner and compares it with the
+# committed runner baseline (bench/baselines/ci), if there is one. Heap
+# regressions (allocations or peak bytes per iteration, +5%) fail the run;
+# time changes are only reported, since shared runners vary by 10 to 20%.
+# See docs/performance-testing-plan.md, "Baseline" and "CI".
+
+on:
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: "Size tier (smoke, standard, large)"
+        default: standard
+        type: choice
+        options: [smoke, standard, large]
+      repetitions:
+        description: "Timing repetitions per benchmark"
+        default: "10"
+  schedule:
+    - cron: "17 3 * * *"  # nightly
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      P4MFE_BENCH_TIER: ${{ inputs.tier || 'standard' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run benchmarks
+        env:
+          REPS: ${{ inputs.repetitions || '10' }}
+        run: tools/bench/run_baseline.sh run "$REPS"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bench-${{ env.P4MFE_BENCH_TIER }}-${{ github.sha }}
+          path: run
+      - name: Summary
+        run: cat run/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Compare with the runner baseline
+        run: |
+          if [ ! -d bench/baselines/ci ]; then
+            echo "No committed runner baseline (bench/baselines/ci); nothing to compare." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if ! grep -qiE "tier[ |]*${P4MFE_BENCH_TIER}" bench/baselines/ci/ENVIRONMENT.md; then
+            echo "The runner baseline was recorded at another tier; not comparing." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          set +e
+          python3 tools/bench/compare.py bench/baselines/ci run > compare.md
+          status=$?
+          set -e
+          cat compare.md >> "$GITHUB_STEP_SUMMARY"
+          exit $status
+
+  coverage:
+    # Every public header function must run under the smoke tier (or be
+    # waived in bench/coverage-waivers.txt).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install gcovr
+        run: pip install gcovr
+      - name: Coverage check
+        run: tools/bench/coverage.sh | tee -a "$GITHUB_STEP_SUMMARY"
