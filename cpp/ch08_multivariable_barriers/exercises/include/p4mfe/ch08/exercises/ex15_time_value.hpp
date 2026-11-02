@@ -35,7 +35,7 @@ struct Ex15Market {
 [[nodiscard]] inline double ex15_derivative(double S,
                                             const Ex15Market& m = {}) {
   const double delta =
-      ch03::bs_greeks(ch03::OptionType::Call, S, m.K, m.T, m.sigma, m.r, m.q)
+      ch03::bs_greeks(ch03::OptionType::kCall, S, m.K, m.T, m.sigma, m.r, m.q)
           .delta;
   return S < m.K ? delta : delta - 1.0;
 }

@@ -13,7 +13,7 @@ TEST(Ch07Ex12, ExactWhenRatesAreZero) {
     for (double tau : {0.1, 1.0, 3.0}) {
       const Ex12Market m{S, 52.0, tau, 0.3, 0.0};
       EXPECT_NEAR(ex12_lhs(m), 0.0, 1e-12) << S << " " << tau;
-      EXPECT_NEAR(ex12_lhs(m, ch03::OptionType::Put), 0.0, 1e-12)
+      EXPECT_NEAR(ex12_lhs(m, ch03::OptionType::kPut), 0.0, 1e-12)
           << S << " " << tau;
     }
 }

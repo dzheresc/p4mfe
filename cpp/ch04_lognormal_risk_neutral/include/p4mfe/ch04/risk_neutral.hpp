@@ -66,8 +66,8 @@ template <std::invocable<double> Payoff>
                                                double r, double q = 0.0) {
   const auto [d1, d2] = ch03::bs_d1_d2(S0, K, T, sigma, r, q);
   const double F = S0 * std::exp((r - q) * T);  // forward price = E_RN[S_T]
-  return type == OptionType::Call ? F * norm_cdf(d1) - K * norm_cdf(d2)
-                                  : K * norm_cdf(-d2) - F * norm_cdf(-d1);
+  return type == OptionType::kCall ? F * norm_cdf(d1) - K * norm_cdf(d2)
+                                   : K * norm_cdf(-d2) - F * norm_cdf(-d1);
 }
 
 // Monte Carlo estimate of e^(-rT) E_RN[g(S_T)] with n independent draws of Z,

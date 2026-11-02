@@ -38,7 +38,7 @@ using ch01::OptionType;
                                      double T, double sigma, double mu,
                                      double q = 0.0) {
   const double above = ch03::prob_price_above(K, S0, T, sigma, mu, q);
-  return type == OptionType::Call ? above : 1.0 - above;
+  return type == OptionType::kCall ? above : 1.0 - above;
 }
 
 // P(K1 < S_T < K2), K1 < K2, under drift mu.
@@ -56,7 +56,7 @@ using ch01::OptionType;
                                             double T, double sigma, double r,
                                             double q = 0.0) {
   const auto [d1, d2] = ch03::bs_d1_d2(S, K, T, sigma, r, q);
-  return std::exp(-r * T) * norm_cdf(type == OptionType::Call ? d2 : -d2);
+  return std::exp(-r * T) * norm_cdf(type == OptionType::kCall ? d2 : -d2);
 }
 
 // Asset-or-nothing: pays S_T if the option finishes in the money.
@@ -65,7 +65,7 @@ using ch01::OptionType;
                                              double K, double T, double sigma,
                                              double r, double q = 0.0) {
   const auto [d1, d2] = ch03::bs_d1_d2(S, K, T, sigma, r, q);
-  return S * std::exp(-q * T) * norm_cdf(type == OptionType::Call ? d1 : -d1);
+  return S * std::exp(-q * T) * norm_cdf(type == OptionType::kCall ? d1 : -d1);
 }
 
 // The two probabilities of the call, side by side:

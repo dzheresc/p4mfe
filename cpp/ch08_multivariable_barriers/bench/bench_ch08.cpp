@@ -168,8 +168,8 @@ void BM_early_exercise_premium(benchmark::State& state) {
   for (auto _ : state) {
     double sum = 0.0;
     for (const double k : strikes)
-      sum += ch08::early_exercise_premium(OptionType::Put, S, k, T, sigma, r, q,
-                                          500);
+      sum += ch08::early_exercise_premium(OptionType::kPut, S, k, T, sigma, r,
+                                          q, 500);
     benchmark::DoNotOptimize(sum);
   }
   set_items(state, strikes.size(), "strikes");
@@ -199,8 +199,8 @@ const bool registered = [] {
     bm->Arg(n);
   bm->Complexity(benchmark::oN)->Unit(benchmark::kMillisecond);
 
-  for (const auto type : {OptionType::Call, OptionType::Put}) {
-    const std::string t = type == OptionType::Call ? "call" : "put";
+  for (const auto type : {OptionType::kCall, OptionType::kPut}) {
+    const std::string t = type == OptionType::kCall ? "call" : "put";
     auto* h = benchmark::RegisterBenchmark("W6/ch08/european_heat_fd/" + t,
                                            BM_heat_fd, type);
     for (const auto n : p4mfe::bench::by_tier<std::vector<std::int64_t>>(
@@ -214,7 +214,7 @@ const bool registered = [] {
   for (const auto& [sname, style] : styles) {
     auto* b = benchmark::RegisterBenchmark(
         std::string("W6/ch08/binomial_price/put/") + sname, BM_binomial,
-        OptionType::Put, style);
+        OptionType::kPut, style);
     for (const auto n : p4mfe::bench::by_tier<std::vector<std::int64_t>>(
              {100, 500}, {100, 500, 2'000, 10'000}, {2'000, 10'000, 50'000}))
       b->Arg(n);

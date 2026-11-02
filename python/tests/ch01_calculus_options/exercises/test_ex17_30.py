@@ -50,15 +50,17 @@ GRID = np.arange(0.0, 200.25, 0.25)
 
 
 def test_ex17():
-    S, T, r, q = 50.0, 0.75, 0.04, 0.01
-    F = ex17_equal_value_strike(S, T, r, q)
-    assert put_from_call(6.0, S, F, T, r, q) == pytest.approx(6.0, abs=1e-12)
-    for K in (F - 5, F + 5):
-        P = put_from_call(6.0, S, K, T, r, q)
-        assert 6.0 - P == pytest.approx(
-            ex17_call_minus_put(S, K, T, r, q), abs=1e-12
+    spot, maturity, r, q = 50.0, 0.75, 0.04, 0.01
+    forward = ex17_equal_value_strike(spot, maturity, r, q)
+    assert put_from_call(6.0, spot, forward, maturity, r, q) == pytest.approx(
+        6.0, abs=1e-12
+    )
+    for strike in (forward - 5, forward + 5):
+        put = put_from_call(6.0, spot, strike, maturity, r, q)
+        assert 6.0 - put == pytest.approx(
+            ex17_call_minus_put(spot, strike, maturity, r, q), abs=1e-12
         )
-        assert (6.0 > P) == (K < F)
+        assert (6.0 > put) == (strike < forward)
 
 
 def test_ex18():
@@ -89,28 +91,28 @@ def test_ex20():
     np.testing.assert_array_equal(p.pnl(GRID) > 0, (GRID > 46) & (GRID < 54))
 
 
-@pytest.mark.parametrize("X", [20.0, 50.0, 100.0])
-def test_ex21(X):
-    d = ex21_portfolio1(X).payoff(GRID) - ex21_portfolio2(X).payoff(GRID)
+@pytest.mark.parametrize("x", [20.0, 50.0, 100.0])
+def test_ex21(x):
+    d = ex21_portfolio1(x).payoff(GRID) - ex21_portfolio2(x).payoff(GRID)
     assert d.min() >= 0
-    np.testing.assert_array_equal(d > 0, np.abs(GRID - X) < 5)
+    np.testing.assert_array_equal(d > 0, np.abs(GRID - x) < 5)
 
 
 def test_ex22():
     d = Ex22Data()
-    assert parity_violation(d.C, d.P, d.S, d.K, d.T, d.r, d.q) == pytest.approx(
-        -0.2432, abs=1e-4
-    )
+    assert parity_violation(
+        d.call, d.put, d.spot, d.strike, d.maturity, d.r, d.q
+    ) == pytest.approx(-0.2432, abs=1e-4)
     a = ex22_arbitrage()
     assert (a.calls, a.puts) == (1.0, -1.0)
     assert a.cash == pytest.approx(39.5821, abs=1e-4)
     assert a.profit == pytest.approx(0.2473, abs=1e-4)
-    for ST in (10.0, 40.0, 70.0):
+    for spot_t in (10.0, 40.0, 70.0):
         v = (
-            a.calls * call_payoff(ST, d.K)
-            + a.puts * put_payoff(ST, d.K)
-            + a.shares * math.exp(d.q * d.T) * ST
-            + a.cash * math.exp(d.r * d.T)
+            a.calls * call_payoff(spot_t, d.strike)
+            + a.puts * put_payoff(spot_t, d.strike)
+            + a.shares * math.exp(d.q * d.maturity) * spot_t
+            + a.cash * math.exp(d.r * d.maturity)
         )
         assert v == pytest.approx(a.profit, abs=1e-10)
 
@@ -121,30 +123,30 @@ def test_ex23():
 
 
 def test_ex24():
-    S, K, T, r, q = 100.0, 95.0, 1.0, 0.05, 0.02
-    fwd = S * math.exp(-q * T) - K * math.exp(-r * T)
+    spot, strike, maturity, r, q = 100.0, 95.0, 1.0, 0.05, 0.02
+    fwd = spot * math.exp(-q * maturity) - strike * math.exp(-r * maturity)
     assert (
         ex24_bid_ask_arbitrage(
             BidAsk(10, 11),
             BidAsk(10 - fwd - 0.5, 11 - fwd + 0.5),
-            S,
-            K,
-            T,
+            spot,
+            strike,
+            maturity,
             r,
             q,
         )
         is None
     )
     a = ex24_bid_ask_arbitrage(
-        BidAsk(8.0, 8.5), BidAsk(3.0, 3.2), S, K, T, r, q
+        BidAsk(8.0, 8.5), BidAsk(3.0, 3.2), spot, strike, maturity, r, q
     )
     assert a.side is Side.BUY_CALL_SELL_PUT
-    assert a.profit == pytest.approx((fwd - 5.5) * math.exp(r * T))
+    assert a.profit == pytest.approx((fwd - 5.5) * math.exp(r * maturity))
     b = ex24_bid_ask_arbitrage(
-        BidAsk(12.0, 12.5), BidAsk(1.0, 1.2), S, K, T, r, q
+        BidAsk(12.0, 12.5), BidAsk(1.0, 1.2), spot, strike, maturity, r, q
     )
     assert b.side is Side.SELL_CALL_BUY_PUT
-    assert b.profit == pytest.approx((10.8 - fwd) * math.exp(r * T))
+    assert b.profit == pytest.approx((10.8 - fwd) * math.exp(r * maturity))
 
 
 def test_ex25():
@@ -174,20 +176,20 @@ def test_ex26():
 
 @pytest.mark.parametrize("eps", [1.0, 0.1, 0.01])
 def test_ex27(eps):
-    c, K1, K2 = 10.0, 40.0, 60.0
+    c, strike1, strike2 = 10.0, 40.0, 60.0
     s = np.arange(0.0, 100.0, 0.005)
-    v = ex27_range_digital(c, K1, K2, eps).payoff(s)
+    v = ex27_range_digital(c, strike1, strike2, eps).payoff(s)
     assert v.min() >= -1e-9 and v.max() <= c + 1e-9
     # Away from the two ramps (and the endpoints K1, K2, where the replica is 0) it is exact.
     off_ramp = ~(
-        ((s >= K1 - 1e-9) & (s < K1 + eps))
-        | ((s > K2 - eps) & (s <= K2 + 1e-9))
+        ((s >= strike1 - 1e-9) & (s < strike1 + eps))
+        | ((s > strike2 - eps) & (s <= strike2 + 1e-9))
     )
     np.testing.assert_allclose(
-        v[off_ramp], ex27_target(s, c, K1, K2)[off_ramp], atol=1e-9
+        v[off_ramp], ex27_target(s, c, strike1, strike2)[off_ramp], atol=1e-9
     )
     with pytest.raises(ValueError):
-        ex27_range_digital(c, K1, K2, 15.0)
+        ex27_range_digital(c, strike1, strike2, 15.0)
 
 
 def test_ex28():
@@ -221,11 +223,11 @@ def test_ex30():
     assert a.units == pytest.approx(-math.exp(-0.0075))
     assert a.cash == pytest.approx(11910.34, abs=1e-2)
     assert a.profit == pytest.approx(50.94, abs=1e-2)
-    for ST in (10000.0, 12000.0, 14000.0):
+    for spot_t in (10000.0, 12000.0, 14000.0):
         v = (
             a.cash * math.exp(0.02)
-            + a.units * math.exp(0.0075) * ST
-            + (ST - 12100.0)
+            + a.units * math.exp(0.0075) * spot_t
+            + (spot_t - 12100.0)
         )
         assert v == pytest.approx(a.profit, abs=1e-8)
     b = futures_arbitrage(12000.0, 12200.0, 0.25, 0.08, 0.03)

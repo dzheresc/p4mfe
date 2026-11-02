@@ -40,7 +40,7 @@ template <std::invocable<double> FX, std::invocable<double> H,
           std::predicate<double> InRange>
 [[nodiscard]] auto transformed_pdf_numeric(FX f_X, H h, InRange in_range) {
   return [=](double y) {
-    return in_range(y) ? f_X(h(y)) * std::abs(ch01::derivative(h, y)) : 0.0;
+    return in_range(y) ? f_X(h(y)) * std::abs(ch01::Derivative(h, y)) : 0.0;
   };
 }
 

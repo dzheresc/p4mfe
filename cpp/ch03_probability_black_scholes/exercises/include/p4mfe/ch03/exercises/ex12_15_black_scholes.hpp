@@ -66,7 +66,7 @@ struct Ex12Market {
 [[nodiscard]] inline double ex14_rho_put_from_parity(double S, double K,
                                                      double T, double sigma,
                                                      double r, double q = 0.0) {
-  return bs_greeks(OptionType::Call, S, K, T, sigma, r, q).rho -
+  return bs_greeks(OptionType::kCall, S, K, T, sigma, r, q).rho -
          K * T * std::exp(-r * T);
 }
 

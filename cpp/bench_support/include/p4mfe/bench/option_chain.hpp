@@ -77,11 +77,11 @@ struct ChainSpec {
         const double K = S * m;
         const double k = std::log(K / F);
         const double sigma = std::max(smile_vol(k, T) + jitter(rng), 0.05);
-        for (const OptionType type : {OptionType::Call, OptionType::Put}) {
+        for (const OptionType type : {OptionType::kCall, OptionType::kPut}) {
           const double price = ch03::bs_price(type, S, K, T, sigma, c.r, c.q);
-          const auto b = type == OptionType::Call
-                             ? ch01::call_bounds(S, K, T, c.r, c.q)
-                             : ch01::put_bounds(S, K, T, c.r, c.q);
+          const auto b = type == OptionType::kCall
+                             ? ch01::CallBounds(S, K, T, c.r, c.q)
+                             : ch01::PutBounds(S, K, T, c.r, c.q);
           if (price < c.tick || price - b.lower < c.tick ||
               b.upper - price < c.tick)
             continue;

@@ -45,7 +45,7 @@ int main() {
   std::printf("%6s  %8s  %12s  %12s\n", "n", "mu", "mean", "std dev");
   for (double mu : {-0.1, 0.03, 0.2})
     for (std::size_t n : {4, 16, 64, 256}) {
-      const auto st = delta_hedge_stats(OptionType::Call, S, K, T, sigma, r, q,
+      const auto st = delta_hedge_stats(OptionType::kCall, S, K, T, sigma, r, q,
                                         mu, n, 5000);
       std::printf("%6zu  %8.2f  %12.5f  %12.5f\n", n, mu, st.mean, st.std_dev);
     }

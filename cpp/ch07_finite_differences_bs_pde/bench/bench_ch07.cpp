@@ -85,7 +85,7 @@ void BM_delta_hedge(benchmark::State& state) {
   const auto steps = static_cast<std::size_t>(state.range(0));
   const auto paths = static_cast<std::size_t>(state.range(1));
   const auto stats =
-      ch07::delta_hedge_stats(OptionType::Call, 100.0, 100.0, 1.0, 0.2, 0.045,
+      ch07::delta_hedge_stats(OptionType::kCall, 100.0, 100.0, 1.0, 0.2, 0.045,
                               0.015, 0.10, steps, paths);
   // Hedging error ~ O(1/sqrt(steps)) of the premium; the mean is ~0.
   if (!check(state,
@@ -96,8 +96,8 @@ void BM_delta_hedge(benchmark::State& state) {
     return;
   for (auto _ : state)
     benchmark::DoNotOptimize(
-        ch07::delta_hedge_stats(OptionType::Call, 100.0, 100.0, 1.0, 0.2, 0.045,
-                                0.015, 0.10, steps, paths));
+        ch07::delta_hedge_stats(OptionType::kCall, 100.0, 100.0, 1.0, 0.2,
+                                0.045, 0.015, 0.10, steps, paths));
   state.counters["pnl_std_dev"] = stats.std_dev;
   set_items(state, paths, "paths");
 }

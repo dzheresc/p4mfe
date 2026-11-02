@@ -8,8 +8,8 @@
 #include <stdexcept>
 
 using namespace p4mfe::ch03;
-using p4mfe::ch01::derivative;
-using p4mfe::ch01::second_derivative;
+using p4mfe::ch01::Derivative;
+using p4mfe::ch01::SecondDerivative;
 
 TEST(Ch03BlackScholes, ReferenceValues) {
   // Hull's example: S = 42, K = 40, T = 0.5, sigma = 20%, r = 10%.
@@ -23,7 +23,7 @@ TEST(Ch03BlackScholes, PutCallParityWithDividends) {
   const double S = 40, K = 45, T = 0.75, sigma = 0.3, r = 0.04, q = 0.02;
   const double C = bs_call(S, K, T, sigma, r, q);
   const double P = bs_put(S, K, T, sigma, r, q);
-  EXPECT_NEAR(p4mfe::ch01::parity_violation(C, P, S, K, T, r, q), 0.0, 1e-12);
+  EXPECT_NEAR(p4mfe::ch01::ParityViolation(C, P, S, K, T, r, q), 0.0, 1e-12);
 }
 
 TEST(Ch03BlackScholes, LimitsAndBadInput) {
@@ -43,28 +43,28 @@ TEST_P(Ch03Greeks, MatchFiniteDifferences) {
   const auto g = bs_greeks(type, S, K, T, sigma, r, q);
   EXPECT_NEAR(
       g.delta,
-      derivative([&](double s) { return bs_price(type, s, K, T, sigma, r, q); },
+      Derivative([&](double s) { return bs_price(type, s, K, T, sigma, r, q); },
                  S),
       1e-8);
   EXPECT_NEAR(
       g.gamma,
-      second_derivative(
+      SecondDerivative(
           [&](double s) { return bs_price(type, s, K, T, sigma, r, q); }, S),
       1e-6);
   EXPECT_NEAR(
       g.vega,
-      derivative([&](double v) { return bs_price(type, S, K, T, v, r, q); },
+      Derivative([&](double v) { return bs_price(type, S, K, T, v, r, q); },
                  sigma),
       1e-7);
   EXPECT_NEAR(
       g.rho,
-      derivative([&](double x) { return bs_price(type, S, K, T, sigma, x, q); },
+      Derivative([&](double x) { return bs_price(type, S, K, T, sigma, x, q); },
                  r),
       1e-7);
   // Theta is dV/dt = -dV/dT.
   EXPECT_NEAR(
       g.theta,
-      -derivative(
+      -Derivative(
           [&](double t) { return bs_price(type, S, K, t, sigma, r, q); }, T),
       1e-7);
 }
@@ -76,12 +76,13 @@ TEST_P(Ch03Greeks, SatisfyBlackScholesPde) {
 }
 
 INSTANTIATE_TEST_SUITE_P(CallAndPut, Ch03Greeks,
-                         ::testing::Values(OptionType::Call, OptionType::Put));
+                         ::testing::Values(OptionType::kCall,
+                                           OptionType::kPut));
 
 TEST(Ch03Greeks, CallPutRelations) {
   const double S = 40, K = 42, T = 0.5, sigma = 0.27, r = 0.05, q = 0.015;
-  const auto c = bs_greeks(OptionType::Call, S, K, T, sigma, r, q);
-  const auto p = bs_greeks(OptionType::Put, S, K, T, sigma, r, q);
+  const auto c = bs_greeks(OptionType::kCall, S, K, T, sigma, r, q);
+  const auto p = bs_greeks(OptionType::kPut, S, K, T, sigma, r, q);
   EXPECT_NEAR(c.delta - p.delta, std::exp(-q * T),
               1e-15);  // from Put-Call parity
   EXPECT_DOUBLE_EQ(c.gamma, p.gamma);

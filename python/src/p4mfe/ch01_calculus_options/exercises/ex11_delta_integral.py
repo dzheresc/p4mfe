@@ -14,16 +14,16 @@ from ...normal import norm_cdf
 
 
 class Ex11Params(NamedTuple):
-    K: float
-    T: float
+    strike: float
+    maturity: float
     sigma: float
     r: float
 
 
 def ex11_b(p: Ex11Params, x: float) -> float:
-    return (math.log(x / p.K) + (p.r + 0.5 * p.sigma**2) * p.T) / (
-        p.sigma * math.sqrt(p.T)
-    )
+    return (
+        math.log(x / p.strike) + (p.r + 0.5 * p.sigma**2) * p.maturity
+    ) / (p.sigma * math.sqrt(p.maturity))
 
 
 def ex11_g(p: Ex11Params, x: float) -> float:
@@ -33,5 +33,5 @@ def ex11_g(p: Ex11Params, x: float) -> float:
 def ex11_g_prime(p: Ex11Params, x: float) -> float:
     b = ex11_b(p, x)
     return math.exp(-0.5 * b * b) / (
-        x * p.sigma * math.sqrt(2.0 * math.pi * p.T)
+        x * p.sigma * math.sqrt(2.0 * math.pi * p.maturity)
     )

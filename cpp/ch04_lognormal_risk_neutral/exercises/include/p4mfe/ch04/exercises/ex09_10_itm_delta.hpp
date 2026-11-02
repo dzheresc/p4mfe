@@ -35,10 +35,10 @@ struct Ex09Market {
   double S = 60.0, K = 55.0, T = 4.0 / 12.0, mu = 0.1, sigma = 0.3, r = 0.05;
 };
 [[nodiscard]] inline double ex09_prob_itm(const Ex09Market& m = {}) {
-  return prob_itm(OptionType::Put, m.S, m.K, m.T, m.sigma, m.mu);
+  return prob_itm(OptionType::kPut, m.S, m.K, m.T, m.sigma, m.mu);
 }
 [[nodiscard]] inline double ex09_rn_prob_itm(const Ex09Market& m = {}) {
-  return prob_itm(OptionType::Put, m.S, m.K, m.T, m.sigma, m.r);
+  return prob_itm(OptionType::kPut, m.S, m.K, m.T, m.sigma, m.r);
 }
 [[nodiscard]] inline double ex09_n_minus_d2(const Ex09Market& m = {}) {
   return norm_cdf(-ch03::bs_d1_d2(m.S, m.K, m.T, m.sigma, m.r).d2);

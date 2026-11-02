@@ -23,27 +23,28 @@
 namespace p4mfe::ch01::ex {
 
 struct Ex11Params {
-  double K;
-  double T;
+  double strike;
+  double maturity;
   double sigma;
   double r;
 };
 
-[[nodiscard]] inline double ex11_b(const Ex11Params& p, double x) {
-  return (std::log(x / p.K) + (p.r + 0.5 * p.sigma * p.sigma) * p.T) /
-         (p.sigma * std::sqrt(p.T));
+[[nodiscard]] inline double Ex11B(const Ex11Params& p, double x) {
+  return (std::log(x / p.strike) +
+          (p.r + 0.5 * p.sigma * p.sigma) * p.maturity) /
+         (p.sigma * std::sqrt(p.maturity));
 }
 
 // g(x) in closed form, N(b(x)) - 1/2.
-[[nodiscard]] inline double ex11_g(const Ex11Params& p, double x) {
-  return norm_cdf(ex11_b(p, x)) - 0.5;
+[[nodiscard]] inline double Ex11G(const Ex11Params& p, double x) {
+  return norm_cdf(Ex11B(p, x)) - 0.5;
 }
 
 // g'(x), the answer.
-[[nodiscard]] inline double ex11_g_prime(const Ex11Params& p, double x) {
-  const double b = ex11_b(p, x);
+[[nodiscard]] inline double Ex11GPrime(const Ex11Params& p, double x) {
+  const double b = Ex11B(p, x);
   return std::exp(-0.5 * b * b) /
-         (x * p.sigma * std::sqrt(2.0 * std::numbers::pi * p.T));
+         (x * p.sigma * std::sqrt(2.0 * std::numbers::pi * p.maturity));
 }
 
 }  // namespace p4mfe::ch01::ex

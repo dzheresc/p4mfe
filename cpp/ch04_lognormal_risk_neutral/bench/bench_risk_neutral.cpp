@@ -27,7 +27,7 @@ constexpr double S0 = 5000.0, K = 5100.0, T = 0.5, sigma = 0.2, r = 0.045,
 void BM_quadrature_call(benchmark::State& state) {
   const auto call = [](double s) { return std::max(s - K, 0.0); };
   const double exact =
-      p4mfe::ch03::bs_price(OptionType::Call, S0, K, T, sigma, r, q);
+      p4mfe::ch03::bs_price(OptionType::kCall, S0, K, T, sigma, r, q);
   if (!check(state,
              std::abs(ch04::risk_neutral_price(call, S0, T, sigma, r, q) -
                       exact) < 1e-5 * S0,
@@ -41,7 +41,7 @@ void BM_quadrature_call(benchmark::State& state) {
 void BM_quadrature_digital(benchmark::State& state) {
   const auto digital = [](double s) { return s > K ? 1.0 : 0.0; };
   const double exact =
-      ch04::cash_or_nothing(OptionType::Call, S0, K, T, sigma, r, q);
+      ch04::cash_or_nothing(OptionType::kCall, S0, K, T, sigma, r, q);
   if (!check(state,
              std::abs(ch04::risk_neutral_price(digital, S0, T, sigma, r, q) -
                       exact) < 1e-4,
@@ -76,9 +76,9 @@ void BM_closed_forms(benchmark::State& state) {
   for (auto _ : state) {
     double sum = 0.0;
     for (const double k : strikes) {
-      sum += ch04::rn_expected_payoff(OptionType::Call, S0, k, T, sigma, r, q);
-      sum += ch04::cash_or_nothing(OptionType::Put, S0, k, T, sigma, r, q);
-      sum += ch04::asset_or_nothing(OptionType::Call, S0, k, T, sigma, r, q);
+      sum += ch04::rn_expected_payoff(OptionType::kCall, S0, k, T, sigma, r, q);
+      sum += ch04::cash_or_nothing(OptionType::kPut, S0, k, T, sigma, r, q);
+      sum += ch04::asset_or_nothing(OptionType::kCall, S0, k, T, sigma, r, q);
       auto p = ch04::exercise_probabilities(S0, k, T, sigma, r, q);
       benchmark::DoNotOptimize(p);
     }
@@ -91,7 +91,7 @@ void BM_monte_carlo(benchmark::State& state, bool antithetic) {
   const auto n = static_cast<std::size_t>(state.range(0));
   const auto call = [](double s) { return std::max(s - K, 0.0); };
   const double exact =
-      p4mfe::ch03::bs_price(OptionType::Call, S0, K, T, sigma, r, q);
+      p4mfe::ch03::bs_price(OptionType::kCall, S0, K, T, sigma, r, q);
   const auto res =
       ch04::monte_carlo_price(call, S0, T, sigma, r, q, n, 42, antithetic);
   if (!check(state, std::abs(res.price - exact) < 5.0 * res.std_error + 1e-9,

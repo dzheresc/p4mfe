@@ -25,12 +25,13 @@ namespace p4mfe::ch01::ex {
 // K = 40 whatever S(T) is and close the short. Riskless profit at T:
 //   39.5821 e^(0.05/3) - 40 = 0.2432 e^(rT) = $0.2473.
 struct Ex22Data {
-  double S = 42.0, K = 40.0, T = 4.0 / 12.0, r = 0.05, q = 0.03, C = 4.0,
-         P = 2.0;
+  double spot = 42.0, strike = 40.0, maturity = 4.0 / 12.0, r = 0.05, q = 0.03,
+         call = 4.0, put = 2.0;
 };
-[[nodiscard]] inline std::optional<ParityArbitrage> ex22_arbitrage(
+[[nodiscard]] inline std::optional<ParityArbitrage> Ex22Arbitrage(
     const Ex22Data& d = {}) {
-  return parity_arbitrage(d.C, d.P, d.S, d.K, d.T, d.r, d.q);
+  return FindParityArbitrage(d.call, d.put, d.spot, d.strike, d.maturity, d.r,
+                             d.q);
 }
 
 // ----------------------------------------------------------- Exercise 24 ---
@@ -59,23 +60,23 @@ struct BidAsk {
 
 struct BidAskParityArbitrage {
   enum class Side {
-    BuyCallSellPut,  // strategy A: synthetic long forward is cheap
-    SellCallBuyPut,  // strategy B: synthetic long forward is rich
+    kBuyCallSellPut,  // strategy A: synthetic long forward is cheap
+    kSellCallBuyPut,  // strategy B: synthetic long forward is rich
   } side;
   double profit;  // riskless profit at T per one call/put pair
 };
 
-[[nodiscard]] inline std::optional<BidAskParityArbitrage>
-ex24_bid_ask_arbitrage(BidAsk C, BidAsk P, double S, double K, double T,
-                       double r, double q = 0.0, double tol = 1e-12) {
-  const double fwd =
-      S * std::exp(-q * T) - K * std::exp(-r * T);  // PV of (F - K)
-  const double growth = std::exp(r * T);
-  if (const double a = fwd - (C.ask - P.bid); a > tol)
-    return BidAskParityArbitrage{BidAskParityArbitrage::Side::BuyCallSellPut,
+[[nodiscard]] inline std::optional<BidAskParityArbitrage> Ex24BidAskArbitrage(
+    BidAsk call, BidAsk put, double spot, double strike, double maturity,
+    double r, double q = 0.0, double tol = 1e-12) {
+  const double fwd = spot * std::exp(-q * maturity) -
+                     strike * std::exp(-r * maturity);  // PV of (F - K)
+  const double growth = std::exp(r * maturity);
+  if (const double a = fwd - (call.ask - put.bid); a > tol)
+    return BidAskParityArbitrage{BidAskParityArbitrage::Side::kBuyCallSellPut,
                                  a * growth};
-  if (const double b = (C.bid - P.ask) - fwd; b > tol)
-    return BidAskParityArbitrage{BidAskParityArbitrage::Side::SellCallBuyPut,
+  if (const double b = (call.bid - put.ask) - fwd; b > tol)
+    return BidAskParityArbitrage{BidAskParityArbitrage::Side::kSellCallBuyPut,
                                  b * growth};
   return std::nullopt;
 }
@@ -89,8 +90,8 @@ ex24_bid_ask_arbitrage(BidAsk C, BidAsk P, double S, double K, double T,
 //   C_bid - P_ask = 5 - 3.25 = 1.75 <= 2 <= 2.75 = 5.5 - 2.75 = C_ask - P_bid,
 // so by exercise 24 there is no arbitrage. (With mid prices, 5.25 - 3 = 2.25
 // != 2 looks like a violation, but the spreads eat it.)
-[[nodiscard]] inline std::optional<BidAskParityArbitrage> ex23_arbitrage() {
-  return ex24_bid_ask_arbitrage({5.0, 5.5}, {2.75, 3.25}, 42.0, 40.0, 0.5, 0.0);
+[[nodiscard]] inline std::optional<BidAskParityArbitrage> Ex23Arbitrage() {
+  return Ex24BidAskArbitrage({5.0, 5.5}, {2.75, 3.25}, 42.0, 40.0, 0.5, 0.0);
 }
 
 }  // namespace p4mfe::ch01::ex

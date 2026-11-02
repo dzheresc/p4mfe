@@ -43,8 +43,8 @@ struct PdeMarket {
 // The PDE residual from the closed-form Greeks (zero up to rounding) ...
 [[nodiscard]] inline double ex13_residual_greeks(double S, double t,
                                                  const PdeMarket& m = {}) {
-  return ch03::bs_pde_residual(ch03::OptionType::Call, S, m.K, m.T - t, m.sigma,
-                               m.r, m.q);
+  return ch03::bs_pde_residual(ch03::OptionType::kCall, S, m.K, m.T - t,
+                               m.sigma, m.r, m.q);
 }
 // ... and from finite differences of the price (zero up to O(h^2)).
 [[nodiscard]] inline double ex13_residual_fd(double S, double t,

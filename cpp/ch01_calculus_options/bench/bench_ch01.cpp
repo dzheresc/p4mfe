@@ -18,7 +18,7 @@ namespace {
 namespace ch01 = p4mfe::ch01;
 using p4mfe::bench::set_items;
 
-void BM_derivatives(benchmark::State& state) {
+void BmDerivatives(benchmark::State& state) {
   const std::size_t n =
       p4mfe::bench::by_tier<std::size_t>(1'000, 100'000, 1'000'000);
   const auto f = [](double x) { return std::exp(-x * x) * std::sin(3.0 * x); };
@@ -27,22 +27,22 @@ void BM_derivatives(benchmark::State& state) {
     for (std::size_t i = 0; i < n; ++i) {
       const double x =
           -3.0 + 6.0 * static_cast<double>(i) / static_cast<double>(n);
-      sum += ch01::derivative(f, x) + ch01::second_derivative(f, x);
+      sum += ch01::Derivative(f, x) + ch01::SecondDerivative(f, x);
     }
     benchmark::DoNotOptimize(sum);
   }
   set_items(state, n, "points");
 }
 
-void BM_riemann(benchmark::State& state) {
+void BmRiemann(benchmark::State& state) {
   const auto n = static_cast<std::size_t>(state.range(0));
   const auto f = [](double x) { return std::exp(-x * x); };
   for (auto _ : state)
-    benchmark::DoNotOptimize(ch01::riemann_sum(f, 0.0, 1.0, n));
+    benchmark::DoNotOptimize(ch01::RiemannSum(f, 0.0, 1.0, n));
   state.SetComplexityN(static_cast<std::int64_t>(n));
 }
 
-void BM_forward_dividends(benchmark::State& state) {
+void BmForwardDividends(benchmark::State& state) {
   // Quarterly dividends over 30 years on 10,000 forwards.
   std::vector<ch01::Dividend> divs;
   for (int k = 1; k <= 120; ++k) divs.push_back({0.25 * k, 1.5});
@@ -51,19 +51,20 @@ void BM_forward_dividends(benchmark::State& state) {
   for (auto _ : state) {
     double sum = 0.0;
     for (std::size_t i = 0; i < n; ++i) {
-      const double T =
+      const double maturity =
           0.5 + 29.5 * static_cast<double>(i) / static_cast<double>(n);
       const auto paid =
-          static_cast<std::size_t>(T / 0.25);  // dividends in (0, T]
-      sum += ch01::forward_price(
-          100.0, T, 0.045, std::span<const ch01::Dividend>(divs.data(), paid));
+          static_cast<std::size_t>(maturity / 0.25);  // dividends in (0, T]
+      sum += ch01::ForwardPrice(
+          100.0, maturity, 0.045,
+          std::span<const ch01::Dividend>(divs.data(), paid));
     }
     benchmark::DoNotOptimize(sum);
   }
   set_items(state, n, "forwards");
 }
 
-void BM_gradient_hessian(benchmark::State& state) {
+void BmGradientHessian(benchmark::State& state) {
   const auto n = static_cast<std::size_t>(state.range(0));
   const auto f = [](const ch01::Vector& x) {
     double s = 0.0;
@@ -74,26 +75,26 @@ void BM_gradient_hessian(benchmark::State& state) {
   };
   const ch01::Vector x(n, 0.3);
   for (auto _ : state) {
-    benchmark::DoNotOptimize(ch01::gradient(f, x));
-    benchmark::DoNotOptimize(ch01::hessian(f, x));
+    benchmark::DoNotOptimize(ch01::Gradient(f, x));
+    benchmark::DoNotOptimize(ch01::Hessian(f, x));
   }
   state.SetComplexityN(static_cast<std::int64_t>(n));
 }
 
-const bool registered = [] {
+const bool kRegistered = [] {
   benchmark::RegisterBenchmark("W8/ch01/derivative+second_derivative",
-                               BM_derivatives)
+                               BmDerivatives)
       ->Unit(benchmark::kMillisecond);
-  auto* r = benchmark::RegisterBenchmark("W8/ch01/riemann_sum", BM_riemann);
+  auto* r = benchmark::RegisterBenchmark("W8/ch01/riemann_sum", BmRiemann);
   for (const auto n : p4mfe::bench::by_tier<std::vector<std::int64_t>>(
            {1 << 10}, {1 << 10, 1 << 16, 1 << 22}, {1 << 16, 1 << 22, 1 << 24}))
     r->Arg(n);
   r->Complexity(benchmark::oN)->Unit(benchmark::kMicrosecond);
   benchmark::RegisterBenchmark("W8/ch01/forward_price_dividends",
-                               BM_forward_dividends)
+                               BmForwardDividends)
       ->Unit(benchmark::kMicrosecond);
   auto* g = benchmark::RegisterBenchmark("W8/ch01/gradient+hessian",
-                                         BM_gradient_hessian);
+                                         BmGradientHessian);
   for (const auto n : p4mfe::bench::by_tier<std::vector<std::int64_t>>(
            {2, 10}, {2, 10, 50}, {10, 50, 100}))
     g->Arg(n);

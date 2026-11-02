@@ -13,8 +13,8 @@ int main() {
   const double K2 = 55, T2 = 0.5;   // the hedging call
   const double n = -1000;
 
-  const auto g1 = bs_greeks(OptionType::Call, S, K1, T1, sigma, r);
-  const auto g2 = bs_greeks(OptionType::Call, S, K2, T2, sigma, r);
+  const auto g1 = bs_greeks(OptionType::kCall, S, K1, T1, sigma, r);
+  const auto g2 = bs_greeks(OptionType::kCall, S, K2, T2, sigma, r);
   const double delta_shares = delta_hedge_shares(n * g1.delta);
   const auto dg =
       delta_gamma_hedge(n * g1.delta, n * g1.gamma, g2.delta, g2.gamma);

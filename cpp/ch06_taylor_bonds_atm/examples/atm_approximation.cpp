@@ -37,7 +37,7 @@ int main() {
 
   const double K = 105, T = 0.5, sigma = 0.3, r = 0.04, q = 0.01;
   const double V = ch03::bs_call(S, K, T, sigma, r, q);
-  const auto g = ch03::bs_greeks(ch03::OptionType::Call, S, K, T, sigma, r, q);
+  const auto g = ch03::bs_greeks(ch03::OptionType::kCall, S, K, T, sigma, r, q);
   std::printf(
       "\nCall S = %.0f, K = %.0f, T = %.1f: V = %.6f, Delta = %.4f, Gamma = "
       "%.5f, Theta = %.4f\n",

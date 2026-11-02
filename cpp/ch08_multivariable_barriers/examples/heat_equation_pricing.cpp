@@ -24,8 +24,8 @@ int main() {
     std::printf("%6.1f  %12.7f  %12.7f  %12.7f  %12.7f\n", S,
                 ch03::bs_call(S, K, T, sigma, r, q),
                 bs_price_via_heat(h, S, K, T, sigma, r, q),
-                european_heat_fd(OptionType::Call, S, K, T, sigma, r, q, 200),
-                european_heat_fd(OptionType::Call, S, K, T, sigma, r, q, 800));
+                european_heat_fd(OptionType::kCall, S, K, T, sigma, r, q, 200),
+                european_heat_fd(OptionType::kCall, S, K, T, sigma, r, q, 800));
   }
 
   std::printf(
@@ -38,7 +38,7 @@ int main() {
         static_cast<std::size_t>(std::ceil(tau_final / (alpha * dx * dx)));
     std::printf(
         "%8.2f  %8zu  %14.6g\n", alpha, nt,
-        european_heat_fd(OptionType::Put, 40, K, T, sigma, r, q, 200, nt));
+        european_heat_fd(OptionType::kPut, 40, K, T, sigma, r, q, 200, nt));
   }
   std::printf("%8s  %8s  %14.6g\n", "exact", "",
               ch03::bs_put(40, K, T, sigma, r, q));

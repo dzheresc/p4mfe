@@ -49,9 +49,9 @@ template <std::invocable<double, double> V>
                                         double r, double q = 0.0) {
   const auto in_S = [&](double s) { return v(s, t); };
   const auto in_t = [&](double u) { return v(S, u); };
-  const double theta = ch01::derivative(in_t, t);
-  const double delta = ch01::derivative(in_S, S);
-  const double gamma = ch01::second_derivative(in_S, S);
+  const double theta = ch01::Derivative(in_t, t);
+  const double delta = ch01::Derivative(in_S, S);
+  const double gamma = ch01::SecondDerivative(in_S, S);
   return theta + 0.5 * sigma * sigma * S * S * gamma + (r - q) * S * delta -
          r * v(S, t);
 }
@@ -150,7 +150,7 @@ template <std::uniform_random_bit_generator G>
     cash -= (new_shares - shares) * S;
     shares = new_shares;
   }
-  return cash + shares * path[n] - ch01::payoff(type, path[n], K);
+  return cash + shares * path[n] - ch01::Payoff(type, path[n], K);
 }
 
 struct HedgeStats {

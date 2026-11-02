@@ -19,15 +19,17 @@
 namespace p4mfe::ch01::ex {
 
 // C - P implied by parity, written through the forward price.
-[[nodiscard]] inline double ex17_call_minus_put(double S, double K, double T,
-                                                double r, double q = 0.0) {
-  return std::exp(-r * T) * (forward_price(S, T, r, q) - K);
+[[nodiscard]] inline double Ex17CallMinusPut(double spot, double strike,
+                                             double maturity, double r,
+                                             double q = 0.0) {
+  return std::exp(-r * maturity) *
+         (ForwardPrice(spot, maturity, r, q) - strike);
 }
 
 // The unique strike at which C = P.
-[[nodiscard]] inline double ex17_equal_value_strike(double S, double T,
-                                                    double r, double q = 0.0) {
-  return forward_price(S, T, r, q);
+[[nodiscard]] inline double Ex17EqualValueStrike(double spot, double maturity,
+                                                 double r, double q = 0.0) {
+  return ForwardPrice(spot, maturity, r, q);
 }
 
 }  // namespace p4mfe::ch01::ex

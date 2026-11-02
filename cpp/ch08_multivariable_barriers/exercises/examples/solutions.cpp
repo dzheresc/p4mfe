@@ -75,9 +75,9 @@ int main() {
       "%.6f)\n",
       ab.a, ab.b, ex10_printed_b(0.3, 0.05, 0.02), 2.0 * 0.02 / 0.09);
   std::printf("  u_tau - u_xx at x = 0, tau = 0.05: call %.2e, put %.2e\n",
-              ex09_heat_residual(ch03::OptionType::Call, 0.0, 0.05, 50.0, 0.3,
+              ex09_heat_residual(ch03::OptionType::kCall, 0.0, 0.05, 50.0, 0.3,
                                  0.05, 0.02),
-              ex09_heat_residual(ch03::OptionType::Put, 0.0, 0.05, 50.0, 0.3,
+              ex09_heat_residual(ch03::OptionType::kPut, 0.0, 0.05, 50.0, 0.3,
                                  0.05, 0.02));
 
   header(
@@ -146,7 +146,7 @@ int main() {
     std::printf(
         "  S = %2.0f: time value %.6f, binomial early exercise premium %.2e\n",
         S, ex19_time_value(S),
-        ch08::early_exercise_premium(ch03::OptionType::Call, S, 40, 1, 0.3,
+        ch08::early_exercise_premium(ch03::OptionType::kCall, S, 40, 1, 0.3,
                                      0.05, 0.0));
 
   header(

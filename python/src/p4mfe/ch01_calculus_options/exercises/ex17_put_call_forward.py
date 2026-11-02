@@ -8,12 +8,14 @@ from ..forwards import forward_price
 
 
 def ex17_call_minus_put(
-    S: float, K: float, T: float, r: float, q: float = 0.0
+    spot: float, strike: float, maturity: float, r: float, q: float = 0.0
 ) -> float:
-    return math.exp(-r * T) * (forward_price(S, T, r, q) - K)
+    return math.exp(-r * maturity) * (
+        forward_price(spot, maturity, r, q) - strike
+    )
 
 
 def ex17_equal_value_strike(
-    S: float, T: float, r: float, q: float = 0.0
+    spot: float, maturity: float, r: float, q: float = 0.0
 ) -> float:
-    return forward_price(S, T, r, q)
+    return forward_price(spot, maturity, r, q)

@@ -39,7 +39,7 @@ TEST(Ch03Ex13, ZeroStrike) {
 TEST(Ch03Ex14, PutRhoFromParity) {
   for (const auto& c : cases) {
     const double rho =
-        bs_greeks(OptionType::Put, c.S, c.K, c.T, c.sigma, c.r, c.q).rho;
+        bs_greeks(OptionType::kPut, c.S, c.K, c.T, c.sigma, c.r, c.q).rho;
     EXPECT_NEAR(ex14_rho_put_from_parity(c.S, c.K, c.T, c.sigma, c.r, c.q), rho,
                 1e-10);
     const double h = 1e-5;
@@ -60,7 +60,7 @@ TEST(Ch03Ex15, AssetOrNothingDelta) {
     // Larger than the plain call's Delta.
     EXPECT_GT(
         ex15_aon_delta(c.S, c.K, c.T, sigma, c.r, c.q),
-        bs_greeks(OptionType::Call, c.S, c.K, c.T, sigma, c.r, c.q).delta);
+        bs_greeks(OptionType::kCall, c.S, c.K, c.T, sigma, c.r, c.q).delta);
   }
 }
 
@@ -73,7 +73,7 @@ TEST(Ch03Ex16, VolgaVanna) {
     const auto delta = [&](OptionType t, double sg) {
       return bs_greeks(t, c.S, c.K, c.T, sg, c.r, c.q).delta;
     };
-    for (auto t : {OptionType::Call, OptionType::Put}) {
+    for (auto t : {OptionType::kCall, OptionType::kPut}) {
       const double volga_fd =
           (vega(t, c.S, c.sigma + h) - vega(t, c.S, c.sigma - h)) / (2 * h);
       const double vanna_fd =

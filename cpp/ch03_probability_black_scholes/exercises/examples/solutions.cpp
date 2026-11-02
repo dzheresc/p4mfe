@@ -82,7 +82,7 @@ int main() {
   header("Ex 14-15");
   std::printf("  rho(P) via parity %.8f  vs library %.8f\n",
               ex14_rho_put_from_parity(50, 45, 0.5, 0.2, 0.06, 0.02),
-              bs_greeks(OptionType::Put, 50, 45, 0.5, 0.2, 0.06, 0.02).rho);
+              bs_greeks(OptionType::kPut, 50, 45, 0.5, 0.2, 0.06, 0.02).rho);
   std::printf(
       "  AoN call Delta (S = K = 40, T = 0.5, sigma = 0.3, r = 0.05, q = "
       "0.01): %.6f\n",

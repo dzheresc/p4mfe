@@ -23,7 +23,7 @@ TEST(Ch08Ex14, ItmPutTable) {
     // Where intrinsic > European, the American put (binomial) is worth more.
     if (larger[i]) {
       const double am = ch08::binomial_price(
-          OptionType::Put, ex14_S, rows[i].K, rows[i].T, ex14_sigma, ex14_r,
+          OptionType::kPut, ex14_S, rows[i].K, rows[i].T, ex14_sigma, ex14_r,
           0.0, 500, ch08::ExerciseStyle::American);
       EXPECT_GT(am, rows[i].value);
       EXPECT_GE(am, rows[i].intrinsic - 1e-12);
@@ -108,7 +108,7 @@ TEST(Ch08Ex19, CallAboveIntrinsicAndNoEarlyExercise) {
       }
     }
   for (double S : {30.0, 40.0, 60.0}) {
-    const double prem = ch08::early_exercise_premium(OptionType::Call, S, 40.0,
+    const double prem = ch08::early_exercise_premium(OptionType::kCall, S, 40.0,
                                                      1.0, 0.3, 0.05, 0.0, 400);
     EXPECT_NEAR(prem, 0.0, 1e-10) << S;
   }
@@ -135,7 +135,7 @@ TEST(Ch08Ex21, ImpliedVolSlope) {
     const double s = ex21_smile(K, m);
     const auto [d1, d2] = ch03::bs_d1_d2(m.S, K, m.T, s, m.r, m.q);
     const double vega =
-        ch03::bs_greeks(OptionType::Call, m.S, K, m.T, s, m.r, m.q).vega;
+        ch03::bs_greeks(OptionType::kCall, m.S, K, m.T, s, m.r, m.q).vega;
     const double dC =
         -std::exp(-m.r * m.T) * norm_cdf(d2) + vega * ex21_smile_slope(K, m);
     (void)d1;

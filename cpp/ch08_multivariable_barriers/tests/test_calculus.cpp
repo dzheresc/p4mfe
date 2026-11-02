@@ -23,7 +23,7 @@ TEST(Ch08ChainRule, Curve) {
                          (std::cos(t) * std::cos(t) + std::exp(t * t)) * 2 * t;
     EXPECT_NEAR(chain_rule_derivative(f, g, t), exact, 1e-7);
     EXPECT_NEAR(chain_rule_derivative(f, g, t),
-                p4mfe::ch01::derivative([&](double s) { return f(g(s)); }, t),
+                p4mfe::ch01::Derivative([&](double s) { return f(g(s)); }, t),
                 1e-7);
   }
 }

@@ -35,9 +35,9 @@ int main() {
       "100\n");
   std::printf("%6s  %6s  %12s  %12s\n", "q", "type", "European", "premium");
   for (double qq : {0.0, 0.04, 0.1})
-    for (OptionType type : {OptionType::Call, OptionType::Put})
+    for (OptionType type : {OptionType::kCall, OptionType::kPut})
       std::printf("%6.2f  %6s  %12.6f  %12.6f\n", qq,
-                  type == OptionType::Call ? "call" : "put",
+                  type == OptionType::kCall ? "call" : "put",
                   binomial_price(type, 100, K, T, sigma, r, qq, 1000,
                                  ExerciseStyle::European),
                   early_exercise_premium(type, 100, K, T, sigma, r, qq, 1000));

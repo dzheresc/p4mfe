@@ -12,25 +12,26 @@
 namespace p4mfe::ch01 {
 
 // ---------------------------------------------------------------- 1.7 ------
-enum class OptionType { Call, Put };
+enum class OptionType { kCall, kPut };
 
 // Payoff at maturity: max(S - K, 0) for a call, max(K - S, 0) for a put.
-[[nodiscard]] inline double call_payoff(double S, double K) noexcept {
-  return std::max(S - K, 0.0);
+[[nodiscard]] inline double CallPayoff(double spot, double strike) noexcept {
+  return std::max(spot - strike, 0.0);
 }
-[[nodiscard]] inline double put_payoff(double S, double K) noexcept {
-  return std::max(K - S, 0.0);
+[[nodiscard]] inline double PutPayoff(double spot, double strike) noexcept {
+  return std::max(strike - spot, 0.0);
 }
-[[nodiscard]] inline double payoff(OptionType type, double S,
-                                   double K) noexcept {
-  return type == OptionType::Call ? call_payoff(S, K) : put_payoff(S, K);
+[[nodiscard]] inline double Payoff(OptionType type, double spot,
+                                   double strike) noexcept {
+  return type == OptionType::kCall ? CallPayoff(spot, strike)
+                                   : PutPayoff(spot, strike);
 }
 
 // ---------------------------------------------------------------- 1.8 ------
 // Value at time 0 of one unit paid at time T: e^(-r T). A riskless position
 // worth V at T is worth V e^(-r T) today, otherwise there is an arbitrage.
-[[nodiscard]] inline double discount_factor(double r, double T) noexcept {
-  return std::exp(-r * T);
+[[nodiscard]] inline double DiscountFactor(double r, double maturity) noexcept {
+  return std::exp(-r * maturity);
 }
 
 struct PriceBounds {
@@ -41,37 +42,45 @@ struct PriceBounds {
 // Model-free no-arbitrage bounds:
 //   max(S e^(-qT) - K e^(-rT), 0) <= C <= S e^(-qT)
 //   max(K e^(-rT) - S e^(-qT), 0) <= P <= K e^(-rT)
-[[nodiscard]] inline PriceBounds call_bounds(double S, double K, double T,
-                                             double r, double q = 0.0) {
-  const double s = S * std::exp(-q * T);
-  const double k = K * discount_factor(r, T);
+[[nodiscard]] inline PriceBounds CallBounds(double spot, double strike,
+                                            double maturity, double r,
+                                            double q = 0.0) {
+  const double s = spot * std::exp(-q * maturity);
+  const double k = strike * DiscountFactor(r, maturity);
   return {std::max(s - k, 0.0), s};
 }
-[[nodiscard]] inline PriceBounds put_bounds(double S, double K, double T,
-                                            double r, double q = 0.0) {
-  const double s = S * std::exp(-q * T);
-  const double k = K * discount_factor(r, T);
+[[nodiscard]] inline PriceBounds PutBounds(double spot, double strike,
+                                           double maturity, double r,
+                                           double q = 0.0) {
+  const double s = spot * std::exp(-q * maturity);
+  const double k = strike * DiscountFactor(r, maturity);
   return {std::max(k - s, 0.0), k};
 }
 
 // ---------------------------------------------------------------- 1.9 ------
 // Put-Call parity for European options with the same strike and maturity:
 //   P + S e^(-qT) - C = K e^(-rT)
-[[nodiscard]] inline double put_from_call(double C, double S, double K,
-                                          double T, double r, double q = 0.0) {
-  return C - S * std::exp(-q * T) + K * discount_factor(r, T);
+[[nodiscard]] inline double PutFromCall(double call, double spot, double strike,
+                                        double maturity, double r,
+                                        double q = 0.0) {
+  return call - spot * std::exp(-q * maturity) +
+         strike * DiscountFactor(r, maturity);
 }
-[[nodiscard]] inline double call_from_put(double P, double S, double K,
-                                          double T, double r, double q = 0.0) {
-  return P + S * std::exp(-q * T) - K * discount_factor(r, T);
+[[nodiscard]] inline double CallFromPut(double put, double spot, double strike,
+                                        double maturity, double r,
+                                        double q = 0.0) {
+  return put + spot * std::exp(-q * maturity) -
+         strike * DiscountFactor(r, maturity);
 }
 
 // Parity violation C - P - S e^(-qT) + K e^(-rT); zero when prices are
 // consistent, positive when the call is rich relative to the put.
-[[nodiscard]] inline double parity_violation(double C, double P, double S,
-                                             double K, double T, double r,
-                                             double q = 0.0) {
-  return C - P - S * std::exp(-q * T) + K * discount_factor(r, T);
+[[nodiscard]] inline double ParityViolation(double call, double put,
+                                            double spot, double strike,
+                                            double maturity, double r,
+                                            double q = 0.0) {
+  return call - put - spot * std::exp(-q * maturity) +
+         strike * DiscountFactor(r, maturity);
 }
 
 // ------------------------------------------------------------- 1.9.1 -------
@@ -90,19 +99,19 @@ struct ParityArbitrage {
 // Call rich (violation > 0): sell the call, buy the put, buy e^(-qT) shares,
 // invest the remaining cash. At T the options and stock are worth K whatever
 // S_T is, so the profit is violation * e^(rT). Cheap call: the reverse.
-[[nodiscard]] inline std::optional<ParityArbitrage> parity_arbitrage(
-    double C, double P, double S, double K, double T, double r, double q = 0.0,
-    double tol = 1e-12) {
-  const double v = parity_violation(C, P, S, K, T, r, q);
+[[nodiscard]] inline std::optional<ParityArbitrage> FindParityArbitrage(
+    double call, double put, double spot, double strike, double maturity,
+    double r, double q = 0.0, double tol = 1e-12) {
+  const double v = ParityViolation(call, put, spot, strike, maturity, r, q);
   if (std::abs(v) <= tol) return std::nullopt;
   const double sign = v > 0.0 ? 1.0 : -1.0;
-  const double shares = sign * std::exp(-q * T);
+  const double shares = sign * std::exp(-q * maturity);
   return ParityArbitrage{
       .calls = -sign,
       .puts = sign,
       .shares = shares,
-      .cash = sign * (C - P) - shares * S,
-      .profit = std::abs(v) * std::exp(r * T),
+      .cash = sign * (call - put) - shares * spot,
+      .profit = std::abs(v) * std::exp(r * maturity),
   };
 }
 

@@ -33,19 +33,19 @@ struct FuturesArbitrage {
   double profit;  // riskless profit at T
 };
 
-[[nodiscard]] inline std::optional<FuturesArbitrage> futures_arbitrage(
-    double S, double F_market, double T, double r, double q = 0.0,
-    double tol = 1e-9) {
-  const double F = forward_price(S, T, r, q);
-  const double gap = F - F_market;  // > 0: futures cheap
+[[nodiscard]] inline std::optional<FuturesArbitrage> FindFuturesArbitrage(
+    double spot, double forward_market, double maturity, double r,
+    double q = 0.0, double tol = 1e-9) {
+  const double forward = ForwardPrice(spot, maturity, r, q);
+  const double gap = forward - forward_market;  // > 0: futures cheap
   if (std::abs(gap) <= tol) return std::nullopt;
   const double sign = gap > 0.0 ? 1.0 : -1.0;
-  const double units = -sign * std::exp(-q * T);
-  return FuturesArbitrage{sign, units, -units * S, std::abs(gap)};
+  const double units = -sign * std::exp(-q * maturity);
+  return FuturesArbitrage{sign, units, -units * spot, std::abs(gap)};
 }
 
-[[nodiscard]] inline std::optional<FuturesArbitrage> ex30_arbitrage() {
-  return futures_arbitrage(12000.0, 12100.0, 0.25, 0.08, 0.03);
+[[nodiscard]] inline std::optional<FuturesArbitrage> Ex30Arbitrage() {
+  return FindFuturesArbitrage(12000.0, 12100.0, 0.25, 0.08, 0.03);
 }
 
 }  // namespace p4mfe::ch01::ex

@@ -27,7 +27,7 @@ int main() {
       optimal_step(FdScheme::Central, 2));
 
   const double S = 100, K = 100, T = 1, sigma = 0.2, r = 0.05;
-  const auto exact = ch03::bs_greeks(OptionType::Call, S, K, T, sigma, r);
+  const auto exact = ch03::bs_greeks(OptionType::kCall, S, K, T, sigma, r);
   const auto call_S = [&](double s) {
     return ch03::bs_call(s, K, T, sigma, r);
   };
@@ -41,7 +41,7 @@ int main() {
                 central_difference(call_S, S, h) - exact.delta,
                 second_central_difference(call_S, S, h) - exact.gamma);
 
-  const auto fd = bs_fd_greeks(OptionType::Call, S, K, T, sigma, r);
+  const auto fd = bs_fd_greeks(OptionType::kCall, S, K, T, sigma, r);
   std::printf("\n%8s  %16s  %16s\n", "Greek", "closed form", "central FD");
   std::printf("%8s  %16.10f  %16.10f\n", "Delta", exact.delta, fd.delta);
   std::printf("%8s  %16.10f  %16.10f\n", "Gamma", exact.gamma, fd.gamma);

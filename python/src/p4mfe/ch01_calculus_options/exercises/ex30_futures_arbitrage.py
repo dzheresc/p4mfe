@@ -21,19 +21,19 @@ class FuturesArbitrage:
 
 
 def futures_arbitrage(
-    S: float,
-    F_market: float,
-    T: float,
+    spot: float,
+    forward_market: float,
+    maturity: float,
     r: float,
     q: float = 0.0,
     tol: float = 1e-9,
 ) -> FuturesArbitrage | None:
-    gap = forward_price(S, T, r, q) - F_market
+    gap = forward_price(spot, maturity, r, q) - forward_market
     if abs(gap) <= tol:
         return None
     sign = 1.0 if gap > 0 else -1.0
-    units = -sign * math.exp(-q * T)
-    return FuturesArbitrage(sign, units, -units * S, abs(gap))
+    units = -sign * math.exp(-q * maturity)
+    return FuturesArbitrage(sign, units, -units * spot, abs(gap))
 
 
 def ex30_arbitrage() -> FuturesArbitrage | None:

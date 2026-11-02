@@ -36,23 +36,23 @@ class Portfolio:
     shares: float = 0.0
     options: list[OptionLeg] = field(default_factory=list)
 
-    def payoff(self, ST):
+    def payoff(self, spot_t):
         """V(T) as a function of S(T); works on scalars and numpy arrays."""
-        ST = np.asarray(ST, dtype=float)
-        v = self.cash + self.shares * ST
+        spot_t = np.asarray(spot_t, dtype=float)
+        v = self.cash + self.shares * spot_t
         for leg in self.options:
-            v = v + leg.quantity * payoff(leg.type, ST, leg.strike)
+            v = v + leg.quantity * payoff(leg.type, spot_t, leg.strike)
         return v if v.ndim else float(v)
 
-    def cost(self, S0: float = 0.0) -> float:
+    def cost(self, spot0: float = 0.0) -> float:
         return (
             self.cash
-            + self.shares * S0
+            + self.shares * spot0
             + sum(leg.quantity * leg.price for leg in self.options)
         )
 
-    def pnl(self, ST, S0: float = 0.0):
-        return self.payoff(ST) - self.cost(S0)
+    def pnl(self, spot_t, spot0: float = 0.0):
+        return self.payoff(spot_t) - self.cost(spot0)
 
 
 def payoff_table(p: Portfolio, lo: float, hi: float, n: int) -> np.ndarray:

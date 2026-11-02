@@ -51,7 +51,7 @@ TEST(Ch06Atm, WithRatesAndDividends) {
 
 TEST(Ch06Atm, Greeks) {
   const double S = 60, T = 0.25, sigma = 0.2;
-  for (OptionType type : {OptionType::Call, OptionType::Put}) {
+  for (OptionType type : {OptionType::kCall, OptionType::kPut}) {
     const auto g = ch03::bs_greeks(type, S, S, T, sigma, 0.0);
     const auto a = atm_greeks_approx(type, S, T, sigma);
     EXPECT_NEAR(a.delta, g.delta, 1e-4);
@@ -100,7 +100,7 @@ TEST(Ch06Atm, Precision) {
 // ------------------------------------------------------------------ 6.9 ---
 TEST(Ch06GreeksTaylor, OptionChangeApproximation) {
   const double S = 50, K = 52, T = 0.5, sigma = 0.3, r = 0.04, q = 0.01;
-  for (OptionType type : {OptionType::Call, OptionType::Put}) {
+  for (OptionType type : {OptionType::kCall, OptionType::kPut}) {
     const double V = ch03::bs_price(type, S, K, T, sigma, r, q);
     const auto g = ch03::bs_greeks(type, S, K, T, sigma, r, q);
     // One trading day, a one-standard-deviation move, small vol and rate moves.
@@ -127,7 +127,7 @@ TEST(Ch06GreeksTaylor, DeltaNeutralGammaPnl) {
   // Long one call, short Delta shares (q = 0).
   const double S = 100, K = 100, T = 0.75, sigma = 0.25, r = 0.03;
   const double C = ch03::bs_call(S, K, T, sigma, r);
-  const auto g = ch03::bs_greeks(OptionType::Call, S, K, T, sigma, r);
+  const auto g = ch03::bs_greeks(OptionType::kCall, S, K, T, sigma, r);
   const double Pi = C - g.delta * S;
   const double dt = 1.0 / 252;
   const auto actual = [&](double dS) {

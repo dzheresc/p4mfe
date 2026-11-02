@@ -44,7 +44,8 @@ struct Ex01Market {
 };
 
 [[nodiscard]] inline double ex01_gamma(double S, const Ex01Market& m = {}) {
-  return ch03::bs_greeks(ch03::OptionType::Call, S, m.K, m.T, m.sigma, m.r, 0.0)
+  return ch03::bs_greeks(ch03::OptionType::kCall, S, m.K, m.T, m.sigma, m.r,
+                         0.0)
       .gamma;
 }
 

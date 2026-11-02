@@ -65,7 +65,7 @@ template <std::invocable<double> Price>
 [[nodiscard]] double ex21_slope_from_prices(Price&& C, double K,
                                             const SmileMarket& m = {},
                                             double h = 1e-4) {
-  const double sigma = ch03::implied_vol_newton(ch03::OptionType::Call, C(K),
+  const double sigma = ch03::implied_vol_newton(ch03::OptionType::kCall, C(K),
                                                 m.S, K, m.T, m.r, m.q, 1e-12)
                            .sigma;
   const double dK = h * K;
