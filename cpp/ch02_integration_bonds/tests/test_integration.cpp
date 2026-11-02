@@ -74,6 +74,10 @@ TEST(Ch02Improper, GammaFunction) {
     EXPECT_NEAR(gamma_function(2.5), std::tgamma(2.5), 1e-8);
     // Gamma(x + 1) = x Gamma(x)
     EXPECT_NEAR(gamma_function(4.3), 3.3 * gamma_function(3.3), 1e-7);
+    // 0 < x < 2, x != 1: integrated after the substitution t = s^k.
+    EXPECT_NEAR(gamma_function(0.5), std::sqrt(std::numbers::pi), 1e-8);
+    EXPECT_NEAR(gamma_function(1.5), 0.5 * std::sqrt(std::numbers::pi), 1e-8);
+    EXPECT_NEAR(gamma_function(0.3), std::tgamma(0.3), 1e-7);
 }
 
 TEST(Ch02DifferentiateImproper, UnderTheIntegralSign) {

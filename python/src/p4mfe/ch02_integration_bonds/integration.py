@@ -95,8 +95,43 @@ def integrate_to_tolerance(
     n0: int = 4,
     max_n: int = 1 << 24,
 ) -> IntegrationResult:
-    """2.4.1: double n until two consecutive approximations differ by < tol."""
-    return _refine(lambda n: integrate(f, a, b, n, rule), tol, n0, max_n)
+    """2.4.1: double n until two consecutive approximations differ by < tol.
+
+    The trapezoidal and Simpson grids with 2n intervals contain every point of
+    the grid with n, so each doubling only evaluates f at the n new midpoints
+    instead of recomputing all 2n + 1 (Simpson) points: about half the
+    evaluations in total. The values agree with integrate(f, a, b, n, rule) up
+    to rounding in the order of summation.
+    """
+    if rule is Rule.MIDPOINT:
+        return _refine(lambda n: midpoint_rule(f, a, b, n), tol, n0, max_n)
+    if tol <= 0:
+        raise ValueError("tolerance must be positive")
+    n = max(n0, 1)
+    h = (b - a) / n
+    ends = float(np.sum(f(np.array([a, b]))))
+    nodes = float(np.sum(f(a + np.arange(1, n) * h)))  # The n - 1 interior grid points.
+
+    def midpoint_sum() -> float:
+        return float(np.sum(f(a + (np.arange(n) + 0.5) * h)))
+
+    def value() -> float:
+        if rule is Rule.SIMPSON:
+            return h / 6 * (ends + 2 * nodes + 4 * mids)
+        return h * (0.5 * ends + nodes)
+
+    mids = midpoint_sum()
+    previous = value()
+    while 2 * n <= max_n:
+        nodes += mids  # The old midpoints are interior points of the new grid.
+        n *= 2
+        h *= 0.5
+        mids = midpoint_sum()
+        current = value()
+        if abs(current - previous) < tol:
+            return IntegrationResult(current, n)
+        previous = current
+    raise RuntimeError("integration did not reach the tolerance")
 
 
 def observed_order(f: ArrayFn, a: float, b: float, exact: float, n: int, rule: Rule) -> float:
@@ -132,10 +167,25 @@ def improper_integral(
 
 
 def gamma_function(x: float, tol: float = 1e-9) -> float:
-    """Gamma(x) = int_0^inf t^(x-1) e^(-t) dt (accurate for x >= 1)."""
+    """Gamma(x) = int_0^inf t^(x-1) e^(-t) dt, x > 0.
+
+    For x < 2 (x != 1) the integrand t^(x-1) is not smooth at 0, and the
+    midpoint rule converges slowly or not at all (x < 1). There the
+    substitution t = s^k, k = ceil(2 / x), gives
+    Gamma(x) = int_0^inf k s^(kx-1) e^(-s^k) ds, whose integrand vanishes at 0
+    like s^(kx-1), kx - 1 >= 1, so the midpoint rule converges at its usual rate.
+    """
     if x <= 0:
         raise ValueError("x must be positive")
-    return improper_integral(lambda t: t ** (x - 1) * np.exp(-t), 0.0, math.inf, tol).value
+    if x >= 2 or x == 1:
+        return improper_integral(lambda t: t ** (x - 1) * np.exp(-t), 0.0, math.inf, tol).value
+    k = math.ceil(2 / x)
+
+    def integrand(s):
+        with np.errstate(over="ignore"):  # s^k overflows to inf far out; e^(-inf) = 0.
+            return k * s ** (k * x - 1) * np.exp(-s ** k)
+
+    return improper_integral(integrand, 0.0, math.inf, tol).value
 
 
 # 2.2 -----------------------------------------------------------------------
