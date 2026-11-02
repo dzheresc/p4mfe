@@ -25,7 +25,9 @@ def test_ivp_convergence(scheme):
 
     e1 = max_error(solve_ivp(f, 0, 1, 2, 100, scheme), exact)
     e2 = max_error(solve_ivp(f, 0, 1, 2, 200, scheme), exact)
-    assert math.log2(e1 / e2) == pytest.approx(2.0 if scheme is OdeScheme.CENTRAL else 1.0, abs=0.15)
+    assert math.log2(e1 / e2) == pytest.approx(
+        2.0 if scheme is OdeScheme.CENTRAL else 1.0, abs=0.15
+    )
     assert e2 < 1e-2
 
 
@@ -41,7 +43,9 @@ def test_backward_nonlinear():
     assert sol.y[-1] == pytest.approx(1.0, abs=2e-3)
     h = 1 / 400
     for k in range(0, 400, 57):
-        assert sol.y[k + 1] - sol.y[k] - h * sol.y[k + 1] ** 2 == pytest.approx(0, abs=1e-12)
+        assert sol.y[k + 1] - sol.y[k] - h * sol.y[k + 1] ** 2 == pytest.approx(
+            0, abs=1e-12
+        )
 
 
 def test_stability():
@@ -62,7 +66,16 @@ def test_tridiagonal():
 
 def test_bvp():
     def solve(n):
-        return solve_bvp(lambda x: 0.0, lambda x: -1.0, lambda x: 0.0, 0, 1, 0, math.sinh(1), n)
+        return solve_bvp(
+            lambda x: 0.0,
+            lambda x: -1.0,
+            lambda x: 0.0,
+            0,
+            1,
+            0,
+            math.sinh(1),
+            n,
+        )
 
     e1, e2 = max_error(solve(20), math.sinh), max_error(solve(40), math.sinh)
     assert math.log2(e1 / e2) == pytest.approx(2.0, abs=0.05)
@@ -71,5 +84,7 @@ def test_bvp():
     def exact(x):
         return math.exp(x) / 4 + x * math.exp(-x)
 
-    sol = solve_bvp(lambda x: 2.0, lambda x: 1.0, math.exp, 0, 1, exact(0), exact(1), 200)
+    sol = solve_bvp(
+        lambda x: 2.0, lambda x: 1.0, math.exp, 0, 1, exact(0), exact(1), 200
+    )
     assert max_error(sol, exact) < 1e-5

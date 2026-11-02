@@ -35,7 +35,9 @@ def ex10_discount_factors() -> list[float]:
 
 def ex10_price(coupon_rate: float = 0.05) -> float:
     d = dict(zip(EX10_TIMES, ex10_discount_factors()))
-    return bond_price_from_discount(bond_cash_flows(2.0, coupon_rate, 2), lambda t: d[round(float(t), 12)])
+    return bond_price_from_discount(
+        bond_cash_flows(2.0, coupon_rate, 2), lambda t: d[round(float(t), 12)]
+    )
 
 
 def ex11_par_yield() -> float:
@@ -60,7 +62,9 @@ def ex12_discount_factor(t: float) -> float:
 
 
 def ex12_price(coupon_rate: float = 0.05) -> float:
-    return bond_price_from_discount(bond_cash_flows(2.0, coupon_rate, 2), ex12_discount_factor)
+    return bond_price_from_discount(
+        bond_cash_flows(2.0, coupon_rate, 2), ex12_discount_factor
+    )
 
 
 def ex13_inst_rate(t):
@@ -81,5 +85,6 @@ def ex13_tol(t: float) -> float:
 
 def ex13_price(coupon_rate: float = 0.05) -> float:
     return bond_price_from_discount(
-        bond_cash_flows(3.0, coupon_rate, 1), lambda t: ex13_discount_factor(float(t), ex13_tol(t))
+        bond_cash_flows(3.0, coupon_rate, 1),
+        lambda t: ex13_discount_factor(float(t), ex13_tol(t)),
     )

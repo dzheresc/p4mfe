@@ -2,11 +2,10 @@
 // Exercises 1-2 (section 7.6): a central and a forward difference whose order
 // is one higher than usual, because a Taylor coefficient happens to vanish.
 
-#include <p4mfe/ch07/finite_differences.hpp>
-#include <p4mfe/normal.hpp>
-
 #include <cmath>
 #include <numbers>
+#include <p4mfe/ch07/finite_differences.hpp>
+#include <p4mfe/normal.hpp>
 
 namespace p4mfe::ch07::ex {
 
@@ -25,12 +24,18 @@ namespace p4mfe::ch07::ex {
 // The h^2 term vanishes, so
 //   (f(h) - f(-h)) / (2h) - f'(0) = 54 h^4 / 120 + O(h^6) = 0.45 h^4 + O(h^6):
 // a fourth order approximation (for a generic f it is only second order).
-[[nodiscard]] inline double ex01_f(double x) { return (x * x * x - 6.0) * std::exp(x); }
-inline constexpr double ex01_exact_derivative = -6.0;   // f'(0)
+[[nodiscard]] inline double ex01_f(double x) {
+  return (x * x * x - 6.0) * std::exp(x);
+}
+inline constexpr double ex01_exact_derivative = -6.0;     // f'(0)
 inline constexpr double ex01_leading_coefficient = 0.45;  // f^(5)(0)/120
 
-[[nodiscard]] inline double ex01_central(double h) { return central_difference(ex01_f, 0.0, h); }
-[[nodiscard]] inline double ex01_error(double h) { return ex01_central(h) - ex01_exact_derivative; }
+[[nodiscard]] inline double ex01_central(double h) {
+  return central_difference(ex01_f, 0.0, h);
+}
+[[nodiscard]] inline double ex01_error(double h) {
+  return ex01_central(h) - ex01_exact_derivative;
+}
 
 // ------------------------------------------------------------ Exercise 2 ---
 // Let N(x) be the cumulative density of the standard normal variable. Show
@@ -45,18 +50,21 @@ inline constexpr double ex01_leading_coefficient = 0.45;  // f^(5)(0)/120
 //                             = -h^2 / (6 sqrt(2 pi)) + O(h^3),
 // second order instead of the usual first order. (The O(h^3) term is in fact
 // zero too: N^(4)(0) = 0 since N - 1/2 is odd, so the next term is O(h^4).)
-inline constexpr double ex02_exact_derivative = 0.3989422804014327;  // phi(0) = 1/sqrt(2 pi)
+inline constexpr double ex02_exact_derivative =
+    0.3989422804014327;  // phi(0) = 1/sqrt(2 pi)
 inline const double ex02_leading_coefficient = -ex02_exact_derivative / 6.0;
 
 [[nodiscard]] inline double ex02_forward(double h) {
-    return forward_difference([](double x) { return norm_cdf(x); }, 0.0, h);
+  return forward_difference([](double x) { return norm_cdf(x); }, 0.0, h);
 }
-[[nodiscard]] inline double ex02_error(double h) { return ex02_forward(h) - ex02_exact_derivative; }
+[[nodiscard]] inline double ex02_error(double h) {
+  return ex02_forward(h) - ex02_exact_derivative;
+}
 
 // Observed order log2(|e(h)| / |e(h/2)|) of an error function e(h).
 template <std::invocable<double> E>
 [[nodiscard]] double ex_observed_order(E&& error, double h) {
-    return std::log2(std::abs(error(h)) / std::abs(error(0.5 * h)));
+  return std::log2(std::abs(error(h)) / std::abs(error(0.5 * h)));
 }
 
 }  // namespace p4mfe::ch07::ex

@@ -53,14 +53,19 @@ def test_ex02():
     assert r.convexity == pytest.approx(3.689501, abs=5e-7)
     assert r.yield_semiannual == pytest.approx(0.057606, abs=5e-7)
     assert r.modified_duration_semiannual == pytest.approx(1.837191, abs=5e-7)
-    B = sum(4 * math.exp(-ex02_zero_rate(t) * t) for t in (0.5, 1.0, 1.5)) + 104 * math.exp(-ex02_zero_rate(2) * 2)
+    B = sum(
+        4 * math.exp(-ex02_zero_rate(t) * t) for t in (0.5, 1.0, 1.5)
+    ) + 104 * math.exp(-ex02_zero_rate(2) * 2)
     assert r.price == pytest.approx(B, abs=1e-12)
     cf = ex02_cash_flows()
     assert bond_price(cf, r.yield_) == pytest.approx(B, abs=1e-10)
-    assert bond_price_discrete(cf, r.yield_semiannual, 2) == pytest.approx(B, abs=1e-10)
+    assert bond_price_discrete(cf, r.yield_semiannual, 2) == pytest.approx(
+        B, abs=1e-10
+    )
     h = 1e-5
     dB = (
-        bond_price_discrete(cf, r.yield_semiannual + h, 2) - bond_price_discrete(cf, r.yield_semiannual - h, 2)
+        bond_price_discrete(cf, r.yield_semiannual + h, 2)
+        - bond_price_discrete(cf, r.yield_semiannual - h, 2)
     ) / (2 * h)
     assert -dB / B == pytest.approx(r.modified_duration_semiannual, abs=1e-7)
 
@@ -110,6 +115,8 @@ def test_ex04():
     assert n.iterations == 3 and s.iterations == 3 and b.iterations >= 20
     m = Ex04Market()
     assert bs_call(m.S, m.K, m.T, n.x, m.r, m.q) == pytest.approx(m.C, abs=1e-9)
-    assert ch03_implied_vol_newton(OptionType.CALL, m.C, m.S, m.K, m.T, m.r, m.q).sigma == pytest.approx(n.x, abs=1e-8)
+    assert ch03_implied_vol_newton(
+        OptionType.CALL, m.C, m.S, m.K, m.T, m.r, m.q
+    ).sigma == pytest.approx(n.x, abs=1e-8)
     assert ex04_sigma_approx() == pytest.approx(0.396672, abs=5e-7)
     assert ex04_relative_error() == pytest.approx(9.49e-4, abs=5e-6)

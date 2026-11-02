@@ -17,7 +17,9 @@ EX03_EXACT = -1.75
 
 
 def _ratio(num, den):
-    num, den = np.broadcast_arrays(np.asarray(num, float), np.asarray(den, float))
+    num, den = np.broadcast_arrays(
+        np.asarray(num, float), np.asarray(den, float)
+    )
     out = np.zeros_like(den)
     np.divide(num, den, out=out, where=den > 0)
     return out
@@ -28,16 +30,33 @@ def ex02_integrand(x, y):
 
 
 def ex02_direct(n: int = 200) -> float:
-    return double_integral_region(ex02_integrand, 0.0, 1.0, lambda x: 0.0, lambda x: 1.0 - x, n, n)
+    return double_integral_region(
+        ex02_integrand, 0.0, 1.0, lambda x: 0.0, lambda x: 1.0 - x, n, n
+    )
 
 
 def ex02_change_of_variables(n: int = 200) -> float:
-    return double_integral_region(lambda s, t: 0.5 * _ratio(t, s), 0.0, 1.0, lambda s: -s, lambda s: s, n, n)
+    return double_integral_region(
+        lambda s, t: 0.5 * _ratio(t, s),
+        0.0,
+        1.0,
+        lambda s: -s,
+        lambda s: s,
+        n,
+        n,
+    )
 
 
 def ex02_abs_direct(n: int = 200) -> float:
-    return double_integral_region(lambda x, y: _ratio(np.abs(x - y), x + y), 0.0, 1.0, lambda x: 0.0,
-                                  lambda x: 1.0 - x, n, n)
+    return double_integral_region(
+        lambda x, y: _ratio(np.abs(x - y), x + y),
+        0.0,
+        1.0,
+        lambda x: 0.0,
+        lambda x: 1.0 - x,
+        n,
+        n,
+    )
 
 
 def ex03_integrand(x, y):
@@ -50,4 +69,12 @@ def ex03_inner(x):
 
 
 def ex03_numeric(n: int = 100) -> float:
-    return double_integral_region(ex03_integrand, 1.0, 2.0, lambda x: (x + 1) ** 2, lambda x: 5 * x - 1, n, n)
+    return double_integral_region(
+        ex03_integrand,
+        1.0,
+        2.0,
+        lambda x: (x + 1) ** 2,
+        lambda x: 5 * x - 1,
+        n,
+        n,
+    )

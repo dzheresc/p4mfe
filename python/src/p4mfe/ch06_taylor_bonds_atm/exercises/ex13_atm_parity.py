@@ -26,11 +26,19 @@ def ex13_put(S: float, T: float, sigma: float, r: float, q: float) -> float:
     return atm_price_approx(S, T, sigma) * 0.5 * (eq + er) - 0.5 * S * (eq - er)
 
 
-def ex13_parity_gap(S: float, T: float, sigma: float, r: float, q: float) -> float:
-    return ex13_call(S, T, sigma, r, q) - ex13_put(S, T, sigma, r, q) - S * (math.exp(-q * T) - math.exp(-r * T))
+def ex13_parity_gap(
+    S: float, T: float, sigma: float, r: float, q: float
+) -> float:
+    return (
+        ex13_call(S, T, sigma, r, q)
+        - ex13_put(S, T, sigma, r, q)
+        - S * (math.exp(-q * T) - math.exp(-r * T))
+    )
 
 
-def ex13_parity_gap_6103(S: float, T: float, sigma: float, r: float, q: float) -> float:
+def ex13_parity_gap_6103(
+    S: float, T: float, sigma: float, r: float, q: float
+) -> float:
     return (
         atm_call_approx(S, T, sigma, r, q)
         - atm_put_approx(S, T, sigma, r, q)

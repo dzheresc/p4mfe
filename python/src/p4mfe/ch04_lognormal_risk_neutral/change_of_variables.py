@@ -25,7 +25,9 @@ def _scalar_or_array(out):
     return float(out) if np.ndim(out) == 0 else out
 
 
-def transformed_pdf(f_X: ArrayFn, h: ArrayFn, dh: ArrayFn, in_range: ArrayFn = _always) -> ArrayFn:
+def transformed_pdf(
+    f_X: ArrayFn, h: ArrayFn, dh: ArrayFn, in_range: ArrayFn = _always
+) -> ArrayFn:
     """f_Y(y) = f_X(h(y)) |h'(y)| where in_range(y), else 0."""
 
     def f(y):
@@ -38,7 +40,9 @@ def transformed_pdf(f_X: ArrayFn, h: ArrayFn, dh: ArrayFn, in_range: ArrayFn = _
     return f
 
 
-def transformed_pdf_numeric(f_X: ArrayFn, h: ArrayFn, in_range: ArrayFn = _always) -> ArrayFn:
+def transformed_pdf_numeric(
+    f_X: ArrayFn, h: ArrayFn, in_range: ArrayFn = _always
+) -> ArrayFn:
     """Same, with h' by a central difference."""
 
     def dh(y):
@@ -52,13 +56,19 @@ def linear_transform_pdf(f_X: ArrayFn, a: float, b: float) -> ArrayFn:
     """Y = aX + b, a != 0: f_X((y - b)/a) / |a|."""
     if a == 0:
         raise ValueError("a must be nonzero")
-    return lambda y: _scalar_or_array(f_X((np.asarray(y, float) - b) / a) / abs(a))
+    return lambda y: _scalar_or_array(
+        f_X((np.asarray(y, float) - b) / a) / abs(a)
+    )
 
 
 def exp_transform_pdf(f_X: ArrayFn) -> ArrayFn:
     """Y = e^X: f_X(ln y) / y for y > 0 (lognormal when X is normal)."""
-    return transformed_pdf(f_X, lambda y: np.log(np.where(y > 0, y, 1.0)), lambda y: 1.0 / np.where(y > 0, y, 1.0),
-                           lambda y: y > 0)
+    return transformed_pdf(
+        f_X,
+        lambda y: np.log(np.where(y > 0, y, 1.0)),
+        lambda y: 1.0 / np.where(y > 0, y, 1.0),
+        lambda y: y > 0,
+    )
 
 
 def square_transform_pdf(f_X: ArrayFn) -> ArrayFn:
@@ -67,7 +77,9 @@ def square_transform_pdf(f_X: ArrayFn) -> ArrayFn:
     def f(y):
         y = np.asarray(y, float)
         s = np.sqrt(np.where(y > 0, y, 1.0))
-        return _scalar_or_array(np.where(y > 0, (f_X(s) + f_X(-s)) / (2 * s), 0.0))
+        return _scalar_or_array(
+            np.where(y > 0, (f_X(s) + f_X(-s)) / (2 * s), 0.0)
+        )
 
     return f
 

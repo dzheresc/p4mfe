@@ -47,20 +47,28 @@ def taylor_remainder_bound(M: float, a: float, x: float, n: int) -> float:
     return M * abs(x - a) ** (n + 1) / math.factorial(n + 1)
 
 
-def taylor_remainder_integral(dn1: Callable, a: float, x: float, n: int, tol: float = 1e-12) -> float:
+def taylor_remainder_integral(
+    dn1: Callable, a: float, x: float, n: int, tol: float = 1e-12
+) -> float:
     """int_a^x (x-t)^n / n! f^(n+1)(t) dt by Simpson's rule (dn1 = f^(n+1), vectorized)."""
     if x == a:
         return 0.0
     nfact = math.factorial(n)
     lo, hi = min(a, x), max(a, x)
-    v = integrate_to_tolerance(lambda t: (x - t) ** n / nfact * dn1(t), lo, hi, tol).value
+    v = integrate_to_tolerance(
+        lambda t: (x - t) ** n / nfact * dn1(t), lo, hi, tol
+    ).value
     return v if x > a else -v
 
 
 # 6.2 -----------------------------------------------------------------------
 def taylor_quadratic_from(fa: float, grad, H, h) -> float:
     """f(a) + g . h + 1/2 h^T H h for given gradient and Hessian."""
-    g, H, h = np.asarray(grad, float), np.asarray(H, float), np.asarray(h, float)
+    g, H, h = (
+        np.asarray(grad, float),
+        np.asarray(H, float),
+        np.asarray(h, float),
+    )
     if g.shape != h.shape or H.shape != (h.size, h.size):
         raise ValueError("size mismatch")
     return float(fa + g @ h + 0.5 * h @ H @ h)
@@ -87,7 +95,9 @@ class Partials2D:
     fyy: float
 
 
-def partials_2d(f: Callable[[float, float], float], a: float, b: float) -> Partials2D:
+def partials_2d(
+    f: Callable[[float, float], float], a: float, b: float
+) -> Partials2D:
     g = lambda v: f(v[0], v[1])  # noqa: E731
     p = np.array([a, b], float)
     return Partials2D(
@@ -105,4 +115,6 @@ def taylor_linear_2d(d: Partials2D, dx: float, dy: float) -> float:
 
 
 def taylor_quadratic_2d(d: Partials2D, dx: float, dy: float) -> float:
-    return taylor_linear_2d(d, dx, dy) + 0.5 * (d.fxx * dx * dx + 2 * d.fxy * dx * dy + d.fyy * dy * dy)
+    return taylor_linear_2d(d, dx, dy) + 0.5 * (
+        d.fxx * dx * dx + 2 * d.fxy * dx * dy + d.fyy * dy * dy
+    )

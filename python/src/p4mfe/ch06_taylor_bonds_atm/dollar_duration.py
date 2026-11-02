@@ -35,15 +35,21 @@ def bond_dollar_risk(cf: CashFlows, y: float) -> DollarRisk:
 
 
 def scale(r: DollarRisk, units: float) -> DollarRisk:
-    return DollarRisk(units * r.value, units * r.dollar_duration, units * r.dollar_convexity)
+    return DollarRisk(
+        units * r.value, units * r.dollar_duration, units * r.dollar_convexity
+    )
 
 
-def portfolio_dollar_risk(units: Sequence[float], risks: Sequence[DollarRisk]) -> DollarRisk:
+def portfolio_dollar_risk(
+    units: Sequence[float], risks: Sequence[DollarRisk]
+) -> DollarRisk:
     if len(units) != len(risks):
         raise ValueError("size mismatch")
     parts = [scale(r, n) for n, r in zip(units, risks)]
     return DollarRisk(
-        sum(p.value for p in parts), sum(p.dollar_duration for p in parts), sum(p.dollar_convexity for p in parts)
+        sum(p.value for p in parts),
+        sum(p.dollar_duration for p in parts),
+        sum(p.dollar_convexity for p in parts),
     )
 
 
@@ -90,12 +96,21 @@ class Immunization:
     cash: float
 
 
-def immunize(portfolio: DollarRisk, bond1: DollarRisk, bond2: DollarRisk) -> Immunization:
-    D1, C1, D2, C2 = bond1.dollar_duration, bond1.dollar_convexity, bond2.dollar_duration, bond2.dollar_convexity
+def immunize(
+    portfolio: DollarRisk, bond1: DollarRisk, bond2: DollarRisk
+) -> Immunization:
+    D1, C1, D2, C2 = (
+        bond1.dollar_duration,
+        bond1.dollar_convexity,
+        bond2.dollar_duration,
+        bond2.dollar_convexity,
+    )
     D, C = portfolio.dollar_duration, portfolio.dollar_convexity
     det = D1 * C2 - D2 * C1
     if abs(det) <= 1e-12 * (abs(D1 * C2) + abs(D2 * C1)):
         raise ValueError("hedging bonds must have different D$/C$ ratios")
     q1 = (-D * C2 + D2 * C) / det
     q2 = (-D1 * C + D * C1) / det
-    return Immunization(q1, q2, -(portfolio.value + q1 * bond1.value + q2 * bond2.value))
+    return Immunization(
+        q1, q2, -(portfolio.value + q1 * bond1.value + q2 * bond2.value)
+    )

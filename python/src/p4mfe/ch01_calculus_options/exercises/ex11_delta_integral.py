@@ -21,7 +21,9 @@ class Ex11Params(NamedTuple):
 
 
 def ex11_b(p: Ex11Params, x: float) -> float:
-    return (math.log(x / p.K) + (p.r + 0.5 * p.sigma**2) * p.T) / (p.sigma * math.sqrt(p.T))
+    return (math.log(x / p.K) + (p.r + 0.5 * p.sigma**2) * p.T) / (
+        p.sigma * math.sqrt(p.T)
+    )
 
 
 def ex11_g(p: Ex11Params, x: float) -> float:
@@ -30,4 +32,6 @@ def ex11_g(p: Ex11Params, x: float) -> float:
 
 def ex11_g_prime(p: Ex11Params, x: float) -> float:
     b = ex11_b(p, x)
-    return math.exp(-0.5 * b * b) / (x * p.sigma * math.sqrt(2.0 * math.pi * p.T))
+    return math.exp(-0.5 * b * b) / (
+        x * p.sigma * math.sqrt(2.0 * math.pi * p.T)
+    )

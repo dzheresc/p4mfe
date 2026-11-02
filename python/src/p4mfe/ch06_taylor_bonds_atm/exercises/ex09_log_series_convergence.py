@@ -26,7 +26,12 @@ def ex09_error_integral(x: float, n: int, tol: float = 1e-13) -> float:
     if x == 0:
         return 0.0
     sign = 1.0 if n % 2 == 0 else -1.0
-    v = integrate_to_tolerance(lambda t: sign * (x - t) ** n / (1.0 + t) ** (n + 1), min(0.0, x), max(0.0, x), tol).value
+    v = integrate_to_tolerance(
+        lambda t: sign * (x - t) ** n / (1.0 + t) ** (n + 1),
+        min(0.0, x),
+        max(0.0, x),
+        tol,
+    ).value
     return v if x > 0 else -v
 
 
@@ -35,7 +40,9 @@ def ex09_middle_bound(x: float, n: int, tol: float = 1e-13) -> float:
         raise ValueError("need 0 <= x < 1")
     if x == 0:
         return 0.0
-    return integrate_to_tolerance(lambda t: ((x - t) / (1.0 + t)) ** n / (1.0 + t), 0.0, x, tol).value
+    return integrate_to_tolerance(
+        lambda t: ((x - t) / (1.0 + t)) ** n / (1.0 + t), 0.0, x, tol
+    ).value
 
 
 def ex09_bound(x: float, n: int) -> float:
@@ -50,4 +57,6 @@ def ex09_error_negative(x: float, n: int, tol: float = 1e-13) -> float:
     s = -x
     if s == 0:
         return 0.0
-    return integrate_to_tolerance(lambda z: np.power(s - z, n) / np.power(1.0 - z, n + 1), 0.0, s, tol).value
+    return integrate_to_tolerance(
+        lambda z: np.power(s - z, n) / np.power(1.0 - z, n + 1), 0.0, s, tol
+    ).value

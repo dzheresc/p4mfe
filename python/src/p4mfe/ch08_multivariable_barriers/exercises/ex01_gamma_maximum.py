@@ -31,7 +31,9 @@ def ex01_argmax(m: Ex01Market = Ex01Market()) -> float:
 
 def ex01_max_gamma(m: Ex01Market = Ex01Market()) -> float:
     s = ex01_argmax(m)
-    return math.exp(-0.5 * m.sigma**2 * m.T) / (s * m.sigma * math.sqrt(2 * math.pi * m.T))
+    return math.exp(-0.5 * m.sigma**2 * m.T) / (
+        s * m.sigma * math.sqrt(2 * math.pi * m.T)
+    )
 
 
 def ex01_log_derivative(S: float, m: Ex01Market = Ex01Market()) -> float:

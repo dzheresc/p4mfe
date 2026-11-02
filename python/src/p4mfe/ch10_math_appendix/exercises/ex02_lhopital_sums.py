@@ -44,7 +44,13 @@ def _add(P: IntPoly, m: int, c: int) -> None:
 
 def ex02_book_n2(n: int) -> IntPoly:
     P: IntPoly = {}
-    for m, c in ((1, 1), (2, 1), (n + 1, -((n + 1) ** 2)), (n + 2, 2 * n * n + 2 * n - 1), (n + 3, -n * n)):
+    for m, c in (
+        (1, 1),
+        (2, 1),
+        (n + 1, -((n + 1) ** 2)),
+        (n + 2, 2 * n * n + 2 * n - 1),
+        (n + 3, -n * n),
+    ):
         _add(P, m, c)
     return _clean(P)
 

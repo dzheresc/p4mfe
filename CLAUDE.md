@@ -7,6 +7,13 @@ Write all new and changed code to the Google style guides:
 [Python](https://google.github.io/styleguide/pyguide.html). Existing code is
 restyled in separate changes; do not mix a restyle into a functional change.
 
+Formatting is enforced by the `format` CI job; run before committing:
+
+```sh
+git ls-files 'cpp/*.hpp' 'cpp/*.cpp' | xargs clang-format -i   # .clang-format, clang-format 18
+pyink --config python/pyproject.toml python tools               # [tool.pyink] in python/pyproject.toml
+```
+
 ## Performance work (C++)
 
 The plan is [docs/performance-testing-plan.md](docs/performance-testing-plan.md).

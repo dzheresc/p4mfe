@@ -89,7 +89,11 @@ def exponential_distribution(lam: float) -> ContinuousDistribution:
     """f(x) = lam e^(-lam x), x >= 0; mean 1/lam, variance 1/lam^2."""
     if lam <= 0:
         raise ValueError("lambda must be positive")
-    return ContinuousDistribution(lambda x: np.where(x < 0, 0.0, lam * np.exp(-lam * np.maximum(x, 0.0))), 0.0, math.inf)
+    return ContinuousDistribution(
+        lambda x: np.where(x < 0, 0.0, lam * np.exp(-lam * np.maximum(x, 0.0))),
+        0.0,
+        math.inf,
+    )
 
 
 # 3.2.1 ---------------------------------------------------------------------
@@ -119,7 +123,9 @@ def correlation(joint: Sequence[JointOutcome]) -> float:
     return c / math.sqrt(vx * vy)
 
 
-def variance_of_sum(a: float, var_x: float, b: float, var_y: float, cov_xy: float) -> float:
+def variance_of_sum(
+    a: float, var_x: float, b: float, var_y: float, cov_xy: float
+) -> float:
     """var(aX + bY) = a^2 var(X) + b^2 var(Y) + 2ab cov(X, Y)."""
     return a * a * var_x + b * b * var_y + 2 * a * b * cov_xy
 
@@ -143,4 +149,6 @@ def sample_variance(x: Sequence[float]) -> float:
 
 
 def sample_correlation(x: Sequence[float], y: Sequence[float]) -> float:
-    return sample_covariance(x, y) / math.sqrt(sample_variance(x) * sample_variance(y))
+    return sample_covariance(x, y) / math.sqrt(
+        sample_variance(x) * sample_variance(y)
+    )

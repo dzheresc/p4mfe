@@ -11,79 +11,86 @@
 // from which the iterates converge monotonically. Bisection is given as a
 // slower, derivative-free alternative.
 
-#include <p4mfe/ch01/options.hpp>
-#include <p4mfe/ch03/black_scholes.hpp>
-
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <p4mfe/ch01/options.hpp>
+#include <p4mfe/ch03/black_scholes.hpp>
 #include <stdexcept>
 
 namespace p4mfe::ch03 {
 
 struct ImpliedVolResult {
-    double sigma;
-    std::size_t iterations;
+  double sigma;
+  std::size_t iterations;
 };
 
 namespace detail {
-inline void check_price_in_bounds(OptionType type, double price, double S, double K, double T, double r,
-                                  double q) {
-    const auto b = type == OptionType::Call ? ch01::call_bounds(S, K, T, r, q) : ch01::put_bounds(S, K, T, r, q);
-    if (!(price > b.lower && price < b.upper))
-        throw std::domain_error("implied volatility: price outside the no-arbitrage bounds");
+inline void check_price_in_bounds(OptionType type, double price, double S,
+                                  double K, double T, double r, double q) {
+  const auto b = type == OptionType::Call ? ch01::call_bounds(S, K, T, r, q)
+                                          : ch01::put_bounds(S, K, T, r, q);
+  if (!(price > b.lower && price < b.upper))
+    throw std::domain_error(
+        "implied volatility: price outside the no-arbitrage bounds");
 }
 }  // namespace detail
 
 // Inflection point of sigma -> V_BS(sigma); floored so that d1 stays finite
 // when the option is at the money forward.
-[[nodiscard]] inline double implied_vol_initial_guess(double S, double K, double T, double r, double q = 0.0) {
-    return std::max(std::sqrt(2.0 * std::abs(std::log(S / K) + (r - q) * T) / T), 1e-4);
+[[nodiscard]] inline double implied_vol_initial_guess(double S, double K,
+                                                      double T, double r,
+                                                      double q = 0.0) {
+  return std::max(std::sqrt(2.0 * std::abs(std::log(S / K) + (r - q) * T) / T),
+                  1e-4);
 }
 
 // Stops when two consecutive iterates differ by less than tol (the book's
 // criterion), or when the price is matched to rounding error: for deep in-
 // or out-of-the-money options vega is tiny, sigma is only determined to about
 // eps * (S + K) / vega, and tol may be out of reach.
-[[nodiscard]] inline ImpliedVolResult implied_vol_newton(OptionType type, double price, double S, double K,
-                                                         double T, double r, double q = 0.0,
-                                                         double tol = 1e-10, std::size_t max_iter = 100) {
-    detail::check_price_in_bounds(type, price, S, K, T, r, q);
-    const double price_noise =
-        8.0 * std::numeric_limits<double>::epsilon() * (S * std::exp(-q * T) + K * std::exp(-r * T));
-    double sigma = implied_vol_initial_guess(S, K, T, r, q);
-    for (std::size_t k = 1; k <= max_iter; ++k) {
-        const double f = bs_price(type, S, K, T, sigma, r, q) - price;
-        if (std::abs(f) <= price_noise) return {sigma, k - 1};
-        const double vega = bs_greeks(type, S, K, T, sigma, r, q).vega;
-        const double next = sigma - f / vega;
-        if (!(next > 0.0) || !std::isfinite(next))
-            throw std::runtime_error("implied_vol_newton: iterate left (0, inf)");
-        if (std::abs(next - sigma) < tol) return {next, k};
-        sigma = next;
-    }
-    throw std::runtime_error("implied_vol_newton: no convergence");
+[[nodiscard]] inline ImpliedVolResult implied_vol_newton(
+    OptionType type, double price, double S, double K, double T, double r,
+    double q = 0.0, double tol = 1e-10, std::size_t max_iter = 100) {
+  detail::check_price_in_bounds(type, price, S, K, T, r, q);
+  const double price_noise = 8.0 * std::numeric_limits<double>::epsilon() *
+                             (S * std::exp(-q * T) + K * std::exp(-r * T));
+  double sigma = implied_vol_initial_guess(S, K, T, r, q);
+  for (std::size_t k = 1; k <= max_iter; ++k) {
+    const double f = bs_price(type, S, K, T, sigma, r, q) - price;
+    if (std::abs(f) <= price_noise) return {sigma, k - 1};
+    const double vega = bs_greeks(type, S, K, T, sigma, r, q).vega;
+    const double next = sigma - f / vega;
+    if (!(next > 0.0) || !std::isfinite(next))
+      throw std::runtime_error("implied_vol_newton: iterate left (0, inf)");
+    if (std::abs(next - sigma) < tol) return {next, k};
+    sigma = next;
+  }
+  throw std::runtime_error("implied_vol_newton: no convergence");
 }
 
 // Bisection on [lo, hi]; widens hi until it brackets the root.
-[[nodiscard]] inline ImpliedVolResult implied_vol_bisection(OptionType type, double price, double S, double K,
-                                                            double T, double r, double q = 0.0,
-                                                            double tol = 1e-10, double lo = 1e-6,
-                                                            double hi = 1.0) {
-    detail::check_price_in_bounds(type, price, S, K, T, r, q);
-    const auto f = [&](double s) { return bs_price(type, S, K, T, s, r, q) - price; };
-    while (f(hi) < 0.0) {
-        hi *= 2.0;
-        if (hi > 1e3) throw std::runtime_error("implied_vol_bisection: cannot bracket the root");
-    }
-    std::size_t k = 0;
-    while (hi - lo >= tol) {
-        const double mid = 0.5 * (lo + hi);
-        (f(mid) < 0.0 ? lo : hi) = mid;
-        ++k;
-    }
-    return {0.5 * (lo + hi), k};
+[[nodiscard]] inline ImpliedVolResult implied_vol_bisection(
+    OptionType type, double price, double S, double K, double T, double r,
+    double q = 0.0, double tol = 1e-10, double lo = 1e-6, double hi = 1.0) {
+  detail::check_price_in_bounds(type, price, S, K, T, r, q);
+  const auto f = [&](double s) {
+    return bs_price(type, S, K, T, s, r, q) - price;
+  };
+  while (f(hi) < 0.0) {
+    hi *= 2.0;
+    if (hi > 1e3)
+      throw std::runtime_error(
+          "implied_vol_bisection: cannot bracket the root");
+  }
+  std::size_t k = 0;
+  while (hi - lo >= tol) {
+    const double mid = 0.5 * (lo + hi);
+    (f(mid) < 0.0 ? lo : hi) = mid;
+    ++k;
+  }
+  return {0.5 * (lo + hi), k};
 }
 
 }  // namespace p4mfe::ch03

@@ -42,13 +42,21 @@ def ex05_crr(r: float, sigma: float, dt: float) -> BinomialStep:
     return BinomialStep(u, d, (math.exp(r * dt) - d) / (u - d))
 
 
-def moment_residuals(s: BinomialStep, r: float, sigma: float, dt: float) -> tuple[float, float]:
+def moment_residuals(
+    s: BinomialStep, r: float, sigma: float, dt: float
+) -> tuple[float, float]:
     """Residuals of (4.57) and (4.58)."""
-    return (s.p * s.u + (1.0 - s.p) * s.d - math.exp(r * dt),
-            s.p * s.u ** 2 + (1.0 - s.p) * s.d ** 2 - math.exp((2.0 * r + sigma * sigma) * dt))
+    return (
+        s.p * s.u + (1.0 - s.p) * s.d - math.exp(r * dt),
+        s.p * s.u**2
+        + (1.0 - s.p) * s.d**2
+        - math.exp((2.0 * r + sigma * sigma) * dt),
+    )
 
 
-def ex05_residual_460(u: float, d: float, r: float, sigma: float, dt: float) -> float:
+def ex05_residual_460(
+    u: float, d: float, r: float, sigma: float, dt: float
+) -> float:
     g = math.exp(r * dt)
     return (g - d) * (u - g) - g * g * math.expm1(sigma * sigma * dt)
 

@@ -49,7 +49,14 @@ class BidAskParityArbitrage:
 
 
 def ex24_bid_ask_arbitrage(
-    C: BidAsk, P: BidAsk, S: float, K: float, T: float, r: float, q: float = 0.0, tol: float = 1e-12
+    C: BidAsk,
+    P: BidAsk,
+    S: float,
+    K: float,
+    T: float,
+    r: float,
+    q: float = 0.0,
+    tol: float = 1e-12,
 ) -> BidAskParityArbitrage | None:
     fwd = S * math.exp(-q * T) - K * math.exp(-r * T)
     growth = math.exp(r * T)
@@ -63,4 +70,6 @@ def ex24_bid_ask_arbitrage(
 
 
 def ex23_arbitrage() -> BidAskParityArbitrage | None:
-    return ex24_bid_ask_arbitrage(BidAsk(5.0, 5.5), BidAsk(2.75, 3.25), 42.0, 40.0, 0.5, 0.0)
+    return ex24_bid_ask_arbitrage(
+        BidAsk(5.0, 5.5), BidAsk(2.75, 3.25), 42.0, 40.0, 0.5, 0.0
+    )

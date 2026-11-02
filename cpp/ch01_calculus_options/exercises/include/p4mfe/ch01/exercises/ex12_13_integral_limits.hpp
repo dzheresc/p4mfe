@@ -1,11 +1,10 @@
 #pragma once
 // Exercises 12-13 (section 1.12): limits of integrals.
 
-#include <p4mfe/ch01/calculus.hpp>
-#include <p4mfe/normal.hpp>
-
 #include <concepts>
 #include <cstddef>
+#include <p4mfe/ch01/calculus.hpp>
+#include <p4mfe/normal.hpp>
 
 namespace p4mfe::ch01::ex {
 
@@ -24,8 +23,9 @@ namespace p4mfe::ch01::ex {
 //
 // The local average itself, with an n-interval midpoint sum for the integral.
 template <std::invocable<double> F>
-[[nodiscard]] double ex12_local_average(F&& f, double a, double h, std::size_t n = 64) {
-    return riemann_sum(f, a - h, a + h, n, RiemannRule::Midpoint) / (2.0 * h);
+[[nodiscard]] double ex12_local_average(F&& f, double a, double h,
+                                        std::size_t n = 64) {
+  return riemann_sum(f, a - h, a + h, n, RiemannRule::Midpoint) / (2.0 * h);
 }
 
 // ----------------------------------------------------------- Exercise 13 ---
@@ -49,10 +49,11 @@ template <std::invocable<double> F>
 // |z| <= z_max (the tail mass beyond 10 is ~1.5e-23) and integrated with an
 // n-interval midpoint sum.
 template <std::invocable<double> G>
-[[nodiscard]] double ex13_gaussian_average(G&& g, double mu, double sigma, std::size_t n = 4000,
+[[nodiscard]] double ex13_gaussian_average(G&& g, double mu, double sigma,
+                                           std::size_t n = 4000,
                                            double z_max = 10.0) {
-    return riemann_sum([&](double z) { return norm_pdf(z) * g(mu + sigma * z); }, -z_max, z_max, n,
-                       RiemannRule::Midpoint);
+  return riemann_sum([&](double z) { return norm_pdf(z) * g(mu + sigma * z); },
+                     -z_max, z_max, n, RiemannRule::Midpoint);
 }
 
 }  // namespace p4mfe::ch01::ex

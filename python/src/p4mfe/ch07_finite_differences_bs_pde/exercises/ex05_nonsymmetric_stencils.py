@@ -19,19 +19,29 @@ Fn = Callable[[float], float]
 
 def ex05_first_derivative(f: Fn, a: float, beta: float, gamma: float) -> float:
     u, v = a - beta, gamma - a
-    return (u * u * f(gamma) - v * v * f(beta) - (u * u - v * v) * f(a)) / (u * v * (gamma - beta))
+    return (u * u * f(gamma) - v * v * f(beta) - (u * u - v * v) * f(a)) / (
+        u * v * (gamma - beta)
+    )
 
 
 def ex05_second_derivative(f: Fn, a: float, beta: float, gamma: float) -> float:
     u, v = a - beta, gamma - a
-    return 2.0 * (u * f(gamma) + v * f(beta) - (gamma - beta) * f(a)) / (u * v * (gamma - beta))
+    return (
+        2.0
+        * (u * f(gamma) + v * f(beta) - (gamma - beta) * f(a))
+        / (u * v * (gamma - beta))
+    )
 
 
-def ex05_first_leading_error(a: float, beta: float, gamma: float, f3: float) -> float:
+def ex05_first_leading_error(
+    a: float, beta: float, gamma: float, f3: float
+) -> float:
     return (a - beta) * (gamma - a) / 6.0 * f3
 
 
-def ex05_second_leading_error(a: float, beta: float, gamma: float, f3: float) -> float:
+def ex05_second_leading_error(
+    a: float, beta: float, gamma: float, f3: float
+) -> float:
     return (beta + gamma - 2.0 * a) / 3.0 * f3
 
 

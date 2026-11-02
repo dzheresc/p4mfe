@@ -21,7 +21,9 @@ def forward_price(S: float, T: float, r: float, q: float = 0.0) -> float:
     return S * math.exp((r - q) * T)
 
 
-def forward_price_discrete(S: float, T: float, r: float, dividends: Iterable[Dividend]) -> float:
+def forward_price_discrete(
+    S: float, T: float, r: float, dividends: Iterable[Dividend]
+) -> float:
     """F = (S - sum_i D_i e^(-r t_i)) e^(r T) for known discrete dividends."""
     pv = 0.0
     for d in dividends:
@@ -31,7 +33,9 @@ def forward_price_discrete(S: float, T: float, r: float, dividends: Iterable[Div
     return (S - pv) * math.exp(r * T)
 
 
-def long_forward_value(S: float, K: float, T: float, r: float, q: float = 0.0) -> float:
+def long_forward_value(
+    S: float, K: float, T: float, r: float, q: float = 0.0
+) -> float:
     """S e^(-qT) - K e^(-rT) = (F - K) e^(-rT); zero when K = F."""
     return S * math.exp(-q * T) - K * discount_factor(r, T)
 

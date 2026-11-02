@@ -54,7 +54,9 @@ def ex03_limit_zero(m: Ex03Market) -> float:
     return m.S * math.exp(-m.q * m.T) - m.K * math.exp(-m.r * m.T) - m.C
 
 
-def ex03_price_range(S: float, K: float, T: float, r: float, q: float) -> tuple[float, float]:
+def ex03_price_range(
+    S: float, K: float, T: float, r: float, q: float
+) -> tuple[float, float]:
     """Open interval of call prices that have a positive implied volatility."""
     s = S * math.exp(-q * T)
     return max(s - K * math.exp(-r * T), 0.0), s

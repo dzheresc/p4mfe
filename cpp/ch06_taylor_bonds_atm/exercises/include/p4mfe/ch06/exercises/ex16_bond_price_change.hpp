@@ -2,10 +2,9 @@
 // Exercise 16 (section 6.11): bond price after a yield change, with and
 // without the convexity adjustment.
 
-#include <p4mfe/ch02/bonds.hpp>
-
 #include <array>
 #include <cstddef>
+#include <p4mfe/ch02/bonds.hpp>
 
 namespace p4mfe::ch06::ex {
 
@@ -27,17 +26,21 @@ namespace p4mfe::ch06::ex {
 // computed; a duration of 1.5 for a 5 year bond means most of its value is
 // paid early, e.g. a large coupon or an amortizing bond.)
 struct Ex16Row {
-    double dy, duration_only, duration_convexity;
+  double dy, duration_only, duration_convexity;
 };
-inline constexpr std::array<double, 4> ex16_yield_changes{0.001, 0.005, 0.01, 0.02};
+inline constexpr std::array<double, 4> ex16_yield_changes{0.001, 0.005, 0.01,
+                                                          0.02};
 
-[[nodiscard]] inline std::array<Ex16Row, 4> ex16_table(double B = 101.0, double D = 1.5, double C = 2.5) {
-    std::array<Ex16Row, 4> out{};
-    for (std::size_t i = 0; i < out.size(); ++i) {
-        const double dy = ex16_yield_changes[i];
-        out[i] = {dy, ch02::price_approx_duration(B, D, dy), ch02::price_approx_duration_convexity(B, D, C, dy)};
-    }
-    return out;
+[[nodiscard]] inline std::array<Ex16Row, 4> ex16_table(double B = 101.0,
+                                                       double D = 1.5,
+                                                       double C = 2.5) {
+  std::array<Ex16Row, 4> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    const double dy = ex16_yield_changes[i];
+    out[i] = {dy, ch02::price_approx_duration(B, D, dy),
+              ch02::price_approx_duration_convexity(B, D, C, dy)};
+  }
+  return out;
 }
 
 }  // namespace p4mfe::ch06::ex

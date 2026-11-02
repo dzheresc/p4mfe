@@ -19,7 +19,9 @@ def ex08_f(S: float, K: float, x: float) -> float:
     return ex06_butterfly_payoff(S, K, x) / (x * x)
 
 
-def ex08_integral(g: Callable[[float], float], K: float, x: float, n: int = 64) -> float:
+def ex08_integral(
+    g: Callable[[float], float], K: float, x: float, n: int = 64
+) -> float:
     """int f(S) g(S) dS by Simpson's rule (chapter 2) on [K - x, K] and [K, K + x]."""
 
     def fg(S: np.ndarray) -> np.ndarray:

@@ -48,7 +48,9 @@ def ex04_secant(m: Ex04Market = Ex04Market()) -> RootResult:
 
 
 def ex04_newton(m: Ex04Market = Ex04Market()) -> RootResult:
-    return newton(lambda s: ex04_f(s, m), lambda s: ex04_vega(s, m), 0.5, EX04_TOLERANCES)
+    return newton(
+        lambda s: ex04_f(s, m), lambda s: ex04_vega(s, m), 0.5, EX04_TOLERANCES
+    )
 
 
 def ex04_sigma_approx(m: Ex04Market = Ex04Market()) -> float:

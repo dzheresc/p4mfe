@@ -35,14 +35,18 @@ def zero_rate_from_discount(D: float, t: float) -> float:
 
 
 # 2.5 -----------------------------------------------------------------------
-def discount_factor_from_inst_rate(r: Callable, t: float, tol: float = 1e-12) -> float:
+def discount_factor_from_inst_rate(
+    r: Callable, t: float, tol: float = 1e-12
+) -> float:
     """exp(-int_0^t r(s) ds)."""
     if t == 0:
         return 1.0
     return math.exp(-integrate_to_tolerance(r, 0.0, t, tol, Rule.SIMPSON).value)
 
 
-def zero_rate_from_inst_rate(r: Callable, t: float, tol: float = 1e-12) -> float:
+def zero_rate_from_inst_rate(
+    r: Callable, t: float, tol: float = 1e-12
+) -> float:
     """r(0, t) = (1/t) int_0^t r(s) ds."""
     if t <= 0:
         raise ValueError("t must be positive")
@@ -65,18 +69,24 @@ def forward_rate(r1: float, t1: float, r2: float, t2: float) -> float:
     return (r2 * t2 - r1 * t1) / (t2 - t1)
 
 
-def forward_rate_from_discounts(D1: float, t1: float, D2: float, t2: float) -> float:
+def forward_rate_from_discounts(
+    D1: float, t1: float, D2: float, t2: float
+) -> float:
     """r(t1, t2) = ln(D1 / D2) / (t2 - t1)."""
     if not t2 > t1:
         raise ValueError("need t2 > t1")
     return math.log(D1 / D2) / (t2 - t1)
 
 
-def forward_rate_from_inst_rate(r: Callable, t1: float, t2: float, tol: float = 1e-12) -> float:
+def forward_rate_from_inst_rate(
+    r: Callable, t1: float, t2: float, tol: float = 1e-12
+) -> float:
     """r(t1, t2) = (1 / (t2 - t1)) int_{t1}^{t2} r(s) ds."""
     if not t2 > t1:
         raise ValueError("need t2 > t1")
-    return integrate_to_tolerance(r, t1, t2, tol, Rule.SIMPSON).value / (t2 - t1)
+    return integrate_to_tolerance(r, t1, t2, tol, Rule.SIMPSON).value / (
+        t2 - t1
+    )
 
 
 # 2.8 -----------------------------------------------------------------------

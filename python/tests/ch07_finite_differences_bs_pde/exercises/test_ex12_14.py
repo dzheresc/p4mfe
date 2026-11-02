@@ -44,7 +44,14 @@ def test_ex13_call_solves_pde(S, t):
 
 def test_ex13_wrong_volatility_is_not_a_solution():
     m = PdeMarket()
-    assert abs(bs_pde_residual_fd(lambda s, u: ex13_call(s, u, m), 40.0, 0.5, 0.4, m.r, m.q)) > 0.1
+    assert (
+        abs(
+            bs_pde_residual_fd(
+                lambda s, u: ex13_call(s, u, m), 40.0, 0.5, 0.4, m.r, m.q
+            )
+        )
+        > 0.1
+    )
 
 
 @pytest.mark.parametrize("sigma", [0.1, 0.3, 0.8])
@@ -60,4 +67,6 @@ def test_ex14_forward_is_call_minus_put():
     m = PdeMarket()
     S, t = 45.0, 0.3
     put = bs_put(S, m.K, m.T - t, m.sigma, m.r, m.q)
-    assert ex13_call(S, t, m) - put == pytest.approx(ex14_forward(S, t, m), abs=1e-12)
+    assert ex13_call(S, t, m) - put == pytest.approx(
+        ex14_forward(S, t, m), abs=1e-12
+    )

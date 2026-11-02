@@ -32,7 +32,10 @@ def zero_rate_linear(curve: ZeroCurve, t: float) -> float:
 
 
 def bootstrap_next_rate(
-    curve: ZeroCurve | None, cf: CashFlows, price: float, tol: Tolerances = BOOTSTRAP_TOLERANCES
+    curve: ZeroCurve | None,
+    cf: CashFlows,
+    price: float,
+    tol: Tolerances = BOOTSTRAP_TOLERANCES,
 ) -> RootResult:
     """r(0, T) at the maturity T of a bond, given the curve up to T_last < T."""
     T = float(cf.times[-1])

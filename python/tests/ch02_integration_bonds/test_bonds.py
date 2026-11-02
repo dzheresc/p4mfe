@@ -45,10 +45,16 @@ def test_cash_flows():
 
 def test_price_from_curves():
     cf = bond_cash_flows(3, 0.06, 2)
-    assert bond_price_from_zero_rate(cf, lambda t: 0.05) == pytest.approx(bond_price(cf, 0.05), abs=1e-12)
+    assert bond_price_from_zero_rate(cf, lambda t: 0.05) == pytest.approx(
+        bond_price(cf, 0.05), abs=1e-12
+    )
     r_inst = lambda t: 0.0525 + np.log1p(2 * t) / 200
-    r_zero = lambda t: 0.0525 + ((1 + 2 * t) * math.log1p(2 * t) - 2 * t) / (400 * t)
-    assert bond_price_from_inst_rate(cf, r_inst) == pytest.approx(bond_price_from_zero_rate(cf, r_zero), abs=1e-10)
+    r_zero = lambda t: 0.0525 + ((1 + 2 * t) * math.log1p(2 * t) - 2 * t) / (
+        400 * t
+    )
+    assert bond_price_from_inst_rate(cf, r_inst) == pytest.approx(
+        bond_price_from_zero_rate(cf, r_zero), abs=1e-10
+    )
 
 
 @pytest.mark.parametrize("times", [[1.0, 0.5], [-0.5, 1.0]])
@@ -69,7 +75,9 @@ def test_duration_and_convexity_are_yield_derivatives():
     assert bond_duration(cf, y) == m.duration
     assert bond_convexity(cf, y) == m.convexity
     assert m.duration < 5
-    assert dv01(cf, y) == pytest.approx((B(y - 1e-4) - B(y + 1e-4)) / 2, abs=1e-8)
+    assert dv01(cf, y) == pytest.approx(
+        (B(y - 1e-4) - B(y + 1e-4)) / 2, abs=1e-8
+    )
 
 
 def test_price_approximations():
@@ -78,10 +86,15 @@ def test_price_approximations():
     m = bond_metrics(cf, y)
     exact = bond_price(cf, y + dy)
     e1 = abs(price_approx_duration(m.price, m.duration, dy) - exact)
-    e2 = abs(price_approx_duration_convexity(m.price, m.duration, m.convexity, dy) - exact)
+    e2 = abs(
+        price_approx_duration_convexity(m.price, m.duration, m.convexity, dy)
+        - exact
+    )
     assert e2 < e1 / 10
     assert price_approx_duration(m.price, m.duration, dy) < exact
-    assert price_approx_duration(m.price, m.duration, -dy) < bond_price(cf, y - dy)
+    assert price_approx_duration(m.price, m.duration, -dy) < bond_price(
+        cf, y - dy
+    )
 
 
 def test_discrete_yield():
@@ -89,9 +102,13 @@ def test_discrete_yield():
     assert bond_price_discrete(cf, 0.06, 2) == pytest.approx(100.0, abs=1e-12)
     yc = continuous_from_discrete(0.06, 2)
     assert bond_price(cf, yc) == pytest.approx(100.0, abs=1e-12)
-    assert macaulay_duration(cf, 0.06, 2) == pytest.approx(bond_duration(cf, yc), abs=1e-12)
+    assert macaulay_duration(cf, 0.06, 2) == pytest.approx(
+        bond_duration(cf, yc), abs=1e-12
+    )
     B = lambda s: bond_price_discrete(cf, s, 2)
-    assert modified_duration(cf, 0.06, 2) == pytest.approx(-fd1(B, 0.06) / 100.0, abs=1e-8)
+    assert modified_duration(cf, 0.06, 2) == pytest.approx(
+        -fd1(B, 0.06) / 100.0, abs=1e-8
+    )
 
 
 def test_zero_coupon_bond():
@@ -110,12 +127,20 @@ def test_bootstrap():
     quotes = []
     for T in (2.0, 0.5, 1.5, 1.0):
         c = 0.04 + 0.01 * T
-        quotes.append(BondQuote(T, c, bond_price_from_zero_rate(bond_cash_flows(T, c, 2), zero)))
+        quotes.append(
+            BondQuote(
+                T, c, bond_price_from_zero_rate(bond_cash_flows(T, c, 2), zero)
+            )
+        )
     curve = bootstrap_zero_rates(quotes, 2)
     assert curve.times == pytest.approx([0.5, 1.0, 1.5, 2.0], abs=1e-15)
-    assert curve.rates == pytest.approx([zero(t) for t in curve.times], abs=1e-13)
+    assert curve.rates == pytest.approx(
+        [zero(t) for t in curve.times], abs=1e-13
+    )
     with pytest.raises(ValueError):
-        bootstrap_zero_rates([BondQuote(0.5, 0.04, 99.0), BondQuote(1.5, 0.04, 98.0)], 2)
+        bootstrap_zero_rates(
+            [BondQuote(0.5, 0.04, 99.0), BondQuote(1.5, 0.04, 98.0)], 2
+        )
 
 
 @pytest.mark.parametrize("y", [0.0, 0.02, 0.065, 0.15])

@@ -27,70 +27,72 @@
 namespace p4mfe::ch06 {
 
 [[nodiscard]] inline double exp_series(double x, unsigned n) noexcept {
-    double term = 1.0, sum = 1.0;
-    for (unsigned k = 1; k <= n; ++k) {
-        term *= x / k;
-        sum += term;
-    }
-    return sum;
+  double term = 1.0, sum = 1.0;
+  for (unsigned k = 1; k <= n; ++k) {
+    term *= x / k;
+    sum += term;
+  }
+  return sum;
 }
 
 // Terms k = 1..n (there is no constant term).
 [[nodiscard]] inline double log1p_series(double x, unsigned n) {
-    if (!(x > -1.0 && x <= 1.0)) throw std::domain_error("log1p_series: converges only for -1 < x <= 1");
-    double power = 1.0, sum = 0.0;
-    for (unsigned k = 1; k <= n; ++k) {
-        power *= -x;
-        sum -= power / k;
-    }
-    return sum;
+  if (!(x > -1.0 && x <= 1.0))
+    throw std::domain_error("log1p_series: converges only for -1 < x <= 1");
+  double power = 1.0, sum = 0.0;
+  for (unsigned k = 1; k <= n; ++k) {
+    power *= -x;
+    sum -= power / k;
+  }
+  return sum;
 }
 
 [[nodiscard]] inline double geometric_series(double x, unsigned n) noexcept {
-    double term = 1.0, sum = 1.0;
-    for (unsigned k = 1; k <= n; ++k) {
-        term *= x;
-        sum += term;
-    }
-    return sum;
+  double term = 1.0, sum = 1.0;
+  for (unsigned k = 1; k <= n; ++k) {
+    term *= x;
+    sum += term;
+  }
+  return sum;
 }
 
-[[nodiscard]] inline double binomial_series(double x, double p, unsigned n) noexcept {
-    double term = 1.0, sum = 1.0;
-    for (unsigned k = 1; k <= n; ++k) {
-        term *= (p - (k - 1)) / k * x;
-        sum += term;
-    }
-    return sum;
+[[nodiscard]] inline double binomial_series(double x, double p,
+                                            unsigned n) noexcept {
+  double term = 1.0, sum = 1.0;
+  for (unsigned k = 1; k <= n; ++k) {
+    term *= (p - (k - 1)) / k * x;
+    sum += term;
+  }
+  return sum;
 }
 
 [[nodiscard]] inline double sin_series(double x, unsigned n) noexcept {
-    double term = x, sum = x;
-    for (unsigned k = 1; k <= n; ++k) {
-        term *= -x * x / ((2.0 * k) * (2.0 * k + 1.0));
-        sum += term;
-    }
-    return sum;
+  double term = x, sum = x;
+  for (unsigned k = 1; k <= n; ++k) {
+    term *= -x * x / ((2.0 * k) * (2.0 * k + 1.0));
+    sum += term;
+  }
+  return sum;
 }
 
 [[nodiscard]] inline double cos_series(double x, unsigned n) noexcept {
-    double term = 1.0, sum = 1.0;
-    for (unsigned k = 1; k <= n; ++k) {
-        term *= -x * x / ((2.0 * k - 1.0) * (2.0 * k));
-        sum += term;
-    }
-    return sum;
+  double term = 1.0, sum = 1.0;
+  for (unsigned k = 1; k <= n; ++k) {
+    term *= -x * x / ((2.0 * k - 1.0) * (2.0 * k));
+    sum += term;
+  }
+  return sum;
 }
 
 // N(x) from the Taylor series of e^(-t^2/2), terms k = 0..n.
 // t_k = (-1)^k x^(2k+1) / (2^k k!) satisfies t_k = t_{k-1} * (-x^2 / (2k)).
 [[nodiscard]] inline double norm_cdf_series(double x, unsigned n) noexcept {
-    double t = x, sum = x;
-    for (unsigned k = 1; k <= n; ++k) {
-        t *= -x * x / (2.0 * k);
-        sum += t / (2.0 * k + 1.0);
-    }
-    return 0.5 + sum * std::numbers::inv_sqrtpi / std::numbers::sqrt2;
+  double t = x, sum = x;
+  for (unsigned k = 1; k <= n; ++k) {
+    t *= -x * x / (2.0 * k);
+    sum += t / (2.0 * k + 1.0);
+  }
+  return 0.5 + sum * std::numbers::inv_sqrtpi / std::numbers::sqrt2;
 }
 
 }  // namespace p4mfe::ch06

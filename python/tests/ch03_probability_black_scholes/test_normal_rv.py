@@ -22,32 +22,50 @@ from p4mfe.ch03_probability_black_scholes.probability import ContinuousDistribut
 
 
 def test_normal_shift_scale():
-    assert normal_pdf(3.0, 1.0, 2.0) == pytest.approx(norm_pdf(1.0) / 2, abs=1e-16)
+    assert normal_pdf(3.0, 1.0, 2.0) == pytest.approx(
+        norm_pdf(1.0) / 2, abs=1e-16
+    )
     assert normal_cdf(1.0, 1.0, 2.0) == pytest.approx(0.5, abs=1e-16)
-    assert normal_cdf(1 + 1.96 * 2, 1.0, 2.0) == pytest.approx(0.9750021048517795, abs=1e-13)
+    assert normal_cdf(1 + 1.96 * 2, 1.0, 2.0) == pytest.approx(
+        0.9750021048517795, abs=1e-13
+    )
 
 
 def test_linear_combination():
-    Z = linear_combination(2.0, NormalParams(1.0, 4.0), 1.0, NormalParams(-2.0, 9.0), 0.5)
+    Z = linear_combination(
+        2.0, NormalParams(1.0, 4.0), 1.0, NormalParams(-2.0, 9.0), 0.5
+    )
     assert Z.mean == 0.0
     assert Z.variance == pytest.approx(16 + 9 + 2 * 2 * 0.5 * 2 * 3)
 
 
 def test_lognormal_moments_match_integration():
     mu, sigma = 0.1, 0.3
-    Y = ContinuousDistribution(lambda y: lognormal_pdf(y, mu, sigma), 0.0, math.inf)
+    Y = ContinuousDistribution(
+        lambda y: lognormal_pdf(y, mu, sigma), 0.0, math.inf
+    )
     assert Y.mean() == pytest.approx(lognormal_mean(mu, sigma), abs=1e-8)
-    assert Y.variance() == pytest.approx(lognormal_variance(mu, sigma), abs=1e-8)
-    assert lognormal_cdf(math.exp(mu), mu, sigma) == pytest.approx(0.5, abs=1e-15)
+    assert Y.variance() == pytest.approx(
+        lognormal_variance(mu, sigma), abs=1e-8
+    )
+    assert lognormal_cdf(math.exp(mu), mu, sigma) == pytest.approx(
+        0.5, abs=1e-15
+    )
 
 
 def test_price_model():
     S0, T, sigma, mu, q = 50, 2, 0.25, 0.08, 0.01
     ln_ST = log_price_distribution(S0, T, sigma, mu, q)
-    assert lognormal_mean(ln_ST.mean, ln_ST.stddev) == pytest.approx(S0 * math.exp((mu - q) * T), rel=1e-13)
+    assert lognormal_mean(ln_ST.mean, ln_ST.stddev) == pytest.approx(
+        S0 * math.exp((mu - q) * T), rel=1e-13
+    )
     K, r = 55, 0.04
-    d2 = (math.log(S0 / K) + (r - q - 0.5 * sigma**2) * T) / (sigma * math.sqrt(T))
-    assert prob_price_above(K, S0, T, sigma, r, q) == pytest.approx(norm_cdf(d2), abs=1e-14)
+    d2 = (math.log(S0 / K) + (r - q - 0.5 * sigma**2) * T) / (
+        sigma * math.sqrt(T)
+    )
+    assert prob_price_above(K, S0, T, sigma, r, q) == pytest.approx(
+        norm_cdf(d2), abs=1e-14
+    )
 
 
 def test_cdf_poly_within_bound():
@@ -55,6 +73,8 @@ def test_cdf_poly_within_bound():
         assert abs(norm_cdf_poly(x) - norm_cdf(x)) < 7.5e-8
 
 
-@pytest.mark.parametrize("x", [-6.0, -2.5, -1.0, -0.1, 0.0, 0.3, 1.0, 1.96, 4.0])
+@pytest.mark.parametrize(
+    "x", [-6.0, -2.5, -1.0, -0.1, 0.0, 0.3, 1.0, 1.96, 4.0]
+)
 def test_cdf_simpson(x):
     assert norm_cdf_simpson(x) == pytest.approx(norm_cdf(x), abs=1e-12)

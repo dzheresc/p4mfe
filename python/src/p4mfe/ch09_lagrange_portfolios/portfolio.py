@@ -65,7 +65,10 @@ def global_min_variance_portfolio(Sigma) -> np.ndarray:
 
 def min_variance_portfolio(mu, Sigma, target_mean: float) -> np.ndarray:
     c = frontier_constants(mu, Sigma)
-    rhs = ((c.C - c.B * target_mean) + (c.A * target_mean - c.B) * np.asarray(mu, float)) / c.D
+    rhs = (
+        (c.C - c.B * target_mean)
+        + (c.A * target_mean - c.B) * np.asarray(mu, float)
+    ) / c.D
     return solve_linear(Sigma, rhs)
 
 
@@ -74,7 +77,9 @@ def frontier_variance(mu, Sigma, target_mean: float) -> float:
     return (c.A * target_mean**2 - 2 * c.B * target_mean + c.C) / c.D
 
 
-def min_variance_portfolio_with_cash(mu, Sigma, r_f: float, target_mean: float) -> np.ndarray:
+def min_variance_portfolio_with_cash(
+    mu, Sigma, r_f: float, target_mean: float
+) -> np.ndarray:
     """Risky weights; the cash weight is 1 - sum(w)."""
     m = np.asarray(mu, float) - r_f
     w = solve_linear(Sigma, m)
@@ -102,7 +107,9 @@ def max_return_for_std_dev(mu, Sigma, sigma_P: float) -> float:
 
 
 def max_return_portfolio(mu, Sigma, sigma_P: float) -> np.ndarray:
-    return min_variance_portfolio(mu, Sigma, max_return_for_std_dev(mu, Sigma, sigma_P))
+    return min_variance_portfolio(
+        mu, Sigma, max_return_for_std_dev(mu, Sigma, sigma_P)
+    )
 
 
 def max_return_with_cash(mu, Sigma, r_f: float, sigma_P: float) -> float:
@@ -110,5 +117,9 @@ def max_return_with_cash(mu, Sigma, r_f: float, sigma_P: float) -> float:
     return r_f + sigma_P * math.sqrt(float(m @ solve_linear(Sigma, m)))
 
 
-def max_return_portfolio_with_cash(mu, Sigma, r_f: float, sigma_P: float) -> np.ndarray:
-    return min_variance_portfolio_with_cash(mu, Sigma, r_f, max_return_with_cash(mu, Sigma, r_f, sigma_P))
+def max_return_portfolio_with_cash(
+    mu, Sigma, r_f: float, sigma_P: float
+) -> np.ndarray:
+    return min_variance_portfolio_with_cash(
+        mu, Sigma, r_f, max_return_with_cash(mu, Sigma, r_f, sigma_P)
+    )

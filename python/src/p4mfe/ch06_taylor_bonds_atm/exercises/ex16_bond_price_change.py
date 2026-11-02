@@ -20,8 +20,14 @@ class Ex16Row:
     duration_convexity: float
 
 
-def ex16_table(B: float = 101.0, D: float = 1.5, C: float = 2.5) -> list[Ex16Row]:
+def ex16_table(
+    B: float = 101.0, D: float = 1.5, C: float = 2.5
+) -> list[Ex16Row]:
     return [
-        Ex16Row(dy, price_approx_duration(B, D, dy), price_approx_duration_convexity(B, D, C, dy))
+        Ex16Row(
+            dy,
+            price_approx_duration(B, D, dy),
+            price_approx_duration_convexity(B, D, C, dy),
+        )
         for dy in EX16_YIELD_CHANGES
     ]

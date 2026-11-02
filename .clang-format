@@ -1,0 +1,4 @@
+---
+# Google C++ style: https://google.github.io/styleguide/cppguide.html
+Language: Cpp
+BasedOnStyle: Google

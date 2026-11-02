@@ -41,20 +41,30 @@ def ex01_points():
 def test_ex01_four_stationary_points_in_symmetric_pairs(ex01_points):
     pts = ex01_points
     assert len(pts) == 4
-    assert [p.value for p in pts] == pytest.approx([12.761255, 3.434511, -3.434511, -12.761255], abs=1e-5)
-    assert [p.type for p in pts] == [CriticalPointType.MAXIMUM, CriticalPointType.SADDLE,
-                                     CriticalPointType.SADDLE, CriticalPointType.MINIMUM]
+    assert [p.value for p in pts] == pytest.approx(
+        [12.761255, 3.434511, -3.434511, -12.761255], abs=1e-5
+    )
+    assert [p.type for p in pts] == [
+        CriticalPointType.MAXIMUM,
+        CriticalPointType.SADDLE,
+        CriticalPointType.SADDLE,
+        CriticalPointType.MINIMUM,
+    ]
     np.testing.assert_allclose(pts[0].x, -pts[3].x, atol=1e-7)
     np.testing.assert_allclose(pts[0].lam, -pts[3].lam, atol=1e-7)
 
 
 def test_ex01_maximum_point_and_multipliers(ex01_points):
     mx = ex01_points[0]
-    np.testing.assert_allclose(mx.x, [2.137669, -0.683412, 0.406720, -2.009150], atol=1e-5)
+    np.testing.assert_allclose(
+        mx.x, [2.137669, -0.683412, 0.406720, -2.009150], atol=1e-5
+    )
     np.testing.assert_allclose(mx.lam, [0.995446, -1.229346], atol=1e-5)
     np.testing.assert_allclose(ex01_g(mx.x), 0, atol=1e-9)
     np.testing.assert_allclose(ex01_x_from_lambda(mx.lam), mx.x, atol=1e-6)
-    np.testing.assert_allclose(lagrangian_gradient(ex01_f, ex01_g, mx.x, mx.lam), 0, atol=1e-6)
+    np.testing.assert_allclose(
+        lagrangian_gradient(ex01_f, ex01_g, mx.x, mx.lam), 0, atol=1e-6
+    )
 
 
 def test_ex01_sweep_agrees(ex01_points):
@@ -68,8 +78,14 @@ def test_ex01_sweep_agrees(ex01_points):
 # Exercise 2 ----------------------------------------------------------------
 def ex02_vectors():
     # Deterministic positive vectors (no RNG, identical on every platform).
-    return [[math.exp(3 * math.sin(1.7 * (i + 1) + 0.9 * k + 0.3 * n)) for i in range(n)]
-            for n in range(1, 13) for k in range(5)]
+    return [
+        [
+            math.exp(3 * math.sin(1.7 * (i + 1) + 0.9 * k + 0.3 * n))
+            for i in range(n)
+        ]
+        for n in range(1, 13)
+        for k in range(5)
+    ]
 
 
 def test_ex02_means_are_ordered():
@@ -112,17 +128,23 @@ def test_ex03_correlation_positive_definite():
 
 def test_ex03_min_variance_15_percent():
     p = ex03_min_variance()
-    np.testing.assert_allclose(p.w, [0.067354, 0.217299, -0.002244, 0.406893, 0.310697], atol=1e-6)
+    np.testing.assert_allclose(
+        p.w, [0.067354, 0.217299, -0.002244, 0.406893, 0.310697], atol=1e-6
+    )
     assert p.w.sum() == pytest.approx(1, abs=1e-12)
     assert p.mean == pytest.approx(0.15, abs=1e-12)
     assert p.std_dev == pytest.approx(0.141214, abs=1e-6)
     d = Ex03Data()
-    assert p.std_dev**2 == pytest.approx(frontier_variance(d.mu, d.covariance(), 0.15), abs=1e-12)
+    assert p.std_dev**2 == pytest.approx(
+        frontier_variance(d.mu, d.covariance(), 0.15), abs=1e-12
+    )
 
 
 def test_ex03_max_return_25_percent_risk():
     p = ex03_max_return()
-    np.testing.assert_allclose(p.w, [-0.395503, 0.096062, 0.045839, 0.709880, 0.543722], atol=1e-6)
+    np.testing.assert_allclose(
+        p.w, [-0.395503, 0.096062, 0.045839, 0.709880, 0.543722], atol=1e-6
+    )
     assert p.w.sum() == pytest.approx(1, abs=1e-12)
     assert p.std_dev == pytest.approx(0.25, abs=1e-12)
     assert p.mean == pytest.approx(0.199151, abs=1e-6)

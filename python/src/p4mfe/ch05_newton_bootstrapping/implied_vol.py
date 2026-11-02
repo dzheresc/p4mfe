@@ -21,7 +21,13 @@ IMPLIED_VOL_TOLERANCES = Tolerances(1e-9, 1e-9, 100)
 
 
 def implied_vol_newton(
-    option_type: OptionType, price: float, S: float, K: float, T: float, r: float, q: float = 0.0,
+    option_type: OptionType,
+    price: float,
+    S: float,
+    K: float,
+    T: float,
+    r: float,
+    q: float = 0.0,
     tol: Tolerances = IMPLIED_VOL_TOLERANCES,
 ) -> RootResult:
     _check_price_in_bounds(option_type, price, S, K, T, r, q)
@@ -34,18 +40,37 @@ def implied_vol_newton(
 
 
 def implied_vol_secant(
-    option_type: OptionType, price: float, S: float, K: float, T: float, r: float, q: float = 0.0,
+    option_type: OptionType,
+    price: float,
+    S: float,
+    K: float,
+    T: float,
+    r: float,
+    q: float = 0.0,
     tol: Tolerances = IMPLIED_VOL_TOLERANCES,
 ) -> RootResult:
     """Started at sigma_0 and sigma_0 + 0.1; no vega needed."""
     _check_price_in_bounds(option_type, price, S, K, T, r, q)
     s0 = implied_vol_initial_guess(S, K, T, r, q)
-    return secant(lambda s: bs_price(option_type, S, K, T, s, r, q) - price, s0 + 0.1, s0, tol)
+    return secant(
+        lambda s: bs_price(option_type, S, K, T, s, r, q) - price,
+        s0 + 0.1,
+        s0,
+        tol,
+    )
 
 
 def implied_vol_bisection(
-    option_type: OptionType, price: float, S: float, K: float, T: float, r: float, q: float = 0.0,
-    tol: Tolerances = IMPLIED_VOL_TOLERANCES, lo: float = 1e-6, hi: float = 1.0,
+    option_type: OptionType,
+    price: float,
+    S: float,
+    K: float,
+    T: float,
+    r: float,
+    q: float = 0.0,
+    tol: Tolerances = IMPLIED_VOL_TOLERANCES,
+    lo: float = 1e-6,
+    hi: float = 1.0,
 ) -> RootResult:
     _check_price_in_bounds(option_type, price, S, K, T, r, q)
 

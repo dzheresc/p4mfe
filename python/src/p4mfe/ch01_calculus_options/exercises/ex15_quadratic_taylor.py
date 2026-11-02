@@ -28,4 +28,6 @@ def ex15_hessian() -> np.ndarray:
 
 def ex15_taylor2(x, a=EX15_A) -> float:
     d = np.asarray(x, dtype=float) - a
-    return float(ex15_f(a) + ex15_gradient(a) @ d + 0.5 * d @ ex15_hessian() @ d)
+    return float(
+        ex15_f(a) + ex15_gradient(a) @ d + 0.5 * d @ ex15_hessian() @ d
+    )

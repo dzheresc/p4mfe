@@ -31,11 +31,15 @@ def ex10_sides(x: Sequence[float], y: Sequence[float]) -> CauchySchwarzSides:
     return CauchySchwarzSides(B * B, A * C)
 
 
-def ex10_quadratic(x: Sequence[float], y: Sequence[float], alpha: float) -> float:
+def ex10_quadratic(
+    x: Sequence[float], y: Sequence[float], alpha: float
+) -> float:
     return math.fsum((a + alpha * b) ** 2 for a, b in zip(x, y))
 
 
-def ex11_sides(f: Callable, g: Callable, a: float, b: float, n: int = 1000) -> CauchySchwarzSides:
+def ex11_sides(
+    f: Callable, g: Callable, a: float, b: float, n: int = 1000
+) -> CauchySchwarzSides:
     A = simpson_rule(lambda x: f(x) * f(x), a, b, n)
     B = simpson_rule(lambda x: f(x) * g(x), a, b, n)
     C = simpson_rule(lambda x: g(x) * g(x), a, b, n)

@@ -46,8 +46,13 @@ class LagrangeResult:
 # 9.1 -----------------------------------------------------------------------
 def lagrangian_gradient(f: Callable, g: Callable, x, lam) -> np.ndarray:
     x = np.asarray(x, float)
-    return np.concatenate((gradient(f, x) + _constraint_jacobian(g, x).T @ np.asarray(lam, float),
-                           np.asarray(g(x), float)))
+    return np.concatenate(
+        (
+            gradient(f, x)
+            + _constraint_jacobian(g, x).T @ np.asarray(lam, float),
+            np.asarray(g(x), float),
+        )
+    )
 
 
 def lagrangian_hessian(f: Callable, g: Callable, x, lam) -> np.ndarray:
@@ -65,13 +70,22 @@ def least_squares_multipliers(f: Callable, g: Callable, x) -> np.ndarray:
     return np.linalg.solve(J @ J.T, -J @ gradient(f, x))
 
 
-def lagrange_stationary_point(f: Callable, g: Callable, x0, lam0=None,
-                              tol: Tolerances = Tolerances(1e-9, 1e-8, 100)) -> LagrangeResult:
+def lagrange_stationary_point(
+    f: Callable,
+    g: Callable,
+    x0,
+    lam0=None,
+    tol: Tolerances = Tolerances(1e-9, 1e-8, 100),
+) -> LagrangeResult:
     x0 = np.asarray(x0, float)
     n, m = x0.size, len(g(x0))
     if not 0 < m < n:
         raise ValueError("need 0 < m < n constraints")
-    lam0 = least_squares_multipliers(f, g, x0) if lam0 is None else np.asarray(lam0, float)
+    lam0 = (
+        least_squares_multipliers(f, g, x0)
+        if lam0 is None
+        else np.asarray(lam0, float)
+    )
 
     def F(z):
         return lagrangian_gradient(f, g, z[:n], z[n:])
@@ -79,13 +93,17 @@ def lagrange_stationary_point(f: Callable, g: Callable, x0, lam0=None,
     def J(z):
         x, lam = z[:n], z[n:]
         Jg = _constraint_jacobian(g, x)
-        return np.block([[lagrangian_hessian(f, g, x, lam), Jg.T], [Jg, np.zeros((m, m))]])
+        return np.block(
+            [[lagrangian_hessian(f, g, x, lam), Jg.T], [Jg, np.zeros((m, m))]]
+        )
 
     res = newton_nd(F, J, np.concatenate((x0, lam0)), tol)
     return LagrangeResult(res.x[:n], res.x[n:], res.iterations)
 
 
-def classify_constrained(f: Callable, g: Callable, x, lam, tol: float = 1e-6) -> CriticalPointType:
+def classify_constrained(
+    f: Callable, g: Callable, x, lam, tol: float = 1e-6
+) -> CriticalPointType:
     x = np.asarray(x, float)
     Jg = _constraint_jacobian(g, x)
     # Orthonormal basis of the null space of Jg from the SVD.

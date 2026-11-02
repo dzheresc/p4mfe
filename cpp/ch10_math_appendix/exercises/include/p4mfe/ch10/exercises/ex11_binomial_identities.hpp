@@ -2,9 +2,8 @@
 // Exercise 11 (section 10.10): three binomial identities from the binomial
 // formula.
 
-#include <p4mfe/ch10/sums.hpp>
-
 #include <cstdint>
+#include <p4mfe/ch10/sums.hpp>
 
 namespace p4mfe::ch10::ex {
 
@@ -22,25 +21,26 @@ namespace p4mfe::ch10::ex {
 // Third: with b = 1, (a + 1)^n = sum_j C(n, j) a^j. Differentiate in a:
 //   n (a + 1)^(n-1) = sum_{j=0}^{n} j C(n, j) a^(j-1),
 // and set a = 1: n 2^(n-1) = sum_j j C(n, j).
-// (Or term by term: j C(n, j) = n C(n-1, j-1), and the first identity for n - 1.)
+// (Or term by term: j C(n, j) = n C(n-1, j-1), and the first identity for n
+// - 1.)
 //
 // The sums below use chapter 10's exact binomial; they fit in 64 bits for
 // n <= 60 (first two) and n <= 58 (third).
 
 [[nodiscard]] inline std::uint64_t ex11_sum_binomials(unsigned n) {
-    std::uint64_t s = 0;
-    for (unsigned j = 0; j <= n; ++j) s += binomial(n, j);
-    return s;
+  std::uint64_t s = 0;
+  for (unsigned j = 0; j <= n; ++j) s += binomial(n, j);
+  return s;
 }
 [[nodiscard]] inline std::uint64_t ex11_sum_even_binomials(unsigned n) {
-    std::uint64_t s = 0;
-    for (unsigned k = 0; 2 * k <= n; ++k) s += binomial(n, 2 * k);
-    return s;
+  std::uint64_t s = 0;
+  for (unsigned k = 0; 2 * k <= n; ++k) s += binomial(n, 2 * k);
+  return s;
 }
 [[nodiscard]] inline std::uint64_t ex11_sum_j_binomials(unsigned n) {
-    std::uint64_t s = 0;
-    for (unsigned j = 1; j <= n; ++j) s += j * binomial(n, j);
-    return s;
+  std::uint64_t s = 0;
+  for (unsigned j = 1; j <= n; ++j) s += j * binomial(n, j);
+  return s;
 }
 
 }  // namespace p4mfe::ch10::ex

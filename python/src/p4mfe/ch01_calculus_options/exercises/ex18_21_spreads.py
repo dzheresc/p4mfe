@@ -25,7 +25,9 @@ def ex19_bear_spread() -> Portfolio:
 
 
 def ex20_butterfly() -> Portfolio:
-    return Portfolio(options=[call(45, 1, 4.0), call(50, -2, 6.0), call(55, 1, 9.0)])
+    return Portfolio(
+        options=[call(45, 1, 4.0), call(50, -2, 6.0), call(55, 1, 9.0)]
+    )
 
 
 EX20_BREAKEVEN_LOW = 46.0

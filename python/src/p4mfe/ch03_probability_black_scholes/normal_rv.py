@@ -50,11 +50,15 @@ def normal_cdf(x: float, mu: float, sigma: float) -> float:
     return norm_cdf((x - mu) / sigma)
 
 
-def linear_combination(a: float, X: NormalParams, b: float, Y: NormalParams, rho: float = 0.0) -> NormalParams:
+def linear_combination(
+    a: float, X: NormalParams, b: float, Y: NormalParams, rho: float = 0.0
+) -> NormalParams:
     """aX + bY for jointly normal X, Y with correlation rho."""
     return NormalParams(
         a * X.mean + b * Y.mean,
-        a * a * X.variance + b * b * Y.variance + 2 * a * b * rho * X.stddev * Y.stddev,
+        a * a * X.variance
+        + b * b * Y.variance
+        + 2 * a * b * rho * X.stddev * Y.stddev,
     )
 
 
@@ -82,12 +86,18 @@ def lognormal_cdf(y: float, mu: float, sigma: float) -> float:
     return 0.0 if y <= 0 else normal_cdf(math.log(y), mu, sigma)
 
 
-def log_price_distribution(S0: float, T: float, sigma: float, mu: float, q: float = 0.0) -> NormalParams:
+def log_price_distribution(
+    S0: float, T: float, sigma: float, mu: float, q: float = 0.0
+) -> NormalParams:
     """ln(S_T) ~ N(ln S0 + (mu - q - sigma^2/2) T, sigma^2 T)."""
-    return NormalParams(math.log(S0) + (mu - q - 0.5 * sigma * sigma) * T, sigma * sigma * T)
+    return NormalParams(
+        math.log(S0) + (mu - q - 0.5 * sigma * sigma) * T, sigma * sigma * T
+    )
 
 
-def prob_price_above(K: float, S0: float, T: float, sigma: float, mu: float, q: float = 0.0) -> float:
+def prob_price_above(
+    K: float, S0: float, T: float, sigma: float, mu: float, q: float = 0.0
+) -> float:
     """P(S_T > K); with mu = r it is N(d2)."""
     ln_ST = log_price_distribution(S0, T, sigma, mu, q)
     return 1.0 - normal_cdf(math.log(K), ln_ST.mean, ln_ST.stddev)

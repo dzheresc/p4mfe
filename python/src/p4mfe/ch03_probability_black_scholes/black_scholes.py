@@ -27,7 +27,9 @@ __all__ = [
 
 
 # 3.5 -----------------------------------------------------------------------
-def bs_d1_d2(S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> tuple[float, float]:
+def bs_d1_d2(
+    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> tuple[float, float]:
     """d1 = (ln(S/K) + (r - q + sigma^2/2) T) / (sigma sqrt T), d2 = d1 - sigma sqrt T."""
     if not (S > 0 and K > 0 and T > 0 and sigma > 0):
         raise ValueError("need S, K, T, sigma > 0")
@@ -36,7 +38,15 @@ def bs_d1_d2(S: float, K: float, T: float, sigma: float, r: float, q: float = 0.
     return d1, d1 - sd
 
 
-def bs_price(option_type: OptionType, S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+def bs_price(
+    option_type: OptionType,
+    S: float,
+    K: float,
+    T: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
+) -> float:
     """C = S e^(-qT) N(d1) - K e^(-rT) N(d2);  P = K e^(-rT) N(-d2) - S e^(-qT) N(-d1)."""
     d1, d2 = bs_d1_d2(S, K, T, sigma, r, q)
     fwd_S = S * math.exp(-q * T)
@@ -46,11 +56,15 @@ def bs_price(option_type: OptionType, S: float, K: float, T: float, sigma: float
     return disc_K * norm_cdf(-d2) - fwd_S * norm_cdf(-d1)
 
 
-def bs_call(S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+def bs_call(
+    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
     return bs_price(OptionType.CALL, S, K, T, sigma, r, q)
 
 
-def bs_put(S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+def bs_put(
+    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
     return bs_price(OptionType.PUT, S, K, T, sigma, r, q)
 
 
@@ -64,7 +78,15 @@ class Greeks:
     rho: float  # dV/dr
 
 
-def bs_greeks(option_type: OptionType, S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> Greeks:
+def bs_greeks(
+    option_type: OptionType,
+    S: float,
+    K: float,
+    T: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
+) -> Greeks:
     """Closed-form Greeks; see the C++ header for the formulas."""
     d1, d2 = bs_d1_d2(S, K, T, sigma, r, q)
     eq, er, sqrtT = math.exp(-q * T), math.exp(-r * T), math.sqrt(T)
@@ -84,15 +106,32 @@ def bs_greeks(option_type: OptionType, S: float, K: float, T: float, sigma: floa
 
 
 # 3.6.1 ---------------------------------------------------------------------
-def bs_phi_identity_gap(S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+def bs_phi_identity_gap(
+    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
     """S e^(-qT) phi(d1) - K e^(-rT) phi(d2), zero up to rounding; the identity
     that makes the d(d1)/dS and d(d2)/dS terms cancel in every Greek."""
     d1, d2 = bs_d1_d2(S, K, T, sigma, r, q)
-    return S * math.exp(-q * T) * norm_pdf(d1) - K * math.exp(-r * T) * norm_pdf(d2)
+    return S * math.exp(-q * T) * norm_pdf(d1) - K * math.exp(
+        -r * T
+    ) * norm_pdf(d2)
 
 
-def bs_pde_residual(option_type: OptionType, S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+def bs_pde_residual(
+    option_type: OptionType,
+    S: float,
+    K: float,
+    T: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
+) -> float:
     """Theta + 1/2 sigma^2 S^2 Gamma + (r - q) S Delta - r V (zero)."""
     g = bs_greeks(option_type, S, K, T, sigma, r, q)
     V = bs_price(option_type, S, K, T, sigma, r, q)
-    return g.theta + 0.5 * sigma * sigma * S * S * g.gamma + (r - q) * S * g.delta - r * V
+    return (
+        g.theta
+        + 0.5 * sigma * sigma * S * S * g.gamma
+        + (r - q) * S * g.delta
+        - r * V
+    )

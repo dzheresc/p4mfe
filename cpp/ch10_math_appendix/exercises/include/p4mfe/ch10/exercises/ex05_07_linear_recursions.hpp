@@ -1,13 +1,12 @@
 #pragma once
 // Exercises 5-7 (section 10.10): closed forms of linear recursions.
 
-#include <p4mfe/ch05/newton_nd.hpp>
-#include <p4mfe/ch10/interpolation.hpp>
-#include <p4mfe/ch10/linear_recursions.hpp>
-
 #include <array>
 #include <cmath>
 #include <functional>
+#include <p4mfe/ch05/newton_nd.hpp>
+#include <p4mfe/ch10/interpolation.hpp>
+#include <p4mfe/ch10/linear_recursions.hpp>
 #include <stdexcept>
 #include <vector>
 
@@ -18,19 +17,24 @@ namespace p4mfe::ch10::ex {
 // solve_linear.
 using Basis = std::vector<std::function<double(unsigned)>>;
 
-[[nodiscard]] inline Vector ex_fit_constants(const Basis& basis, const Vector& init) {
-    const std::size_t k = basis.size();
-    if (init.size() != k) throw std::invalid_argument("ex_fit_constants: need one initial term per basis function");
-    ch05::Matrix A(k, k);
-    for (std::size_t i = 0; i < k; ++i)
-        for (std::size_t j = 0; j < k; ++j) A(i, j) = basis[j](static_cast<unsigned>(i));
-    return ch05::solve_linear(std::move(A), init);
+[[nodiscard]] inline Vector ex_fit_constants(const Basis& basis,
+                                             const Vector& init) {
+  const std::size_t k = basis.size();
+  if (init.size() != k)
+    throw std::invalid_argument(
+        "ex_fit_constants: need one initial term per basis function");
+  ch05::Matrix A(k, k);
+  for (std::size_t i = 0; i < k; ++i)
+    for (std::size_t j = 0; j < k; ++j)
+      A(i, j) = basis[j](static_cast<unsigned>(i));
+  return ch05::solve_linear(std::move(A), init);
 }
 
-[[nodiscard]] inline double ex_evaluate(const Basis& basis, const Vector& c, unsigned n) {
-    double s = 0.0;
-    for (std::size_t j = 0; j < basis.size(); ++j) s += c[j] * basis[j](n);
-    return s;
+[[nodiscard]] inline double ex_evaluate(const Basis& basis, const Vector& c,
+                                        unsigned n) {
+  double s = 0.0;
+  for (std::size_t j = 0; j < basis.size(); ++j) s += c[j] * basis[j](n);
+  return s;
 }
 
 // ------------------------------------------------------------ Exercise 5 ---
@@ -42,22 +46,29 @@ using Basis = std::vector<std::function<double(unsigned)>>;
 // The roots are distinct, so the general solution is
 //   x_n = c_1 (-1)^n + c_2 phi^n + c_3 psi^n.
 // The initial conditions give
-//   c_1 + c_2 + c_3 = 1,  -c_1 + c_2 phi + c_3 psi = -1,  c_1 + c_2 phi^2 + c_3 psi^2 = 1.
+//   c_1 + c_2 + c_3 = 1,  -c_1 + c_2 phi + c_3 psi = -1,  c_1 + c_2 phi^2 + c_3
+//   psi^2 = 1.
 // Since phi^2 = phi + 1 and psi^2 = psi + 1, the third minus the first is
 // c_2 phi + c_3 psi = 0; then the second gives c_1 = 1, and c_2 + c_3 = 0
 // with c_2 (phi - psi) = 0 gives c_2 = c_3 = 0. So
 //   x_n = (-1)^n  for all n >= 0.
 // Check: x_3 = 2 x_1 + x_0 = -1, x_4 = 2 x_2 + x_1 = 1.
 [[nodiscard]] inline Basis ex05_basis() {
-    const double phi = 0.5 * (1.0 + std::sqrt(5.0)), psi = 0.5 * (1.0 - std::sqrt(5.0));
-    return {[](unsigned n) { return n % 2 == 0 ? 1.0 : -1.0; },
-            [phi](unsigned n) { return std::pow(phi, static_cast<double>(n)); },
-            [psi](unsigned n) { return std::pow(psi, static_cast<double>(n)); }};
+  const double phi = 0.5 * (1.0 + std::sqrt(5.0)),
+               psi = 0.5 * (1.0 - std::sqrt(5.0));
+  return {[](unsigned n) { return n % 2 == 0 ? 1.0 : -1.0; },
+          [phi](unsigned n) { return std::pow(phi, static_cast<double>(n)); },
+          [psi](unsigned n) { return std::pow(psi, static_cast<double>(n)); }};
 }
-inline constexpr std::array<double, 3> ex05_recursion{1.0, 2.0, 0.0};  // x_{n+3} = 1 x_n + 2 x_{n+1} + 0 x_{n+2}
+inline constexpr std::array<double, 3> ex05_recursion{
+    1.0, 2.0, 0.0};  // x_{n+3} = 1 x_n + 2 x_{n+1} + 0 x_{n+2}
 inline constexpr std::array<double, 3> ex05_init{1.0, -1.0, 1.0};
-[[nodiscard]] inline Vector ex05_constants() { return ex_fit_constants(ex05_basis(), {1.0, -1.0, 1.0}); }
-[[nodiscard]] inline double ex05_closed_form(unsigned n) noexcept { return n % 2 == 0 ? 1.0 : -1.0; }
+[[nodiscard]] inline Vector ex05_constants() {
+  return ex_fit_constants(ex05_basis(), {1.0, -1.0, 1.0});
+}
+[[nodiscard]] inline double ex05_closed_form(unsigned n) noexcept {
+  return n % 2 == 0 ? 1.0 : -1.0;
+}
 
 // ------------------------------------------------------------ Exercise 6 ---
 // x_{n+1} = 3 x_n + 2, x_0 = 1.
@@ -70,10 +81,16 @@ inline constexpr std::array<double, 3> ex05_init{1.0, -1.0, 1.0};
 // c_1 + c_2 = 1 and c_1 + 3 c_2 = 5: c_2 = 2, c_1 = -1, and
 //   x_n = 2 * 3^n - 1.
 // (Equivalently, x_n + 1 = 3 (x_{n-1} + 1) = ... = 3^n (x_0 + 1).)
-[[nodiscard]] inline double ex06_closed_form(unsigned n) { return 2.0 * std::pow(3.0, static_cast<double>(n)) - 1.0; }
+[[nodiscard]] inline double ex06_closed_form(unsigned n) {
+  return 2.0 * std::pow(3.0, static_cast<double>(n)) - 1.0;
+}
 // The same from chapter 10's second order solver and first order formula.
-[[nodiscard]] inline SecondOrderRecursion ex06_second_order() { return solve_second_order(4.0, -3.0, 1.0, 5.0); }
-[[nodiscard]] inline double ex06_first_order(unsigned n) noexcept { return first_order_affine(3.0, 2.0, 1.0, n); }
+[[nodiscard]] inline SecondOrderRecursion ex06_second_order() {
+  return solve_second_order(4.0, -3.0, 1.0, 5.0);
+}
+[[nodiscard]] inline double ex06_first_order(unsigned n) noexcept {
+  return first_order_affine(3.0, 2.0, 1.0, n);
+}
 
 // ------------------------------------------------------------ Exercise 7 ---
 // x_{n+1} = 3 x_n + n + 2, x_0 = 1.
@@ -92,23 +109,29 @@ inline constexpr std::array<double, 3> ex05_init{1.0, -1.0, 1.0};
 // c_3 = 9/4, c_2 = -1/2, c_1 = -5/4:
 //   x_n = (3^(n+2) - 2n - 5) / 4.
 // (Check against the original recursion: the particular solution -n/2 - 5/4
-// satisfies p(n+1) = 3 p(n) + n + 2, and 9/4 * 3^n solves the homogeneous part.)
+// satisfies p(n+1) = 3 p(n) + n + 2, and 9/4 * 3^n solves the homogeneous
+// part.)
 [[nodiscard]] inline Basis ex07_basis() {
-    return {[](unsigned) { return 1.0; }, [](unsigned n) { return static_cast<double>(n); },
-            [](unsigned n) { return std::pow(3.0, static_cast<double>(n)); }};
+  return {[](unsigned) { return 1.0; },
+          [](unsigned n) { return static_cast<double>(n); },
+          [](unsigned n) { return std::pow(3.0, static_cast<double>(n)); }};
 }
-inline constexpr std::array<double, 3> ex07_recursion{3.0, -7.0, 5.0};  // x_{n+3} = 3 x_n - 7 x_{n+1} + 5 x_{n+2}
+inline constexpr std::array<double, 3> ex07_recursion{
+    3.0, -7.0, 5.0};  // x_{n+3} = 3 x_n - 7 x_{n+1} + 5 x_{n+2}
 inline constexpr std::array<double, 3> ex07_init{1.0, 5.0, 18.0};
-[[nodiscard]] inline Vector ex07_constants() { return ex_fit_constants(ex07_basis(), {1.0, 5.0, 18.0}); }
+[[nodiscard]] inline Vector ex07_constants() {
+  return ex_fit_constants(ex07_basis(), {1.0, 5.0, 18.0});
+}
 [[nodiscard]] inline double ex07_closed_form(unsigned n) {
-    return (std::pow(3.0, static_cast<double>(n) + 2.0) - 2.0 * n - 5.0) / 4.0;
+  return (std::pow(3.0, static_cast<double>(n) + 2.0) - 2.0 * n - 5.0) / 4.0;
 }
 // x_0..x_{count-1} from the original first order recursion.
 [[nodiscard]] inline std::vector<double> ex07_direct(std::size_t count) {
-    std::vector<double> x{1.0};
-    for (std::size_t n = 0; x.size() < count; ++n) x.push_back(3.0 * x[n] + static_cast<double>(n) + 2.0);
-    x.resize(count);
-    return x;
+  std::vector<double> x{1.0};
+  for (std::size_t n = 0; x.size() < count; ++n)
+    x.push_back(3.0 * x[n] + static_cast<double>(n) + 2.0);
+  x.resize(count);
+  return x;
 }
 
 }  // namespace p4mfe::ch10::ex

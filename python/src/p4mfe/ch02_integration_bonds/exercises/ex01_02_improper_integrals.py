@@ -51,15 +51,24 @@ def ex02_left_piece(a: float, tol: float = 1e-10) -> float:
     if a <= 0:
         raise ValueError("a must be positive")
     if a < 1:
-        return integrate_to_tolerance(lambda u: np.exp(-(u ** (1.0 / a))), 0.0, 1.0, tol).value / a
-    return integrate_to_tolerance(lambda x: x ** (a - 1) * np.exp(-x), 0.0, 1.0, tol).value
+        return (
+            integrate_to_tolerance(
+                lambda u: np.exp(-(u ** (1.0 / a))), 0.0, 1.0, tol
+            ).value
+            / a
+        )
+    return integrate_to_tolerance(
+        lambda x: x ** (a - 1) * np.exp(-x), 0.0, 1.0, tol
+    ).value
 
 
 def ex02_right_piece(a: float, tol: float = 1e-10) -> float:
     """int_1^inf x^(a-1) e^(-x) dx."""
     if a <= 0:
         raise ValueError("a must be positive")
-    return improper_integral(lambda x: x ** (a - 1) * np.exp(-x), 1.0, math.inf, tol).value
+    return improper_integral(
+        lambda x: x ** (a - 1) * np.exp(-x), 1.0, math.inf, tol
+    ).value
 
 
 def ex02_gamma(a: float, tol: float = 1e-10) -> float:

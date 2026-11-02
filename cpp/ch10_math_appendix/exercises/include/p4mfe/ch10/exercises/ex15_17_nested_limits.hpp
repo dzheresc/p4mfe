@@ -17,19 +17,21 @@ namespace p4mfe::ch10::ex {
 // x_{n+2} = sqrt(a + x_{n+1}) > sqrt(a + x_n) = x_{n+1}.
 // Bounded: x_1 = sqrt a < L (as L^2 = L + a > a), and x_n < L implies
 // x_{n+1} < sqrt(a + L) = L.
-// So x_n converges, and its limit x > 0 satisfies x = sqrt(a + x), x^2 - x - a = 0:
+// So x_n converges, and its limit x > 0 satisfies x = sqrt(a + x), x^2 - x - a
+// = 0:
 //   sqrt(a + sqrt(a + ...)) = (1 + sqrt(1 + 4a)) / 2.
 // E.g. a = 2 gives 2, a = 6 gives 3, a = 1 gives the golden ratio.
-// Convergence is linear: L - x_{n+1} = (L - x_n) / (L + x_{n+1}) ~ (L - x_n) / (2L).
+// Convergence is linear: L - x_{n+1} = (L - x_n) / (L + x_{n+1}) ~ (L - x_n) /
+// (2L).
 [[nodiscard]] inline double ex15_limit(double a) {
-    if (!(a > 0.0)) throw std::domain_error("ex15: need a > 0");
-    return 0.5 * (1.0 + std::sqrt(1.0 + 4.0 * a));
+  if (!(a > 0.0)) throw std::domain_error("ex15: need a > 0");
+  return 0.5 * (1.0 + std::sqrt(1.0 + 4.0 * a));
 }
 // x_n (n >= 1 radicals).
 [[nodiscard]] inline double ex15_iterate(double a, unsigned n) {
-    double x = 0.0;
-    for (unsigned i = 0; i < n; ++i) x = std::sqrt(a + x);
-    return x;
+  double x = 0.0;
+  for (unsigned i = 0; i < n; ++i) x = std::sqrt(a + x);
+  return x;
 }
 
 // ----------------------------------------------------------- Exercise 16 ---
@@ -45,15 +47,15 @@ namespace p4mfe::ch10::ex {
 // E.g. a = 1 gives the golden ratio, a = 2 gives 1 + sqrt 2. The iterates
 // alternate around L (odd ones below, even ones above).
 [[nodiscard]] inline double ex16_limit(double a) {
-    if (!(a > 0.0)) throw std::domain_error("ex16: need a > 0");
-    return 0.5 * (a + std::sqrt(a * a + 4.0));
+  if (!(a > 0.0)) throw std::domain_error("ex16: need a > 0");
+  return 0.5 * (a + std::sqrt(a * a + 4.0));
 }
 // x_n (n >= 1 levels; x_1 = a).
 [[nodiscard]] inline double ex16_iterate(double a, unsigned n) {
-    if (n == 0) throw std::invalid_argument("ex16: need n >= 1");
-    double x = a;
-    for (unsigned i = 1; i < n; ++i) x = a + 1.0 / x;
-    return x;
+  if (n == 0) throw std::invalid_argument("ex16: need n >= 1");
+  double x = a;
+  for (unsigned i = 1; i < n; ++i) x = a + 1.0 / x;
+  return x;
 }
 
 // ----------------------------------------------------------- Exercise 17 ---
@@ -82,25 +84,26 @@ namespace p4mfe::ch10::ex {
 // The largest b: for x in (1, e^(1/e)] the tower converges to the smaller
 // root of b = x^b, which is <= e, with b = e at x = e^(1/e). (For x < 1 the
 // tower, when it converges, has b < 1.) So the largest b is e.
-// At x = e^(1/e) the convergence is slow: x^t = e e^((t-e)/e) ~ t + (t - e)^2 / (2e),
-// so e - t_n ~ 2e / n.
+// At x = e^(1/e) the convergence is slow: x^t = e e^((t-e)/e) ~ t + (t - e)^2 /
+// (2e), so e - t_n ~ 2e / n.
 
 inline constexpr double ex17_x_max = 1.444667861009766;  // e^(1/e)
 
 [[nodiscard]] inline double ex17_x_for(double b) {
-    if (!(b > 0.0)) throw std::domain_error("ex17: need b > 0");
-    return std::pow(b, 1.0 / b);
+  if (!(b > 0.0)) throw std::domain_error("ex17: need b > 0");
+  return std::pow(b, 1.0 / b);
 }
 // t_n of the tower (n >= 1 levels). Stops early (returning +infinity) once
 // t exceeds `cap`, the signature of divergence.
 [[nodiscard]] inline double ex17_tower(double x, unsigned n, double cap = 1e6) {
-    if (!(x > 0.0) || n == 0) throw std::invalid_argument("ex17: need x > 0 and n >= 1");
-    double t = x;
-    for (unsigned i = 1; i < n; ++i) {
-        t = std::pow(x, t);
-        if (t > cap) return HUGE_VAL;
-    }
-    return t;
+  if (!(x > 0.0) || n == 0)
+    throw std::invalid_argument("ex17: need x > 0 and n >= 1");
+  double t = x;
+  for (unsigned i = 1; i < n; ++i) {
+    t = std::pow(x, t);
+    if (t > cap) return HUGE_VAL;
+  }
+  return t;
 }
 
 }  // namespace p4mfe::ch10::ex

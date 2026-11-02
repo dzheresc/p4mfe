@@ -45,7 +45,11 @@ class Portfolio:
         return v if v.ndim else float(v)
 
     def cost(self, S0: float = 0.0) -> float:
-        return self.cash + self.shares * S0 + sum(leg.quantity * leg.price for leg in self.options)
+        return (
+            self.cash
+            + self.shares * S0
+            + sum(leg.quantity * leg.price for leg in self.options)
+        )
 
     def pnl(self, ST, S0: float = 0.0):
         return self.payoff(ST) - self.cost(S0)
@@ -59,7 +63,14 @@ def payoff_table(p: Portfolio, lo: float, hi: float, n: int) -> np.ndarray:
     return np.column_stack([s, p.payoff(s)])
 
 
-def plot_payoff(p: Portfolio, lo: float, hi: float, title: str = "", pnl: bool = False, ax=None):
+def plot_payoff(
+    p: Portfolio,
+    lo: float,
+    hi: float,
+    title: str = "",
+    pnl: bool = False,
+    ax=None,
+):
     """Payoff (or P&L) diagram with matplotlib, which is optional and imported lazily."""
     import matplotlib.pyplot as plt  # noqa: PLC0415
 

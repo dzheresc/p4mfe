@@ -37,5 +37,9 @@ def ex20_threshold(m: CallMarket) -> float:
 
 def ex20_crossover(m: CallMarket) -> float:
     S0 = ex20_threshold(m)
-    return bisection(lambda S: bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - (S - m.K), m.K, S0,
-                     Tolerances(1e-12, 1e-10 * S0, 400)).x
+    return bisection(
+        lambda S: bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - (S - m.K),
+        m.K,
+        S0,
+        Tolerances(1e-12, 1e-10 * S0, 400),
+    ).x

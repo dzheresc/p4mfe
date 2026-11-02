@@ -24,7 +24,9 @@ def test_linear_on_circle():
     mn = lagrange_stationary_point(f, g, [-1.0, -1.0])
     assert f(mn.x) == pytest.approx(-5, abs=1e-8)
     assert classify_constrained(f, g, mn.x, mn.lam) is CriticalPointType.MINIMUM
-    assert lagrangian_gradient(f, g, mx.x, mx.lam) == pytest.approx(np.zeros(3), abs=1e-8)
+    assert lagrangian_gradient(f, g, mx.x, mx.lam) == pytest.approx(
+        np.zeros(3), abs=1e-8
+    )
 
 
 # 9.1.1 ---------------------------------------------------------------------

@@ -30,7 +30,9 @@ class Ex05Params(NamedTuple):
 
 
 def ex05_b(p: Ex05Params, x: float) -> float:
-    return (math.log(x / p.K) + (p.r + 0.5 * p.sigma**2) * p.T) / (p.sigma * math.sqrt(p.T))
+    return (math.log(x / p.K) + (p.r + 0.5 * p.sigma**2) * p.T) / (
+        p.sigma * math.sqrt(p.T)
+    )
 
 
 def ex05_g(p: Ex05Params, x: float) -> float:
@@ -75,5 +77,11 @@ def ex06_discounted_density(m: Ex06Market, K):
     sv = m.sigma * math.sqrt(m.T)
     with np.errstate(divide="ignore", invalid="ignore"):
         z = (np.log(K / m.S) - (m.r - 0.5 * m.sigma**2) * m.T) / sv
-        out = np.where(K > 0, math.exp(-m.r * m.T) * np.exp(-0.5 * z * z) / (K * sv * math.sqrt(2 * math.pi)), 0.0)
+        out = np.where(
+            K > 0,
+            math.exp(-m.r * m.T)
+            * np.exp(-0.5 * z * z)
+            / (K * sv * math.sqrt(2 * math.pi)),
+            0.0,
+        )
     return float(out) if out.ndim == 0 else out

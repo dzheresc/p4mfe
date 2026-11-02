@@ -24,7 +24,9 @@ class Ex09Coefficients:
     b: float
 
 
-def ex09_coefficients(sigma: float, r: float, q: float = 0.0) -> Ex09Coefficients:
+def ex09_coefficients(
+    sigma: float, r: float, q: float = 0.0
+) -> Ex09Coefficients:
     k = (r - q) / sigma**2
     return Ex09Coefficients(k - 0.5, (k + 0.5) ** 2 + 2 * q / sigma**2)
 
@@ -37,16 +39,36 @@ def ex09_put_u0(x: float, K: float, a: float) -> float:
     return K * math.exp(a * x) * max(1.0 - math.exp(x), 0.0)
 
 
-def ex09_u(option_type: OptionType, x: float, tau: float, K: float, sigma: float, r: float, q: float = 0.0) -> float:
+def ex09_u(
+    option_type: OptionType,
+    x: float,
+    tau: float,
+    K: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
+) -> float:
     c = ex09_coefficients(sigma, r, q)
     S = K * math.exp(x)
     ttm = 2 * tau / sigma**2
-    V = bs_price(option_type, S, K, ttm, sigma, r, q) if ttm > 0 else float(payoff(option_type, S, K))
+    V = (
+        bs_price(option_type, S, K, ttm, sigma, r, q)
+        if ttm > 0
+        else float(payoff(option_type, S, K))
+    )
     return math.exp(c.a * x + c.b * tau) * V
 
 
-def ex09_heat_residual(option_type: OptionType, x: float, tau: float, K: float, sigma: float, r: float,
-                       q: float = 0.0, h: float = 1e-4) -> float:
+def ex09_heat_residual(
+    option_type: OptionType,
+    x: float,
+    tau: float,
+    K: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
+    h: float = 1e-4,
+) -> float:
     def u(xx, tt):
         return ex09_u(option_type, xx, tt, K, sigma, r, q)
 
@@ -55,9 +77,14 @@ def ex09_heat_residual(option_type: OptionType, x: float, tau: float, K: float, 
     return u_tau - u_xx
 
 
-def ex10_residuals(a: float, b: float, sigma: float, r: float, q: float = 0.0) -> tuple[float, float]:
+def ex10_residuals(
+    a: float, b: float, sigma: float, r: float, q: float = 0.0
+) -> tuple[float, float]:
     s2 = sigma**2
-    return 2 * a + 1 - 2 * (r - q) / s2, b + a * a + a * (1 - 2 * (r - q) / s2) - 2 * r / s2
+    return (
+        2 * a + 1 - 2 * (r - q) / s2,
+        b + a * a + a * (1 - 2 * (r - q) / s2) - 2 * r / s2,
+    )
 
 
 def ex10_solve(sigma: float, r: float, q: float = 0.0) -> Ex09Coefficients:

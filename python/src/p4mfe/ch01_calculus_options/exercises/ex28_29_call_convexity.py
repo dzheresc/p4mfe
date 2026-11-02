@@ -35,7 +35,13 @@ def ex29_arbitrage(x: ThreeCalls) -> Portfolio | None:
     (K1, K2, K3), (C1, C2, C3) = x.K, x.C
     if ex29_convexity_gap(x) < 0:
         w = K3 - K2
-        return Portfolio(options=[call(K1, 1.0, C1), call(K2, -(K3 - K1) / w, C2), call(K3, (K2 - K1) / w, C3)])
+        return Portfolio(
+            options=[
+                call(K1, 1.0, C1),
+                call(K2, -(K3 - K1) / w, C2),
+                call(K3, (K2 - K1) / w, C3),
+            ]
+        )
     if C2 < C3:
         return Portfolio(options=[call(K2, 1.0, C2), call(K3, -1.0, C3)])
     if C3 < 0:

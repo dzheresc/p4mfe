@@ -27,8 +27,15 @@ def ex04_disk_area_polar(R: float, n: int = 50) -> float:
 
 
 def ex04_disk_area_cartesian(R: float, n: int = 2000) -> float:
-    return double_integral_region(_one, -R, R, lambda x: -math.sqrt(max(R * R - x * x, 0.0)),
-                                  lambda x: math.sqrt(max(R * R - x * x, 0.0)), n, 2)
+    return double_integral_region(
+        _one,
+        -R,
+        R,
+        lambda x: -math.sqrt(max(R * R - x * x, 0.0)),
+        lambda x: math.sqrt(max(R * R - x * x, 0.0)),
+        n,
+        2,
+    )
 
 
 def ex05_map(a: float, b: float, r, theta):
@@ -36,7 +43,16 @@ def ex05_map(a: float, b: float, r, theta):
 
 
 def ex05_ellipse_area(a: float, b: float, n: int = 50) -> float:
-    return change_of_variables_integral(_one, lambda r, th: ex05_map(a, b, r, th), 0.0, 1.0, 0.0, 2 * math.pi, n, n)
+    return change_of_variables_integral(
+        _one,
+        lambda r, th: ex05_map(a, b, r, th),
+        0.0,
+        1.0,
+        0.0,
+        2 * math.pi,
+        n,
+        n,
+    )
 
 
 def ex05_exact(a: float, b: float) -> float:

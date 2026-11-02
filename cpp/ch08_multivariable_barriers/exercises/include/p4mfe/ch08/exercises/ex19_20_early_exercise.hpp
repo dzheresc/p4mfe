@@ -2,12 +2,11 @@
 // Exercises 19-20 (section 8.12): calls on non-dividend-paying assets are
 // worth more than their intrinsic value; with dividends they are not.
 
+#include <algorithm>
+#include <cmath>
 #include <p4mfe/ch03/black_scholes.hpp>
 #include <p4mfe/ch05/solvers.hpp>
 #include <p4mfe/ch08/early_exercise.hpp>
-
-#include <algorithm>
-#include <cmath>
 
 namespace p4mfe::ch08::ex {
 
@@ -29,15 +28,18 @@ namespace p4mfe::ch08::ex {
 //   optimal and C_A = C. The check below compares American and European
 //   binomial prices (chapter 8's binomial_price) for q = 0.
 struct CallMarket {
-    double K = 40.0, T = 1.0, sigma = 0.3, r = 0.05, q = 0.0;
+  double K = 40.0, T = 1.0, sigma = 0.3, r = 0.05, q = 0.0;
 };
 
-[[nodiscard]] inline double ex19_time_value(double S, const CallMarket& m = {}) {
-    return ch03::bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - std::max(S - m.K, 0.0);
+[[nodiscard]] inline double ex19_time_value(double S,
+                                            const CallMarket& m = {}) {
+  return ch03::bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - std::max(S - m.K, 0.0);
 }
 
 // The lower bound used in (i): S - K e^(-rT) - (S - K) = K (1 - e^(-rT)).
-[[nodiscard]] inline double ex19_lower_bound_gap(const CallMarket& m = {}) { return m.K * -std::expm1(-m.r * m.T); }
+[[nodiscard]] inline double ex19_lower_bound_gap(const CallMarket& m = {}) {
+  return m.K * -std::expm1(-m.r * m.T);
+}
 
 // ----------------------------------------------------------- Exercise 20 ---
 // Show that the Black-Scholes value of a call on an asset paying dividends
@@ -48,18 +50,22 @@ struct CallMarket {
 //   C = S e^(-qT) N(d1) - K e^(-rT) N(d2) < S e^(-qT).
 // Hence
 //   C - (S - K) < S e^(-qT) - S + K = K - S (1 - e^(-qT)),
-// which is <= 0 as soon as S >= S0 = K / (1 - e^(-qT)). Since q > 0, 1 - e^(-qT) > 0
-// and S0 is finite, however small q is (S0 ~ K/(qT) for small qT).
+// which is <= 0 as soon as S >= S0 = K / (1 - e^(-qT)). Since q > 0, 1 -
+// e^(-qT) > 0 and S0 is finite, however small q is (S0 ~ K/(qT) for small qT).
 // The exact crossover S* where C(S*) = S* - K lies in (K, S0) (at S = K,
 // C > 0 = S - K) and is found by bisection (chapter 5). For small q,
 // C - (S - K) -> K (1 - e^(-rT)) - S (1 - e^(-qT)) as S -> infinity, so
 // S* ~ K (1 - e^(-rT))/(1 - e^(-qT)) ~ K r/q.
-[[nodiscard]] inline double ex20_threshold(const CallMarket& m) { return m.K / -std::expm1(-m.q * m.T); }
+[[nodiscard]] inline double ex20_threshold(const CallMarket& m) {
+  return m.K / -std::expm1(-m.q * m.T);
+}
 
 [[nodiscard]] inline double ex20_crossover(const CallMarket& m) {
-    const auto f = [&](double S) { return ch03::bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - (S - m.K); };
-    const double S0 = ex20_threshold(m);
-    return ch05::bisection(f, m.K, S0, {1e-12, 1e-10 * S0, 400}).x;
+  const auto f = [&](double S) {
+    return ch03::bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - (S - m.K);
+  };
+  const double S0 = ex20_threshold(m);
+  return ch05::bisection(f, m.K, S0, {1e-12, 1e-10 * S0, 400}).x;
 }
 
 }  // namespace p4mfe::ch08::ex

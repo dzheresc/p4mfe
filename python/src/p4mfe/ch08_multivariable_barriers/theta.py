@@ -24,12 +24,26 @@ def theta_from_maturity(V: Callable[[float], float], tau: float) -> float:
     return -derivative(V, tau)
 
 
-def theta_by_integral(h: Callable, S: float, T: float, sigma: float, r: float, q: float = 0.0,
-                      tol: float = 1e-7) -> float:
+def theta_by_integral(
+    h: Callable,
+    S: float,
+    T: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
+    tol: float = 1e-7,
+) -> float:
     """h must accept numpy arrays."""
+
     def integrand(z, tau):
         p = np.exp(-0.5 * z * z) * _INV_SQRT_2PI
         with np.errstate(over="ignore", invalid="ignore"):
-            return np.where(p == 0.0, 0.0, math.exp(-r * tau) * h(price_from_normal(z, S, tau, sigma, r, q)) * p)
+            return np.where(
+                p == 0.0,
+                0.0,
+                math.exp(-r * tau)
+                * h(price_from_normal(z, S, tau, sigma, r, q))
+                * p,
+            )
 
     return -improper_integral_derivative(integrand, -math.inf, math.inf, T, tol)

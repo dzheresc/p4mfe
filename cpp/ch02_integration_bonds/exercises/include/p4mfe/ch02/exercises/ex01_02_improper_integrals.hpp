@@ -2,11 +2,10 @@
 // Exercises 1-2 (section 2.12): the cubic term of N(x) at 0, and the Gamma
 // function as an improper integral.
 
-#include <p4mfe/ch02/integration.hpp>
-#include <p4mfe/normal.hpp>
-
 #include <cmath>
 #include <numbers>
+#include <p4mfe/ch02/integration.hpp>
+#include <p4mfe/normal.hpp>
 #include <stdexcept>
 
 namespace p4mfe::ch02::ex {
@@ -20,34 +19,37 @@ namespace p4mfe::ch02::ex {
 // Solution. N(0) = 1/2, N'(x) = phi(x) = e^(-x^2/2)/sqrt(2 pi), so the
 // quotient is 0/0. By l'Hopital, three times:
 //   (phi(x) - 1/sqrt(2 pi)) / (3 x^2)       0/0
-//   phi'(x) / (6 x) = -x phi(x) / (6 x)  =  -phi(x) / 6  ->  -1 / (6 sqrt(2 pi)).
-// Equivalently, integrate the series e^(-y^2/2) = sum_k (-1)^k y^(2k) / (2^k k!):
+//   phi'(x) / (6 x) = -x phi(x) / (6 x)  =  -phi(x) / 6  ->  -1 / (6 sqrt(2
+//   pi)).
+// Equivalently, integrate the series e^(-y^2/2) = sum_k (-1)^k y^(2k) / (2^k
+// k!):
 //   N(x) - 1/2 = (1/sqrt(2 pi)) sum_{k>=0} (-1)^k x^(2k+1) / (2^k k! (2k+1))
 //              = (1/sqrt(2 pi)) (x - x^3/6 + x^5/40 - ...),
 // so the limit is -1/(6 sqrt(2 pi)) = -0.0664903801...
-inline const double ex01_limit = -1.0 / (6.0 * std::sqrt(2.0 * std::numbers::pi));
+inline const double ex01_limit =
+    -1.0 / (6.0 * std::sqrt(2.0 * std::numbers::pi));
 
 // The quotient itself. N(x) - 1/2 - x/sqrt(2 pi) loses every digit to
 // cancellation for small x, so for |x| < 1 sum the series above (after
 // dividing by x^3); otherwise use norm_cdf directly.
 [[nodiscard]] inline double ex01_quotient(double x) {
-    const double inv_sqrt_2pi = 1.0 / std::sqrt(2.0 * std::numbers::pi);
-    if (std::abs(x) < 1.0) {
-        // sum_{k>=1} (-1)^k x^(2k-2) / (2^k k! (2k+1))
-        double term = -0.5;  // (-1)^k x^(2k-2) / (2^k k!) at k = 1
-        double sum = 0.0;
-        for (int k = 1; k < 30; ++k) {
-            sum += term / (2.0 * k + 1.0);
-            term *= -x * x / (2.0 * (k + 1.0));
-        }
-        return inv_sqrt_2pi * sum;
+  const double inv_sqrt_2pi = 1.0 / std::sqrt(2.0 * std::numbers::pi);
+  if (std::abs(x) < 1.0) {
+    // sum_{k>=1} (-1)^k x^(2k-2) / (2^k k! (2k+1))
+    double term = -0.5;  // (-1)^k x^(2k-2) / (2^k k!) at k = 1
+    double sum = 0.0;
+    for (int k = 1; k < 30; ++k) {
+      sum += term / (2.0 * k + 1.0);
+      term *= -x * x / (2.0 * (k + 1.0));
     }
-    return (norm_cdf(x) - 0.5 - x * inv_sqrt_2pi) / (x * x * x);
+    return inv_sqrt_2pi * sum;
+  }
+  return (norm_cdf(x) - 0.5 - x * inv_sqrt_2pi) / (x * x * x);
 }
 
 // ------------------------------------------------------------ Exercise 2 ---
-// Let f : (0, inf) -> R be the Gamma function, f(a) = integral_0^inf x^(a-1) e^(-x) dx.
-// (i)  Show f(a) is well defined for any a > 0: both
+// Let f : (0, inf) -> R be the Gamma function, f(a) = integral_0^inf x^(a-1)
+// e^(-x) dx. (i)  Show f(a) is well defined for any a > 0: both
 //        integral_0^1 x^(a-1) e^(-x) dx = lim_{t->0+} integral_t^1 ...
 //        integral_1^inf x^(a-1) e^(-x) dx = lim_{t->inf} integral_1^t ...
 //      exist and are finite.
@@ -64,7 +66,8 @@ inline const double ex01_limit = -1.0 / (6.0 * std::sqrt(2.0 * std::numbers::pi)
 //               x^(a-1) e^(-x) <= M_a e^(-x/2);  integral_1^t M_a e^(-x/2) dx
 //               < 2 M_a e^(-1/2).
 // (ii) Parts with u = x^(a-1), dv = e^(-x) dx:
-//   integral_t^s x^(a-1) e^(-x) dx = [-x^(a-1) e^(-x)]_t^s + (a-1) integral_t^s x^(a-2) e^(-x) dx.
+//   integral_t^s x^(a-1) e^(-x) dx = [-x^(a-1) e^(-x)]_t^s + (a-1) integral_t^s
+//   x^(a-2) e^(-x) dx.
 // As t -> 0+ the boundary term t^(a-1) e^(-t) -> 0 because a > 1, and as
 // s -> inf s^(a-1) e^(-s) -> 0; the last integral converges by (i) since
 // a - 1 > 0. So f(a) = (a-1) f(a-1).
@@ -73,8 +76,8 @@ inline const double ex01_limit = -1.0 / (6.0 * std::sqrt(2.0 * std::numbers::pi)
 
 // Bound from (i) on the [0, 1] piece: integral_0^1 x^(a-1) e^(-x) dx < 1/a.
 [[nodiscard]] inline double ex02_left_bound(double a) {
-    if (a <= 0.0) throw std::domain_error("ex02_left_bound: a must be positive");
-    return 1.0 / a;
+  if (a <= 0.0) throw std::domain_error("ex02_left_bound: a must be positive");
+  return 1.0 / a;
 }
 
 // The two pieces of (i), computed numerically. For 0 < a < 1 the integrand
@@ -84,23 +87,29 @@ inline const double ex01_limit = -1.0 / (6.0 * std::sqrt(2.0 * std::numbers::pi)
 // For a >= 1 the integrand is bounded and Simpson's rule is used directly
 // (it converges like h^a for 1 < a < 2, where x^(a-1) is not smooth at 0).
 [[nodiscard]] inline double ex02_left_piece(double a, double tol = 1e-10) {
-    if (a <= 0.0) throw std::domain_error("ex02_left_piece: a must be positive");
-    if (a < 1.0)
-        return integrate_to_tolerance([a](double u) { return std::exp(-std::pow(u, 1.0 / a)); }, 0.0, 1.0, tol)
-                   .value /
-               a;
-    return integrate_to_tolerance([a](double x) { return std::pow(x, a - 1.0) * std::exp(-x); }, 0.0, 1.0, tol)
-        .value;
+  if (a <= 0.0) throw std::domain_error("ex02_left_piece: a must be positive");
+  if (a < 1.0)
+    return integrate_to_tolerance(
+               [a](double u) { return std::exp(-std::pow(u, 1.0 / a)); }, 0.0,
+               1.0, tol)
+               .value /
+           a;
+  return integrate_to_tolerance(
+             [a](double x) { return std::pow(x, a - 1.0) * std::exp(-x); }, 0.0,
+             1.0, tol)
+      .value;
 }
 [[nodiscard]] inline double ex02_right_piece(double a, double tol = 1e-10) {
-    if (a <= 0.0) throw std::domain_error("ex02_right_piece: a must be positive");
-    return improper_integral([a](double x) { return std::pow(x, a - 1.0) * std::exp(-x); }, 1.0, infinity, tol)
-        .value;
+  if (a <= 0.0) throw std::domain_error("ex02_right_piece: a must be positive");
+  return improper_integral(
+             [a](double x) { return std::pow(x, a - 1.0) * std::exp(-x); }, 1.0,
+             infinity, tol)
+      .value;
 }
 
 // f(a) = left piece + right piece, accurate for every a > 0.
 [[nodiscard]] inline double ex02_gamma(double a, double tol = 1e-10) {
-    return ex02_left_piece(a, tol) + ex02_right_piece(a, tol);
+  return ex02_left_piece(a, tol) + ex02_right_piece(a, tol);
 }
 
 }  // namespace p4mfe::ch02::ex

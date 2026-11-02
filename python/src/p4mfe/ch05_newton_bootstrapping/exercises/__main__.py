@@ -1,6 +1,6 @@
 """Print the answers to the chapter 5 exercises.
 
-    python -m p4mfe.ch05_newton_bootstrapping.exercises
+python -m p4mfe.ch05_newton_bootstrapping.exercises
 """
 
 from __future__ import annotations
@@ -30,30 +30,47 @@ def header(title: str) -> None:
 
 
 def print_curve(label: str, c) -> None:
-    print(f"  {label:6s}" + "".join(f"  r({t:.4g}) = {100 * r:.6f}%" for t, r in zip(c.times, c.rates)))
+    print(
+        f"  {label:6s}"
+        + "".join(
+            f"  r({t:.4g}) = {100 * r:.6f}%" for t, r in zip(c.times, c.rates)
+        )
+    )
 
 
 def main() -> None:
     header("Ex 1: yield, duration, convexity")
     e1 = ex01_solve()
-    print(f"  y = {e1.yield_:.6f} ({e1.iterations} Newton steps)  D = {e1.duration:.6f}  C = {e1.convexity:.6f}")
+    print(
+        f"  y = {e1.yield_:.6f} ({e1.iterations} Newton steps)  D = {e1.duration:.6f}  C = {e1.convexity:.6f}"
+    )
 
     header("Ex 2: bond off r(0,t) = 0.05 + 0.01 ln(1 + t/2)")
     e2 = ex02_solve()
-    print(f"  B = {e2.price:.6f}  y = {e2.yield_:.6f}  D = {e2.duration:.6f}  C = {e2.convexity:.6f}")
-    print(f"  semiannual yield {e2.yield_semiannual:.6f}, modified duration {e2.modified_duration_semiannual:.6f}")
+    print(
+        f"  B = {e2.price:.6f}  y = {e2.yield_:.6f}  D = {e2.duration:.6f}  C = {e2.convexity:.6f}"
+    )
+    print(
+        f"  semiannual yield {e2.yield_semiannual:.6f}, modified duration {e2.modified_duration_semiannual:.6f}"
+    )
 
     header("Ex 3: limits of f (market of Ex 4)")
     m4 = Ex04Market()
     m3 = Ex03Market(m4.S, m4.K, m4.T, m4.r, m4.q, m4.C)
     lo, hi = ex03_price_range(m3.S, m3.K, m3.T, m3.r, m3.q)
-    print(f"  lim_0 f = {ex03_limit_zero(m3):.6f}  lim_inf f = {ex03_limit_infinity(m3):.6f}")
+    print(
+        f"  lim_0 f = {ex03_limit_zero(m3):.6f}  lim_inf f = {ex03_limit_infinity(m3):.6f}"
+    )
     print(f"  implied vol exists for {lo:.6f} < C < {hi:.6f}")
 
     header("Ex 4: implied volatility")
     b, s, n = ex04_bisection(), ex04_secant(), ex04_newton()
-    print(f"  bisection {b.x:.9f} ({b.iterations})  secant {s.x:.9f} ({s.iterations})  Newton {n.x:.9f} ({n.iterations})")
-    print(f"  sigma_approx = {ex04_sigma_approx():.6f}  relative error {ex04_relative_error():.3e}")
+    print(
+        f"  bisection {b.x:.9f} ({b.iterations})  secant {s.x:.9f} ({s.iterations})  Newton {n.x:.9f} ({n.iterations})"
+    )
+    print(
+        f"  sigma_approx = {ex04_sigma_approx():.6f}  relative error {ex04_relative_error():.3e}"
+    )
 
     header("Ex 5: approximate Newton, central vs forward differences")
     for x0 in ([1, 2, 3], [2, 2, 2]):
@@ -63,17 +80,24 @@ def main() -> None:
             ("forward", ex05_solve(x0, Difference.FORWARD)),
             ("exact J", ex05_solve_exact(x0)),
         ):
-            print(f"    {label}  ({res.x[0]:.9f}, {res.x[1]:.9f}, {res.x[2]:.9f}) in {res.iterations}")
+            print(
+                f"    {label}  ({res.x[0]:.9f}, {res.x[1]:.9f}, {res.x[2]:.9f}) in {res.iterations}"
+            )
 
     header("Ex 6: q with Delta(ATM call) = 0.5")
     q = ex06_solve()
-    print(f"  q = {q.x:.9f} after {q.iterations} Newton steps; r + sigma^2/2 = {ex06_upper_bound():.6f}")
+    print(
+        f"  q = {q.x:.9f} after {q.iterations} Newton steps; r + sigma^2/2 = {ex06_upper_bound():.6f}"
+    )
 
     header("Ex 7: Treasury bootstrap")
     c7, s7 = ex07_curve_continuous(), ex07_curve_semiannual()
     print_curve("cont", c7)
     print_curve("semi", s7)
-    print("  semi - cont (bp): " + " ".join(f"{1e4 * (a - b):.2f}" for a, b in zip(s7.rates, c7.rates)))
+    print(
+        "  semi - cont (bp): "
+        + " ".join(f"{1e4 * (a - b):.2f}" for a, b in zip(s7.rates, c7.rates))
+    )
 
     header("Ex 8: bootstrap with overnight rate")
     c8 = ex08_curve()

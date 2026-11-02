@@ -22,13 +22,17 @@ def ex14_book_forward(S0: float, r: float, T: float) -> float:
     return S0 + r * T
 
 
-def ex14_call_forward(F: float, K: float, T: float, sigma: float, r: float) -> float:
+def ex14_call_forward(
+    F: float, K: float, T: float, sigma: float, r: float
+) -> float:
     s = sigma * math.sqrt(T)
     d = (F - K) / s
     return math.exp(-r * T) * ((F - K) * norm_cdf(d) + s * norm_pdf(d))
 
 
-def ex14_put_forward(F: float, K: float, T: float, sigma: float, r: float) -> float:
+def ex14_put_forward(
+    F: float, K: float, T: float, sigma: float, r: float
+) -> float:
     s = sigma * math.sqrt(T)
     d = (F - K) / s
     return math.exp(-r * T) * ((K - F) * norm_cdf(-d) + s * norm_pdf(d))
@@ -38,15 +42,22 @@ def ex14_call(S0: float, K: float, T: float, sigma: float, r: float) -> float:
     return ex14_call_forward(ex14_book_forward(S0, r, T), K, T, sigma, r)
 
 
-def ex14_put_parity(S0: float, K: float, T: float, sigma: float, r: float) -> float:
+def ex14_put_parity(
+    S0: float, K: float, T: float, sigma: float, r: float
+) -> float:
     return ex14_call(S0, K, T, sigma, r) - S0 + K * math.exp(-r * T)
 
 
-def ex15_inverse_claim(S0: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+def ex15_inverse_claim(
+    S0: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
     return math.exp((q - 2.0 * r + sigma * sigma) * T) / S0
 
 
-def ex15_inverse_call(S0: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+def ex15_inverse_call(
+    S0: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
     d2 = bs_d1_d2(S0, K, T, sigma, r, q)[1]
-    return (math.exp(-r * T) / K * norm_cdf(d2)
-            - ex15_inverse_claim(S0, T, sigma, r, q) * norm_cdf(d2 - sigma * math.sqrt(T)))
+    return math.exp(-r * T) / K * norm_cdf(d2) - ex15_inverse_claim(
+        S0, T, sigma, r, q
+    ) * norm_cdf(d2 - sigma * math.sqrt(T))

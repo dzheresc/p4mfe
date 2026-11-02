@@ -29,15 +29,27 @@ class TwoOptionHedge:
     puts: float
 
 
-def ex25_options_only(port_delta: float, port_gamma: float, dc: float, gc: float, dp: float, gp: float) -> TwoOptionHedge:
+def ex25_options_only(
+    port_delta: float,
+    port_gamma: float,
+    dc: float,
+    gc: float,
+    dp: float,
+    gp: float,
+) -> TwoOptionHedge:
     det = dc * gp - dp * gc
     if det == 0:
         raise ValueError("the two options have proportional (Delta, Gamma)")
-    return TwoOptionHedge((-port_delta * gp + dp * port_gamma) / det, (-dc * port_gamma + gc * port_delta) / det)
+    return TwoOptionHedge(
+        (-port_delta * gp + dp * port_gamma) / det,
+        (-dc * port_gamma + gc * port_delta) / det,
+    )
 
 
 def ex26_shares() -> float:
-    return delta_hedge_shares(1000 * bs_greeks(OptionType.CALL, 92.0, 90.0, 0.25, 0.2, 0.05).delta)
+    return delta_hedge_shares(
+        1000 * bs_greeks(OptionType.CALL, 92.0, 90.0, 0.25, 0.2, 0.05).delta
+    )
 
 
 @dataclass(frozen=True)
@@ -53,9 +65,18 @@ class Ex27Result:
 def ex27(dt: float = 1 / 252, S1: float = 98.0) -> Ex27Result:
     n, S, K, T, sigma, r = 1000.0, 100.0, 100.0, 0.5, 0.3, 0.05
     C0 = bs_call(S, K, T, sigma, r)
-    pos = delta_hedge(n, C0, bs_greeks(OptionType.CALL, S, K, T, sigma, r).delta, S)
+    pos = delta_hedge(
+        n, C0, bs_greeks(OptionType.CALL, S, K, T, sigma, r).delta, S
+    )
     C1 = bs_call(S1, K, T - dt, sigma, r)
-    return Ex27Result(n * C0, pos.shares, pos.cash, n * C1 + pos.shares * S1, pos.value(C1, S1, r, dt), n * (C0 - C1))
+    return Ex27Result(
+        n * C0,
+        pos.shares,
+        pos.cash,
+        n * C1 + pos.shares * S1,
+        pos.value(C1, S1, r, dt),
+        n * (C0 - C1),
+    )
 
 
 @dataclass(frozen=True)
@@ -69,7 +90,16 @@ class Ex28Result:
 
 
 def ex28() -> Ex28Result:
-    n, K, T, sigma, r, S0, S1, dt = 1000.0, 25.0, 0.5, 0.3, 0.04, 20.0, 24.0, 1 / 12
+    n, K, T, sigma, r, S0, S1, dt = (
+        1000.0,
+        25.0,
+        0.5,
+        0.3,
+        0.04,
+        20.0,
+        24.0,
+        1 / 12,
+    )
     shares0, cash0 = 400.0, 10000.0
     P0 = bs_put(S0, K, T, sigma, r)
     D0 = bs_greeks(OptionType.PUT, S0, K, T, sigma, r).delta
@@ -90,7 +120,9 @@ class Ex29Hedge:
     shares: float
 
 
-def ex29_hedge(pd: float = 300.0, pg: float = 100.0, pv: float = 89.0) -> Ex29Hedge:
+def ex29_hedge(
+    pd: float = 300.0, pg: float = 100.0, pv: float = 89.0
+) -> Ex29Hedge:
     cd, cg, cv, qd, qg, qv = 0.2, 0.1, 0.1, -0.8, 0.3, 0.2
     det = cg * qv - qg * cv
     x = (-pg * qv + qg * pv) / det

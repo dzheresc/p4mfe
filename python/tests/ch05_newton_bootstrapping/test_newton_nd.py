@@ -17,11 +17,23 @@ X0 = [1.3, 1.7, 2.6]
 
 
 def F3(x):
-    return np.array([x[0] ** 3 + x[1] * x[2] - 7, x[0] ** 2 * x[1] + x[2] - 5, x[0] + x[1] + x[2] ** 2 - 12])
+    return np.array(
+        [
+            x[0] ** 3 + x[1] * x[2] - 7,
+            x[0] ** 2 * x[1] + x[2] - 5,
+            x[0] + x[1] + x[2] ** 2 - 12,
+        ]
+    )
 
 
 def J3(x):
-    return np.array([[3 * x[0] ** 2, x[2], x[1]], [2 * x[0] * x[1], x[0] ** 2, 1], [1, 1, 2 * x[2]]])
+    return np.array(
+        [
+            [3 * x[0] ** 2, x[2], x[1]],
+            [2 * x[0] * x[1], x[0] ** 2, 1],
+            [1, 1, 2 * x[2]],
+        ]
+    )
 
 
 def test_solve_linear():
@@ -49,8 +61,14 @@ def test_quadratic_convergence():
 
 def test_finite_difference_jacobian():
     x = np.array([0.7, -1.2, 2.1])
-    np.testing.assert_allclose(finite_difference_jacobian(F3, x, 1e-6), J3(x), atol=1e-4)
-    np.testing.assert_allclose(finite_difference_jacobian(F3, x, 1e-5, Difference.CENTRAL), J3(x), atol=1e-8)
+    np.testing.assert_allclose(
+        finite_difference_jacobian(F3, x, 1e-6), J3(x), atol=1e-4
+    )
+    np.testing.assert_allclose(
+        finite_difference_jacobian(F3, x, 1e-5, Difference.CENTRAL),
+        J3(x),
+        atol=1e-8,
+    )
 
 
 def test_approximate_newton_matches_newton():

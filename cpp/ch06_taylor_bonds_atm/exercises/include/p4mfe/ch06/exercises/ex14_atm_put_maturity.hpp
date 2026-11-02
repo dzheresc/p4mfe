@@ -2,12 +2,11 @@
 // Exercise 14 (section 6.11): accuracy of P ~ sigma S sqrt(T/(2 pi)) for long
 // maturities (r = q = 0).
 
+#include <array>
+#include <cstddef>
 #include <p4mfe/ch03/black_scholes.hpp>
 #include <p4mfe/ch06/bs_atm.hpp>
 #include <p4mfe/ch06/exercises/ex12_atm_put_error.hpp>
-
-#include <array>
-#include <cstddef>
 
 namespace p4mfe::ch06::ex {
 
@@ -28,16 +27,18 @@ namespace p4mfe::ch06::ex {
 // not reliable for long-dated options.
 inline constexpr std::array<double, 4> ex14_maturities{3.0, 5.0, 10.0, 20.0};
 
-[[nodiscard]] inline Ex12Result ex14_row(double T, double S = 40.0, double sigma = 0.3) {
-    const double a = atm_price_approx(S, T, sigma);
-    const double bs = ch03::bs_put(S, S, T, sigma, 0.0, 0.0);
-    return {a, bs, ex12_relative_error(bs, a)};
+[[nodiscard]] inline Ex12Result ex14_row(double T, double S = 40.0,
+                                         double sigma = 0.3) {
+  const double a = atm_price_approx(S, T, sigma);
+  const double bs = ch03::bs_put(S, S, T, sigma, 0.0, 0.0);
+  return {a, bs, ex12_relative_error(bs, a)};
 }
 
 [[nodiscard]] inline std::array<Ex12Result, 4> ex14_table() {
-    std::array<Ex12Result, 4> out{};
-    for (std::size_t i = 0; i < out.size(); ++i) out[i] = ex14_row(ex14_maturities[i]);
-    return out;
+  std::array<Ex12Result, 4> out{};
+  for (std::size_t i = 0; i < out.size(); ++i)
+    out[i] = ex14_row(ex14_maturities[i]);
+  return out;
 }
 
 }  // namespace p4mfe::ch06::ex

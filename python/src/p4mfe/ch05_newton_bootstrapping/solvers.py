@@ -20,7 +20,9 @@ from typing import Callable
 @dataclass(frozen=True)
 class Tolerances:
     approx: float = 1e-9  # tol_approx, on |f(x)|
-    consec: float = 1e-9  # tol_consec, on |x_k - x_{k-1}| (tol_int for bisection)
+    consec: float = (
+        1e-9  # tol_consec, on |x_k - x_{k-1}| (tol_int for bisection)
+    )
     max_iter: int = 200
 
 
@@ -28,13 +30,17 @@ class Tolerances:
 class RootResult:
     x: float
     iterations: int
-    iterates: list[float] = field(default_factory=list)  # x_0, ..., x (midpoints for bisection)
+    iterates: list[float] = field(
+        default_factory=list
+    )  # x_0, ..., x (midpoints for bisection)
 
 
 ScalarFn = Callable[[float], float]
 
 
-def bisection(f: ScalarFn, a: float, b: float, tol: Tolerances = Tolerances()) -> RootResult:
+def bisection(
+    f: ScalarFn, a: float, b: float, tol: Tolerances = Tolerances()
+) -> RootResult:
     if not a < b:
         raise ValueError("need a < b")
     xl, xr = a, b
@@ -63,7 +69,9 @@ def bisection(f: ScalarFn, a: float, b: float, tol: Tolerances = Tolerances()) -
     raise RuntimeError("bisection: no convergence within max_iter")
 
 
-def newton(f: ScalarFn, df: ScalarFn, x0: float, tol: Tolerances = Tolerances()) -> RootResult:
+def newton(
+    f: ScalarFn, df: ScalarFn, x0: float, tol: Tolerances = Tolerances()
+) -> RootResult:
     res = RootResult(x0, 0, [x0])
     fx = f(x0)
     while res.iterations < tol.max_iter:
@@ -85,7 +93,9 @@ def newton(f: ScalarFn, df: ScalarFn, x0: float, tol: Tolerances = Tolerances())
     raise RuntimeError("newton: no convergence within max_iter")
 
 
-def secant(f: ScalarFn, x_prev: float, x0: float, tol: Tolerances = Tolerances()) -> RootResult:
+def secant(
+    f: ScalarFn, x_prev: float, x0: float, tol: Tolerances = Tolerances()
+) -> RootResult:
     res = RootResult(x0, 0, [x0])
     f_prev, fx = f(x_prev), f(x0)
     while res.iterations < tol.max_iter:

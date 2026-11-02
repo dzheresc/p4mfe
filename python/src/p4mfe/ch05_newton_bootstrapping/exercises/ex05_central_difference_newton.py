@@ -31,8 +31,16 @@ def ex05_jacobian(x) -> np.ndarray:
     return np.array(
         [
             [3 * x1**2 + 2 * x2, 2 * x1 - x3, 2 * x3 - x2],
-            [4 * x1 + 2 * x2**2, 4 * x1 * x2 + 3 * x2**2 * x3**2 - 2 * x2 * x3, 2 * x2**3 * x3 - x2**2],
-            [x2 * x3 + 3 * x1**2 - x2**2, x1 * x3 - 2 * x1 * x2, x1 * x2 - 2 * x3],
+            [
+                4 * x1 + 2 * x2**2,
+                4 * x1 * x2 + 3 * x2**2 * x3**2 - 2 * x2 * x3,
+                2 * x2**3 * x3 - x2**2,
+            ],
+            [
+                x2 * x3 + 3 * x1**2 - x2**2,
+                x1 * x3 - 2 * x1 * x2,
+                x1 * x2 - 2 * x3,
+            ],
         ]
     )
 
@@ -42,8 +50,12 @@ EX05_H = 1e-6
 
 
 def ex05_solve(x0, scheme: Difference = Difference.CENTRAL) -> NdRootResult:
-    return approximate_newton_nd(ex05_F, np.asarray(x0, dtype=float), EX05_TOLERANCES, EX05_H, scheme)
+    return approximate_newton_nd(
+        ex05_F, np.asarray(x0, dtype=float), EX05_TOLERANCES, EX05_H, scheme
+    )
 
 
 def ex05_solve_exact(x0) -> NdRootResult:
-    return newton_nd(ex05_F, ex05_jacobian, np.asarray(x0, dtype=float), EX05_TOLERANCES)
+    return newton_nd(
+        ex05_F, ex05_jacobian, np.asarray(x0, dtype=float), EX05_TOLERANCES
+    )

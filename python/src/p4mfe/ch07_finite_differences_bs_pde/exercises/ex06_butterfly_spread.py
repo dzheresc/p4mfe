@@ -33,7 +33,9 @@ def ex_call(K: float, m: SpreadMarket = SpreadMarket()) -> float:
     return bs_call(m.S, K, m.T, m.sigma, m.r, m.q)
 
 
-def ex06_butterfly_value(C: Callable[[float], float], K: float, x: float) -> float:
+def ex06_butterfly_value(
+    C: Callable[[float], float], K: float, x: float
+) -> float:
     return C(K + x) - 2.0 * C(K) + C(K - x)
 
 
@@ -47,7 +49,9 @@ def ex06_scaled_butterfly(x: float, m: SpreadMarket = SpreadMarket()) -> float:
 
 def ex06_call_kk(m: SpreadMarket = SpreadMarket()) -> float:
     _, d2 = bs_d1_d2(m.S, m.K, m.T, m.sigma, m.r, m.q)
-    return math.exp(-m.r * m.T) * norm_pdf(d2) / (m.K * m.sigma * math.sqrt(m.T))
+    return (
+        math.exp(-m.r * m.T) * norm_pdf(d2) / (m.K * m.sigma * math.sqrt(m.T))
+    )
 
 
 def ex06_arrow_debreu_payoff(ST: float, K: float, x: float) -> float:

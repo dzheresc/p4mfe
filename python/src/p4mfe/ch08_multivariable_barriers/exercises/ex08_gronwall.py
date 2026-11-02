@@ -18,18 +18,26 @@ import numpy as np
 class Ex08Check:
     hypothesis_gap: float  # max (u - W): <= 0 when the hypothesis holds
     conclusion_gap: float  # max (u - M e^V), relative to M e^V
-    g_increase: float      # max (g_{i+1} - g_i), relative to M
+    g_increase: float  # max (g_{i+1} - g_i), relative to M
 
 
-def ex08_check(u: Callable, v: Callable, M: float, X: float, n: int = 2000) -> Ex08Check:
+def ex08_check(
+    u: Callable, v: Callable, M: float, X: float, n: int = 2000
+) -> Ex08Check:
     x = np.linspace(0.0, X, n + 1)
     h = X / n
     ux, vx = np.array([u(t) for t in x]), np.array([v(t) for t in x])
-    W = M + np.concatenate(([0.0], np.cumsum(0.5 * h * (ux[1:] * vx[1:] + ux[:-1] * vx[:-1]))))
+    W = M + np.concatenate(
+        ([0.0], np.cumsum(0.5 * h * (ux[1:] * vx[1:] + ux[:-1] * vx[:-1])))
+    )
     V = np.concatenate(([0.0], np.cumsum(0.5 * h * (vx[1:] + vx[:-1]))))
     g = W * np.exp(-V)
     bound = M * np.exp(V)
-    return Ex08Check(float(np.max(ux - W)), float(np.max((ux - bound) / bound)), float(np.max(np.diff(g)) / M))
+    return Ex08Check(
+        float(np.max(ux - W)),
+        float(np.max((ux - bound) / bound)),
+        float(np.max(np.diff(g)) / M),
+    )
 
 
 def ex08_v(t: float) -> float:

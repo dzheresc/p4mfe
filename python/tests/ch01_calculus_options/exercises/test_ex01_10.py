@@ -30,9 +30,13 @@ from p4mfe.ch01_calculus_options.exercises.ex07_10_limits import (
 
 def check_antiderivative(F, f, a, b):
     exact = F(b) - F(a)
-    assert exact == pytest.approx(riemann_sum(f, a, b, 20000), rel=1e-6, abs=1e-6)
+    assert exact == pytest.approx(
+        riemann_sum(f, a, b, 20000), rel=1e-6, abs=1e-6
+    )
     for x in (a, 0.5 * (a + b), b):
-        assert derivative(F, x) == pytest.approx(float(f(x)), rel=1e-6, abs=1e-6)
+        assert derivative(F, x) == pytest.approx(
+            float(f(x)), rel=1e-6, abs=1e-6
+        )
 
 
 def test_ex01():
@@ -47,25 +51,48 @@ def test_ex02_both_branches():
 
 def test_ex03():
     for x in (-1.2, 0.0, 0.7, 1.4):
-        assert derivative(math.tan, x) == pytest.approx(ex03_tan_derivative(x), rel=1e-6)
-        assert ex03_tan_derivative(x) == pytest.approx(1 + math.tan(x) ** 2, rel=1e-12)
-    check_antiderivative(ex03_inv_1_plus_x2_antiderivative, ex03_arctan_derivative, -3.0, 5.0)
+        assert derivative(math.tan, x) == pytest.approx(
+            ex03_tan_derivative(x), rel=1e-6
+        )
+        assert ex03_tan_derivative(x) == pytest.approx(
+            1 + math.tan(x) ** 2, rel=1e-12
+        )
+    check_antiderivative(
+        ex03_inv_1_plus_x2_antiderivative, ex03_arctan_derivative, -3.0, 5.0
+    )
 
 
 @pytest.mark.parametrize("n", [-3.0, -1.0, -0.5, 0.0, 1.0, 2.0, 4.5])
 def test_ex04(n):
-    check_antiderivative(lambda x: ex04_x_pow_n_ln_antiderivative(n, x), lambda x: x**n * np.log(x), 0.5, 3.0)
+    check_antiderivative(
+        lambda x: ex04_x_pow_n_ln_antiderivative(n, x),
+        lambda x: x**n * np.log(x),
+        0.5,
+        3.0,
+    )
 
 
 @pytest.mark.parametrize("n", range(7))
 def test_ex05(n):
-    check_antiderivative(lambda x: ex05_x_pow_n_exp_antiderivative(n, x), lambda x: x**n * np.exp(x), -2.0, 2.0)
-    assert ex05_x_pow_n_exp_antiderivative(n, 0.0) == pytest.approx((-1) ** n * math.factorial(n))
+    check_antiderivative(
+        lambda x: ex05_x_pow_n_exp_antiderivative(n, x),
+        lambda x: x**n * np.exp(x),
+        -2.0,
+        2.0,
+    )
+    assert ex05_x_pow_n_exp_antiderivative(n, 0.0) == pytest.approx(
+        (-1) ** n * math.factorial(n)
+    )
 
 
 @pytest.mark.parametrize("n", range(6))
 def test_ex06(n):
-    check_antiderivative(lambda x: ex06_ln_pow_n_antiderivative(n, x), lambda x: np.log(x) ** n, 0.5, 5.0)
+    check_antiderivative(
+        lambda x: ex06_ln_pow_n_antiderivative(n, x),
+        lambda x: np.log(x) ** n,
+        0.5,
+        5.0,
+    )
 
 
 def test_ex06_domain():
@@ -88,8 +115,12 @@ def test_ex08(x):
 
 def test_ex08_matches_naive():
     x = 0.3
-    assert ex08_sqrt_quotient(x) == pytest.approx((math.sqrt(1 + x) - 1 - x / 2) / x**2, rel=1e-12)
-    assert ex08_exp_quotient(x) == pytest.approx((math.exp(x) - 1 - x - x * x / 2) / x**3, rel=1e-12)
+    assert ex08_sqrt_quotient(x) == pytest.approx(
+        (math.sqrt(1 + x) - 1 - x / 2) / x**2, rel=1e-12
+    )
+    assert ex08_exp_quotient(x) == pytest.approx(
+        (math.exp(x) - 1 - x - x * x / 2) / x**3, rel=1e-12
+    )
 
 
 def test_ex09():
@@ -97,8 +128,12 @@ def test_ex09():
         assert ex09_expr_i(x) == pytest.approx(EX09_LIMIT_I, abs=10 / x)
         assert ex09_expr_ii(x) / x == pytest.approx(-2 / 3, abs=2 / x)
     x = 100.0
-    assert ex09_expr_i(x) == pytest.approx(1 / (math.sqrt(x * x - 4 * x + 1) - x), rel=1e-12)
-    assert ex09_expr_ii(x) == pytest.approx(1 / (math.sqrt(x * x - 4 * x + 1) - x + 2), rel=1e-9)
+    assert ex09_expr_i(x) == pytest.approx(
+        1 / (math.sqrt(x * x - 4 * x + 1) - x), rel=1e-12
+    )
+    assert ex09_expr_ii(x) == pytest.approx(
+        1 / (math.sqrt(x * x - 4 * x + 1) - x + 2), rel=1e-9
+    )
     assert EX09_LIMIT_II == -math.inf
 
 

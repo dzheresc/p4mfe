@@ -13,14 +13,21 @@ def f(v):  # x^2 y + e^(x y)
 def test_gradient_two_variables():
     x, y = 0.5, -1.2
     g = gradient(f, [x, y])
-    assert g == pytest.approx([2 * x * y + y * math.exp(x * y), x * x + x * math.exp(x * y)], abs=1e-8)
+    assert g == pytest.approx(
+        [2 * x * y + y * math.exp(x * y), x * x + x * math.exp(x * y)], abs=1e-8
+    )
 
 
 def test_hessian_two_variables():
     x, y = 0.5, -1.2
     e = math.exp(x * y)
     H = hessian(f, [x, y])
-    expected = np.array([[2 * y + y * y * e, 2 * x + e + x * y * e], [2 * x + e + x * y * e, x * x * e]])
+    expected = np.array(
+        [
+            [2 * y + y * y * e, 2 * x + e + x * y * e],
+            [2 * x + e + x * y * e, x * x * e],
+        ]
+    )
     assert H == pytest.approx(expected, abs=1e-6)
     assert H[0, 1] == H[1, 0]
 

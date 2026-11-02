@@ -24,9 +24,13 @@ class SmileMarket:
     q: float = 0.01
 
 
-def ex21_dsigma_dK(K: float, sigma_imp: float, dC_dK: float, m: SmileMarket = SmileMarket()) -> float:
+def ex21_dsigma_dK(
+    K: float, sigma_imp: float, dC_dK: float, m: SmileMarket = SmileMarket()
+) -> float:
     d1, d2 = bs_d1_d2(m.S, K, m.T, sigma_imp, m.r, m.q)
-    return (dC_dK + math.exp(-m.r * m.T) * norm_cdf(d2)) / (m.S * math.exp(-m.q * m.T) * math.sqrt(m.T) * norm_pdf(d1))
+    return (dC_dK + math.exp(-m.r * m.T) * norm_cdf(d2)) / (
+        m.S * math.exp(-m.q * m.T) * math.sqrt(m.T) * norm_pdf(d1)
+    )
 
 
 def ex21_smile(K: float, m: SmileMarket = SmileMarket()) -> float:
@@ -43,8 +47,14 @@ def ex21_price(K: float, m: SmileMarket = SmileMarket()) -> float:
     return bs_call(m.S, K, m.T, ex21_smile(K, m), m.r, m.q)
 
 
-def ex21_slope_from_prices(C: Callable[[float], float], K: float, m: SmileMarket = SmileMarket(),
-                           h: float = 1e-4) -> float:
-    sigma = implied_vol_newton(OptionType.CALL, C(K), m.S, K, m.T, m.r, m.q, 1e-12).sigma
+def ex21_slope_from_prices(
+    C: Callable[[float], float],
+    K: float,
+    m: SmileMarket = SmileMarket(),
+    h: float = 1e-4,
+) -> float:
+    sigma = implied_vol_newton(
+        OptionType.CALL, C(K), m.S, K, m.T, m.r, m.q, 1e-12
+    ).sigma
     dK = h * K
     return ex21_dsigma_dK(K, sigma, (C(K + dK) - C(K - dK)) / (2 * dK), m)

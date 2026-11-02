@@ -6,6 +6,7 @@
 One table per executable: median real time, coefficient of variation,
 throughput, heap allocations per iteration, peak heap bytes, peak RSS.
 """
+
 import glob
 import json
 import os
@@ -43,17 +44,27 @@ def main() -> None:
     if os.path.exists(os.path.join(root, "rss.json")):
         rss = json.load(open(os.path.join(root, "rss.json")))
     print("# Baseline summary\n")
-    print("Median of the repetitions; CV is the coefficient of variation of real time.")
-    print("Heap columns come from the counting allocator (a separate 4-iteration run);")
-    print("they include a fixed Google Benchmark overhead of a few hundred bytes.")
-    print("Peak RSS is per benchmark run alone, including the executable's startup data.\n")
+    print(
+        "Median of the repetitions; CV is the coefficient of variation of real time."
+    )
+    print(
+        "Heap columns come from the counting allocator (a separate 4-iteration run);"
+    )
+    print(
+        "they include a fixed Google Benchmark overhead of a few hundred bytes."
+    )
+    print(
+        "Peak RSS is per benchmark run alone, including the executable's startup data.\n"
+    )
     for path in sorted(glob.glob(os.path.join(root, "cpp", "*.json"))):
         exe = os.path.basename(path)[:-5]
         runs = load(path)
         mem_path = os.path.join(root, "mem", os.path.basename(path))
         mem = load(mem_path) if os.path.exists(mem_path) else {}
         print(f"## {exe}\n")
-        print("| Benchmark | Median time | CV | Items/s | Allocs/iter | Peak heap | Peak RSS |")
+        print(
+            "| Benchmark | Median time | CV | Items/s | Allocs/iter | Peak heap | Peak RSS |"
+        )
         print("|---|---:|---:|---:|---:|---:|---:|")
         for name, aggs in runs.items():
             med = aggs.get("median") or aggs.get("iteration")
@@ -62,13 +73,25 @@ def main() -> None:
             ns = med["real_time"] * UNIT_NS[med.get("time_unit", "ns")]
             cv = aggs.get("cv")
             cv_s = f"{cv['real_time'] * 100:.1f}%" if cv else ""
-            ips = fmt_si(med["items_per_second"]) if "items_per_second" in med else ""
+            ips = (
+                fmt_si(med["items_per_second"])
+                if "items_per_second" in med
+                else ""
+            )
             m = mem.get(name, {}).get("iteration", {})
-            allocs = f"{m['allocs_per_iter']:.3g}" if "allocs_per_iter" in m else ""
-            peak = fmt_si(m["max_bytes_used"]) + "B" if "max_bytes_used" in m else ""
+            allocs = (
+                f"{m['allocs_per_iter']:.3g}" if "allocs_per_iter" in m else ""
+            )
+            peak = (
+                fmt_si(m["max_bytes_used"]) + "B"
+                if "max_bytes_used" in m
+                else ""
+            )
             kb = rss.get(exe, {}).get(name)
             rss_s = f"{kb / 1024:.1f} MiB" if kb else ""
-            print(f"| `{name}` | {fmt_time(ns)} | {cv_s} | {ips} | {allocs} | {peak} | {rss_s} |")
+            print(
+                f"| `{name}` | {fmt_time(ns)} | {cv_s} | {ips} | {allocs} | {peak} | {rss_s} |"
+            )
         print()
 
 

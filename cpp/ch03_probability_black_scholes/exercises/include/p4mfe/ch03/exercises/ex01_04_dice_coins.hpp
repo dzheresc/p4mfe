@@ -24,14 +24,16 @@ namespace p4mfe::ch03::ex {
 //   w(k)   35     17     11     8    6.2   5
 // (At this w(k) the game is fair; any larger w(k) gives a positive edge.)
 [[nodiscard]] inline int ex01_ways(int k) {
-    if (k < 2 || k > 12) throw std::invalid_argument("ex01: need 2 <= k <= 12");
-    return 6 - std::abs(k - 7);
+  if (k < 2 || k > 12) throw std::invalid_argument("ex01: need 2 <= k <= 12");
+  return 6 - std::abs(k - 7);
 }
 [[nodiscard]] inline double ex01_prob(int k) { return ex01_ways(k) / 36.0; }
-[[nodiscard]] inline double ex01_breakeven_win(int k) { return 36.0 / ex01_ways(k) - 1.0; }
+[[nodiscard]] inline double ex01_breakeven_win(int k) {
+  return 36.0 / ex01_ways(k) - 1.0;
+}
 [[nodiscard]] inline double ex01_expected_gain(int k, double w) {
-    const double p = ex01_prob(k);
-    return w * p - (1.0 - p);
+  const double p = ex01_prob(k);
+  return w * p - (1.0 - p);
 }
 
 // ------------------------------------------------------------ Exercise 2 ---
@@ -46,7 +48,9 @@ namespace p4mfe::ch03::ex {
 //   var(X) = E[X(X-1)] + E[X] - E[X]^2 = (1-p)/p^2.
 // For a fair coin, E[X] = 2 and var(X) = 2.
 [[nodiscard]] inline double ex02_mean(double p = 0.5) { return 1.0 / p; }
-[[nodiscard]] inline double ex02_variance(double p = 0.5) { return (1.0 - p) / (p * p); }
+[[nodiscard]] inline double ex02_variance(double p = 0.5) {
+  return (1.0 - p) / (p * p);
+}
 
 // ---------------------------------------------------------- Exercises 3-4 --
 // 3. What is the expected number of coin tosses of a fair coin in order to get
@@ -65,36 +69,40 @@ namespace p4mfe::ch03::ex {
 // Exercise 3 (k = 2): E_2 = (1 + p)/p^2, which is 6 for a fair coin.
 // For p = 1/2 in general, E_k = 2^(k+1) - 2.
 [[nodiscard]] inline double ex04_expected_tosses(int k, double p) {
-    if (k < 0 || !(p > 0.0 && p <= 1.0)) throw std::invalid_argument("ex04: need k >= 0, 0 < p <= 1");
-    if (p == 1.0) return k;
-    return (1.0 - std::pow(p, k)) / ((1.0 - p) * std::pow(p, k));
+  if (k < 0 || !(p > 0.0 && p <= 1.0))
+    throw std::invalid_argument("ex04: need k >= 0, 0 < p <= 1");
+  if (p == 1.0) return k;
+  return (1.0 - std::pow(p, k)) / ((1.0 - p) * std::pow(p, k));
 }
 [[nodiscard]] inline double ex04_expected_tosses_recursive(int k, double p) {
-    double e = 0.0;
-    for (int j = 1; j <= k; ++j) e = (e + 1.0) / p;
-    return e;
+  double e = 0.0;
+  for (int j = 1; j <= k; ++j) e = (e + 1.0) / p;
+  return e;
 }
-[[nodiscard]] inline double ex03_expected_tosses(double p = 0.5) { return (1.0 + p) / (p * p); }
+[[nodiscard]] inline double ex03_expected_tosses(double p = 0.5) {
+  return (1.0 + p) / (p * p);
+}
 
 // Independent check: E[N] = sum_{n>=0} P(N > n), where the distribution of the
 // current run of heads (0..k-1, not yet finished) is propagated toss by toss.
-[[nodiscard]] inline double ex04_expected_tosses_markov(int k, double p, double tol = 1e-14) {
-    std::vector<double> state(static_cast<std::size_t>(k), 0.0);
-    state[0] = 1.0;
-    double expected = 0.0;
-    for (int n = 0; n < 10'000'000; ++n) {
-        double alive = 0.0;
-        for (double s : state) alive += s;
-        expected += alive;  // P(N > n)
-        if (alive < tol) break;
-        std::vector<double> next(state.size(), 0.0);
-        for (std::size_t j = 0; j < state.size(); ++j) {
-            next[0] += (1.0 - p) * state[j];
-            if (j + 1 < state.size()) next[j + 1] += p * state[j];
-        }
-        state = std::move(next);
+[[nodiscard]] inline double ex04_expected_tosses_markov(int k, double p,
+                                                        double tol = 1e-14) {
+  std::vector<double> state(static_cast<std::size_t>(k), 0.0);
+  state[0] = 1.0;
+  double expected = 0.0;
+  for (int n = 0; n < 10'000'000; ++n) {
+    double alive = 0.0;
+    for (double s : state) alive += s;
+    expected += alive;  // P(N > n)
+    if (alive < tol) break;
+    std::vector<double> next(state.size(), 0.0);
+    for (std::size_t j = 0; j < state.size(); ++j) {
+      next[0] += (1.0 - p) * state[j];
+      if (j + 1 < state.size()) next[j + 1] += p * state[j];
     }
-    return expected;
+    state = std::move(next);
+  }
+  return expected;
 }
 
 }  // namespace p4mfe::ch03::ex

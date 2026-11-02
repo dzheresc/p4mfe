@@ -38,33 +38,37 @@ namespace p4mfe::ch05::ex {
 // steps and reach the same root. Far from a root the method is chaotic and
 // the tiny Jacobian differences (and even rounding: compare C++ and NumPy)
 // send the iterates on different paths, so from (2, 2, 2) the iteration
-// count, and even which root is found, depend on the scheme and the machine. Central
-// differences cost 2N = 6 evaluations of F per Jacobian against N = 3 for
-// forward ones, which buys nothing here. The Jacobian is
-// non-singular at both roots (det = 1918.8 and -2332).
+// count, and even which root is found, depend on the scheme and the machine.
+// Central differences cost 2N = 6 evaluations of F per Jacobian against N = 3
+// for forward ones, which buys nothing here. The Jacobian is non-singular at
+// both roots (det = 1918.8 and -2332).
 [[nodiscard]] inline Vector ex05_F(const Vector& x) {
-    const double x1 = x[0], x2 = x[1], x3 = x[2];
-    return {x1 * x1 * x1 + 2 * x1 * x2 + x3 * x3 - x2 * x3 + 9,
-            2 * x1 * x1 + 2 * x1 * x2 * x2 + x2 * x2 * x2 * x3 * x3 - x2 * x2 * x3 - 2,
-            x1 * x2 * x3 + x1 * x1 * x1 - x3 * x3 - x1 * x2 * x2 - 4};
+  const double x1 = x[0], x2 = x[1], x3 = x[2];
+  return {x1 * x1 * x1 + 2 * x1 * x2 + x3 * x3 - x2 * x3 + 9,
+          2 * x1 * x1 + 2 * x1 * x2 * x2 + x2 * x2 * x2 * x3 * x3 -
+              x2 * x2 * x3 - 2,
+          x1 * x2 * x3 + x1 * x1 * x1 - x3 * x3 - x1 * x2 * x2 - 4};
 }
 // Exact Jacobian, for comparison.
 [[nodiscard]] inline Matrix ex05_jacobian(const Vector& x) {
-    const double x1 = x[0], x2 = x[1], x3 = x[2];
-    return Matrix{{3 * x1 * x1 + 2 * x2, 2 * x1 - x3, 2 * x3 - x2},
-                  {4 * x1 + 2 * x2 * x2, 4 * x1 * x2 + 3 * x2 * x2 * x3 * x3 - 2 * x2 * x3,
-                   2 * x2 * x2 * x2 * x3 - x2 * x2},
-                  {x2 * x3 + 3 * x1 * x1 - x2 * x2, x1 * x3 - 2 * x1 * x2, x1 * x2 - 2 * x3}};
+  const double x1 = x[0], x2 = x[1], x3 = x[2];
+  return Matrix{
+      {3 * x1 * x1 + 2 * x2, 2 * x1 - x3, 2 * x3 - x2},
+      {4 * x1 + 2 * x2 * x2, 4 * x1 * x2 + 3 * x2 * x2 * x3 * x3 - 2 * x2 * x3,
+       2 * x2 * x2 * x2 * x3 - x2 * x2},
+      {x2 * x3 + 3 * x1 * x1 - x2 * x2, x1 * x3 - 2 * x1 * x2,
+       x1 * x2 - 2 * x3}};
 }
 
 inline constexpr Tolerances ex05_tolerances{1e-9, 1e-6, 1000};
 inline constexpr double ex05_h = 1e-6;
 
-[[nodiscard]] inline NdRootResult ex05_solve(const Vector& x0, Difference scheme = Difference::Central) {
-    return approximate_newton_nd(ex05_F, x0, ex05_tolerances, ex05_h, scheme);
+[[nodiscard]] inline NdRootResult ex05_solve(
+    const Vector& x0, Difference scheme = Difference::Central) {
+  return approximate_newton_nd(ex05_F, x0, ex05_tolerances, ex05_h, scheme);
 }
 [[nodiscard]] inline NdRootResult ex05_solve_exact(const Vector& x0) {
-    return newton_nd(ex05_F, ex05_jacobian, x0, ex05_tolerances);
+  return newton_nd(ex05_F, ex05_jacobian, x0, ex05_tolerances);
 }
 
 }  // namespace p4mfe::ch05::ex

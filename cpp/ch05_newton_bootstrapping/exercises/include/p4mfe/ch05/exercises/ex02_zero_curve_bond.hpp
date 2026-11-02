@@ -2,10 +2,9 @@
 // Exercise 2 (section 5.7): price, yield, duration and convexity of a bond
 // priced off a given zero rate curve.
 
+#include <cmath>
 #include <p4mfe/ch02/bonds.hpp>
 #include <p4mfe/ch05/bond_yield.hpp>
-
-#include <cmath>
 
 namespace p4mfe::ch05::ex {
 
@@ -26,21 +25,26 @@ namespace p4mfe::ch05::ex {
 // is D = 1.890108. If the yield is quoted semiannually instead,
 // y_2 = 2 (e^(y/2) - 1) = 0.057606, the modified duration of section 2.8,
 // D_mac / (1 + y_2/2), is 1.837191; both are given.
-[[nodiscard]] inline double ex02_zero_rate(double t) { return 0.05 + 0.01 * std::log(1.0 + t / 2.0); }
+[[nodiscard]] inline double ex02_zero_rate(double t) {
+  return 0.05 + 0.01 * std::log(1.0 + t / 2.0);
+}
 
 struct Ex02Result {
-    double price, yield, duration, convexity;
-    double yield_semiannual, modified_duration_semiannual;
+  double price, yield, duration, convexity;
+  double yield_semiannual, modified_duration_semiannual;
 };
-[[nodiscard]] inline ch02::CashFlows ex02_cash_flows() { return ch02::bond_cash_flows(2.0, 0.08, 2); }
+[[nodiscard]] inline ch02::CashFlows ex02_cash_flows() {
+  return ch02::bond_cash_flows(2.0, 0.08, 2);
+}
 
 [[nodiscard]] inline Ex02Result ex02_solve() {
-    const auto cf = ex02_cash_flows();
-    const double B = ch02::bond_price_from_zero_rate(cf, ex02_zero_rate);
-    const double y = bond_yield_newton(cf, B).x;
-    const auto m = ch02::bond_metrics(cf, y);
-    const double y2 = 2.0 * (std::exp(y / 2.0) - 1.0);
-    return {B, y, m.duration, m.convexity, y2, ch02::modified_duration(cf, y2, 2)};
+  const auto cf = ex02_cash_flows();
+  const double B = ch02::bond_price_from_zero_rate(cf, ex02_zero_rate);
+  const double y = bond_yield_newton(cf, B).x;
+  const auto m = ch02::bond_metrics(cf, y);
+  const double y2 = 2.0 * (std::exp(y / 2.0) - 1.0);
+  return {B,           y,  m.duration,
+          m.convexity, y2, ch02::modified_duration(cf, y2, 2)};
 }
 
 }  // namespace p4mfe::ch05::ex

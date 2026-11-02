@@ -4,7 +4,6 @@
 
 #include <p4mfe/ch02/bonds.hpp>
 #include <p4mfe/ch05/bootstrapping.hpp>
-
 #include <vector>
 
 namespace p4mfe::ch05::ex {
@@ -35,22 +34,27 @@ namespace p4mfe::ch05::ex {
 // The error measures how far "linear between 2 and 5 years" is from the
 // market in that part of the curve.
 [[nodiscard]] inline std::vector<ch02::BondQuote> ex09_quotes() {
-    return {{0.5, 0.0, 99.4565},
-            {1.0, 0.0, 98.6196},
-            {2.0, 0.02, 101.0 + 17.5 / 32.0},
-            {5.0, 0.03125, 102.0 + 8.0 / 32.0},
-            {10.0, 0.04, 103.0 + 8.5 / 32.0}};
+  return {{0.5, 0.0, 99.4565},
+          {1.0, 0.0, 98.6196},
+          {2.0, 0.02, 101.0 + 17.5 / 32.0},
+          {5.0, 0.03125, 102.0 + 8.0 / 32.0},
+          {10.0, 0.04, 103.0 + 8.5 / 32.0}};
 }
-inline constexpr ch02::BondQuote ex09_three_year{3.0, 0.045, 107.0 + 18.0 / 32.0};
+inline constexpr ch02::BondQuote ex09_three_year{3.0, 0.045,
+                                                 107.0 + 18.0 / 32.0};
 
-[[nodiscard]] inline ch02::ZeroCurve ex09_curve() { return bootstrap_zero_curve(ex09_quotes(), 2); }
+[[nodiscard]] inline ch02::ZeroCurve ex09_curve() {
+  return bootstrap_zero_curve(ex09_quotes(), 2);
+}
 
 [[nodiscard]] inline double ex09_model_price(const ch02::ZeroCurve& c) {
-    const auto cf = ch02::bond_cash_flows(ex09_three_year.maturity, ex09_three_year.coupon_rate, 2);
-    return ch02::bond_price_from_zero_rate(cf, [&](double t) { return zero_rate_linear(c, t); });
+  const auto cf = ch02::bond_cash_flows(ex09_three_year.maturity,
+                                        ex09_three_year.coupon_rate, 2);
+  return ch02::bond_price_from_zero_rate(
+      cf, [&](double t) { return zero_rate_linear(c, t); });
 }
 [[nodiscard]] inline double ex09_relative_error(const ch02::ZeroCurve& c) {
-    return (ex09_model_price(c) - ex09_three_year.price) / ex09_three_year.price;
+  return (ex09_model_price(c) - ex09_three_year.price) / ex09_three_year.price;
 }
 
 }  // namespace p4mfe::ch05::ex

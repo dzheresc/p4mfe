@@ -24,18 +24,25 @@ class PowerSeries:
 
 
 def derivative(s: PowerSeries) -> PowerSeries:
-    return PowerSeries([k * s.a[k] for k in range(1, len(s.a))] or [0.0], s.center)
+    return PowerSeries(
+        [k * s.a[k] for k in range(1, len(s.a))] or [0.0], s.center
+    )
 
 
 def antiderivative(s: PowerSeries) -> PowerSeries:
-    return PowerSeries([0.0] + [c / (k + 1) for k, c in enumerate(s.a)], s.center)
+    return PowerSeries(
+        [0.0] + [c / (k + 1) for k, c in enumerate(s.a)], s.center
+    )
 
 
 def cauchy_product(p: PowerSeries, q: PowerSeries) -> PowerSeries:
     if p.center != q.center:
         raise ValueError("series need the same center")
     n = min(len(p.a), len(q.a))
-    return PowerSeries([sum(p.a[j] * q.a[k - j] for j in range(k + 1)) for k in range(n)], p.center)
+    return PowerSeries(
+        [sum(p.a[j] * q.a[k - j] for j in range(k + 1)) for k in range(n)],
+        p.center,
+    )
 
 
 def radius_ratio_estimate(a) -> float:
@@ -60,4 +67,6 @@ def geometric_power_series(n: int) -> PowerSeries:
 
 
 def log1p_power_series(n: int) -> PowerSeries:
-    return PowerSeries([0.0] + [(1.0 if k % 2 else -1.0) / k for k in range(1, n + 1)])
+    return PowerSeries(
+        [0.0] + [(1.0 if k % 2 else -1.0) / k for k in range(1, n + 1)]
+    )

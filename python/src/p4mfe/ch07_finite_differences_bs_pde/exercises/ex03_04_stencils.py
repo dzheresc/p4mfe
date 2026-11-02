@@ -24,7 +24,9 @@ def ex03_leading_error(f3: float, h: float) -> float:
 
 
 def ex04_fourth_derivative(f: Fn, a: float, h: float) -> float:
-    return (f(a - 2 * h) - 4 * f(a - h) + 6 * f(a) - 4 * f(a + h) + f(a + 2 * h)) / h**4
+    return (
+        f(a - 2 * h) - 4 * f(a - h) + 6 * f(a) - 4 * f(a + h) + f(a + 2 * h)
+    ) / h**4
 
 
 def ex04_leading_error(f6: float, h: float) -> float:

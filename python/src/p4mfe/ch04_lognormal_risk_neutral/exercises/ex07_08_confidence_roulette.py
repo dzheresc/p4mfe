@@ -30,24 +30,33 @@ class Ex07Asset:
 EX07_HORIZONS = (1.0 / 24.0, 1.0 / 12.0, 2.0 / 12.0, 0.5, 1.0)
 
 
-def ex07_interval(confidence: float, T: float, risk_neutral: bool, a: Ex07Asset = Ex07Asset()) -> PriceRange:
-    return price_confidence_interval(confidence, a.S0, T, a.sigma, a.r if risk_neutral else a.mu, a.q)
+def ex07_interval(
+    confidence: float, T: float, risk_neutral: bool, a: Ex07Asset = Ex07Asset()
+) -> PriceRange:
+    return price_confidence_interval(
+        confidence, a.S0, T, a.sigma, a.r if risk_neutral else a.mu, a.q
+    )
 
 
 EX08_P_BLACK = 18.0 / 38.0
 
 
 def binomial_pmf(k: int, n: int, p: float) -> float:
-    return math.comb(n, k) * p ** k * (1.0 - p) ** (n - k)
+    return math.comb(n, k) * p**k * (1.0 - p) ** (n - k)
 
 
 @dataclass(frozen=True)
 class RouletteOdds:
-    win: float   # P(net gain >= threshold)
+    win: float  # P(net gain >= threshold)
     lose: float  # P(net loss >= threshold)
 
 
-def ex08_exact(n_bets: int = 100, bet: float = 100.0, threshold: float = 1000.0, p: float = EX08_P_BLACK) -> RouletteOdds:
+def ex08_exact(
+    n_bets: int = 100,
+    bet: float = 100.0,
+    threshold: float = 1000.0,
+    p: float = EX08_P_BLACK,
+) -> RouletteOdds:
     win = lose = 0.0
     for k in range(n_bets + 1):
         gain = bet * (2 * k - n_bets)
@@ -58,8 +67,13 @@ def ex08_exact(n_bets: int = 100, bet: float = 100.0, threshold: float = 1000.0,
     return RouletteOdds(win, lose)
 
 
-def ex08_normal(continuity: bool = False, n_bets: int = 100, bet: float = 100.0, threshold: float = 1000.0,
-                p: float = EX08_P_BLACK) -> RouletteOdds:
+def ex08_normal(
+    continuity: bool = False,
+    n_bets: int = 100,
+    bet: float = 100.0,
+    threshold: float = 1000.0,
+    p: float = EX08_P_BLACK,
+) -> RouletteOdds:
     mean = n_bets * bet * (2.0 * p - 1.0)
     sd = bet * math.sqrt(n_bets * 4.0 * p * (1.0 - p))
     t = threshold - bet if continuity else threshold

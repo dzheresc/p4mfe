@@ -30,7 +30,9 @@ def derivative(f: Callable[[float], float], x: float, h: float = 0.0) -> float:
     return (f(x + h) - f(x - h)) / (2 * h)
 
 
-def second_derivative(f: Callable[[float], float], x: float, h: float = 0.0) -> float:
+def second_derivative(
+    f: Callable[[float], float], x: float, h: float = 0.0
+) -> float:
     """(f(x+h) - 2 f(x) + f(x-h)) / h^2, error O(h^2)."""
     h = h if h > 0 else _second_step(x)
     return (f(x + h) - 2 * f(x) + f(x - h)) / (h * h)

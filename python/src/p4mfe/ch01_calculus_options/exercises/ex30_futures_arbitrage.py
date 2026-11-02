@@ -21,7 +21,12 @@ class FuturesArbitrage:
 
 
 def futures_arbitrage(
-    S: float, F_market: float, T: float, r: float, q: float = 0.0, tol: float = 1e-9
+    S: float,
+    F_market: float,
+    T: float,
+    r: float,
+    q: float = 0.0,
+    tol: float = 1e-9,
 ) -> FuturesArbitrage | None:
     gap = forward_price(S, T, r, q) - F_market
     if abs(gap) <= tol:

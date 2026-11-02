@@ -24,11 +24,15 @@ class CashFlows:
 
     def __post_init__(self):
         if len(self.times) != len(self.amounts) or len(self.times) == 0:
-            raise ValueError("times and amounts must be non-empty and the same size")
+            raise ValueError(
+                "times and amounts must be non-empty and the same size"
+            )
 
 
 # 2.6 -----------------------------------------------------------------------
-def bond_cash_flows(T: float, coupon_rate: float, freq: int, face: float = 100.0) -> CashFlows:
+def bond_cash_flows(
+    T: float, coupon_rate: float, freq: int, face: float = 100.0
+) -> CashFlows:
     """Coupons face * coupon_rate / freq at T, T - 1/freq, ... > 0; face repaid at T."""
     if T <= 0 or freq <= 0:
         raise ValueError("maturity and freq must be positive")
@@ -46,15 +50,21 @@ def bond_price(cf: CashFlows, y: float) -> float:
     return float(np.sum(cf.amounts * np.exp(-y * cf.times)))
 
 
-def bond_price_from_discount(cf: CashFlows, disc: Callable[[float], float]) -> float:
+def bond_price_from_discount(
+    cf: CashFlows, disc: Callable[[float], float]
+) -> float:
     return float(sum(c * disc(t) for t, c in zip(cf.times, cf.amounts)))
 
 
-def bond_price_from_zero_rate(cf: CashFlows, zero: Callable[[float], float]) -> float:
+def bond_price_from_zero_rate(
+    cf: CashFlows, zero: Callable[[float], float]
+) -> float:
     return bond_price_from_discount(cf, lambda t: math.exp(-zero(t) * t))
 
 
-def bond_price_from_inst_rate(cf: CashFlows, r: Callable, tol: float = 1e-12) -> float:
+def bond_price_from_inst_rate(
+    cf: CashFlows, r: Callable, tol: float = 1e-12
+) -> float:
     """sum_i c_i exp(-int_0^{t_i} r(s) ds), integrating each [t_{i-1}, t_i] once.
 
     The cash flow times must be non-negative and non-decreasing.
@@ -62,7 +72,9 @@ def bond_price_from_inst_rate(cf: CashFlows, r: Callable, tol: float = 1e-12) ->
     B, integral, t_prev = 0.0, 0.0, 0.0
     for t, c in zip(cf.times, cf.amounts):
         if t < t_prev:
-            raise ValueError("cash flow times must be non-negative and increasing")
+            raise ValueError(
+                "cash flow times must be non-negative and increasing"
+            )
         if t > t_prev:
             integral += integrate_to_tolerance(r, t_prev, float(t), tol).value
         t_prev = t
@@ -81,7 +93,9 @@ class BondMetrics:
 def bond_metrics(cf: CashFlows, y: float) -> BondMetrics:
     v = cf.amounts * np.exp(-y * cf.times)
     B = float(np.sum(v))
-    return BondMetrics(B, float(np.sum(cf.times * v)) / B, float(np.sum(cf.times**2 * v)) / B)
+    return BondMetrics(
+        B, float(np.sum(cf.times * v)) / B, float(np.sum(cf.times**2 * v)) / B
+    )
 
 
 def bond_duration(cf: CashFlows, y: float) -> float:
@@ -106,7 +120,9 @@ def price_approx_duration(B: float, D: float, dy: float) -> float:
     return B * (1 - D * dy)
 
 
-def price_approx_duration_convexity(B: float, D: float, C: float, dy: float) -> float:
+def price_approx_duration_convexity(
+    B: float, D: float, C: float, dy: float
+) -> float:
     """B(y + dy) ~ B (1 - D dy + C dy^2 / 2)."""
     return B * (1 - D * dy + 0.5 * C * dy * dy)
 
@@ -132,7 +148,9 @@ def zero_coupon_bond_price(T: float, r: float, face: float = 100.0) -> float:
     return face * math.exp(-r * T)
 
 
-def zero_rate_from_zero_coupon_price(price: float, T: float, face: float = 100.0) -> float:
+def zero_rate_from_zero_coupon_price(
+    price: float, T: float, face: float = 100.0
+) -> float:
     return zero_rate_from_discount(price / face, T)
 
 
@@ -152,7 +170,9 @@ class ZeroCurve:
 _TIME_TOLERANCE = 1e-9
 
 
-def bootstrap_zero_rates(quotes: Iterable[BondQuote], freq: int, face: float = 100.0) -> ZeroCurve:
+def bootstrap_zero_rates(
+    quotes: Iterable[BondQuote], freq: int, face: float = 100.0
+) -> ZeroCurve:
     """Zero rates from coupon bond prices, shortest maturity first:
 
     D(0, T) = (B - sum_{t_i < T} c_i D(0, t_i)) / c_T
@@ -178,11 +198,20 @@ def bootstrap_zero_rates(quotes: Iterable[BondQuote], freq: int, face: float = 1
         discounts.append((q.price - pv) / cf.amounts[-1])
     return ZeroCurve(
         np.array(times),
-        np.array([zero_rate_from_discount(d, t) for t, d in zip(times, discounts)]))
+        np.array(
+            [zero_rate_from_discount(d, t) for t, d in zip(times, discounts)]
+        ),
+    )
 
 
 # 2.10 ----------------------------------------------------------------------
-def bond_yield(cf: CashFlows, price: float, tol: float = 1e-12, y0: float = 0.1, max_iter: int = 100) -> float:
+def bond_yield(
+    cf: CashFlows,
+    price: float,
+    tol: float = 1e-12,
+    y0: float = 0.1,
+    max_iter: int = 100,
+) -> float:
     """Newton's method: y <- y + (sum c e^(-y t) - B) / (sum t c e^(-y t))."""
     y = y0
     for _ in range(max_iter):

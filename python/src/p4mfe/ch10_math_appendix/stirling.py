@@ -24,7 +24,9 @@ def log_stirling(n: float, terms: int = 0) -> float:
     if terms > len(_CORRECTIONS):
         raise ValueError("at most 5 correction terms")
     v = n * math.log(n) - n + 0.5 * math.log(2 * math.pi * n)
-    return v + sum(c / n ** (2 * k + 1) for k, c in enumerate(_CORRECTIONS[:terms]))
+    return v + sum(
+        c / n ** (2 * k + 1) for k, c in enumerate(_CORRECTIONS[:terms])
+    )
 
 
 def log_factorial(n: float) -> float:

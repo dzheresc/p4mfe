@@ -15,14 +15,18 @@ namespace p4mfe::ch01::ex {
 //
 // u = ln x, dv = dx:  integral ln x dx = x ln x - integral x (1/x) dx
 //                                      = x ln x - x + C,     x > 0.
-[[nodiscard]] inline double ex01_ln_antiderivative(double x) { return x * std::log(x) - x; }
+[[nodiscard]] inline double ex01_ln_antiderivative(double x) {
+  return x * std::log(x) - x;
+}
 
 // ------------------------------------------------------------ Exercise 2 ---
 // Compute  integral 1 / (x ln(x)) dx.   Hint: u = ln(x).
 //
 // du = dx / x, so the integral is  integral du / u = ln|u| = ln|ln x| + C,
 // on (0, 1) and on (1, infinity) separately.
-[[nodiscard]] inline double ex02_inv_x_ln_x_antiderivative(double x) { return std::log(std::abs(std::log(x))); }
+[[nodiscard]] inline double ex02_inv_x_ln_x_antiderivative(double x) {
+  return std::log(std::abs(std::log(x)));
+}
 
 // ------------------------------------------------------------ Exercise 3 ---
 // Show that (tan x)' = 1/(cos x)^2 and conclude that
@@ -32,11 +36,15 @@ namespace p4mfe::ch01::ex {
 // Let y = arctan x, so tan y = x. Differentiating, y' (1 + tan^2 y) = 1, hence
 // (arctan x)' = 1/(1 + tan^2 y) = 1/(1 + x^2), which is the claim.
 [[nodiscard]] inline double ex03_tan_derivative(double x) {
-    const double c = std::cos(x);
-    return 1.0 / (c * c);
+  const double c = std::cos(x);
+  return 1.0 / (c * c);
 }
-[[nodiscard]] inline double ex03_arctan_derivative(double x) { return 1.0 / (1.0 + x * x); }
-[[nodiscard]] inline double ex03_inv_1_plus_x2_antiderivative(double x) { return std::atan(x); }
+[[nodiscard]] inline double ex03_arctan_derivative(double x) {
+  return 1.0 / (1.0 + x * x);
+}
+[[nodiscard]] inline double ex03_inv_1_plus_x2_antiderivative(double x) {
+  return std::atan(x);
+}
 
 // ------------------------------------------------------------ Exercise 4 ---
 // Compute  integral x^n ln(x) dx.
@@ -46,11 +54,11 @@ namespace p4mfe::ch01::ex {
 // n == -1: substitution u = ln x gives (ln x)^2 / 2 + C.
 // Valid for any real n, x > 0.
 [[nodiscard]] inline double ex04_x_pow_n_ln_antiderivative(double n, double x) {
-    const double lx = std::log(x);
-    if (n == -1.0) return 0.5 * lx * lx;
-    const double m = n + 1.0;
-    const double xm = std::pow(x, m);
-    return xm * lx / m - xm / (m * m);
+  const double lx = std::log(x);
+  if (n == -1.0) return 0.5 * lx * lx;
+  const double m = n + 1.0;
+  const double xm = std::pow(x, m);
+  return xm * lx / m - xm / (m * m);
 }
 
 // ------------------------------------------------------------ Exercise 5 ---
@@ -61,15 +69,17 @@ namespace p4mfe::ch01::ex {
 // which unrolls to
 //   I_n = e^x sum_{k=0}^{n} (-1)^(n-k) n!/k! x^k + C.
 // E.g. I_1 = (x - 1) e^x, I_2 = (x^2 - 2x + 2) e^x.
-[[nodiscard]] inline double ex05_x_pow_n_exp_antiderivative(unsigned n, double x) {
-    // Horner-like evaluation of the recursion: I_n / e^x = x^n - n (I_(n-1) / e^x).
-    double p = 1.0;  // I_0 / e^x
-    double xk = 1.0;
-    for (unsigned k = 1; k <= n; ++k) {
-        xk *= x;
-        p = xk - static_cast<double>(k) * p;
-    }
-    return p * std::exp(x);
+[[nodiscard]] inline double ex05_x_pow_n_exp_antiderivative(unsigned n,
+                                                            double x) {
+  // Horner-like evaluation of the recursion: I_n / e^x = x^n - n (I_(n-1) /
+  // e^x).
+  double p = 1.0;  // I_0 / e^x
+  double xk = 1.0;
+  for (unsigned k = 1; k <= n; ++k) {
+    xk *= x;
+    p = xk - static_cast<double>(k) * p;
+  }
+  return p * std::exp(x);
 }
 
 // ------------------------------------------------------------ Exercise 6 ---
@@ -80,8 +90,8 @@ namespace p4mfe::ch01::ex {
 // i.e.  J_n = x sum_{k=0}^{n} (-1)^(n-k) n!/k! (ln x)^k + C.
 // (Substituting x = e^t turns J_n into exercise 5: integral t^n e^t dt.)
 [[nodiscard]] inline double ex06_ln_pow_n_antiderivative(unsigned n, double x) {
-    if (x <= 0.0) throw std::domain_error("ex06: x must be positive");
-    return ex05_x_pow_n_exp_antiderivative(n, std::log(x));
+  if (x <= 0.0) throw std::domain_error("ex06: x must be positive");
+  return ex05_x_pow_n_exp_antiderivative(n, std::log(x));
 }
 
 }  // namespace p4mfe::ch01::ex

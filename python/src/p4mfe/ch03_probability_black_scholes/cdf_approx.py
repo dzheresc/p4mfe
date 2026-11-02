@@ -31,6 +31,8 @@ def norm_cdf_poly(x: float) -> float:
 def norm_cdf_simpson(x: float, tol: float = 1e-12) -> float:
     if x == 0:
         return 0.5
-    integral = integrate_to_tolerance(lambda t: np.exp(-0.5 * t * t), 0.0, abs(x), tol).value
+    integral = integrate_to_tolerance(
+        lambda t: np.exp(-0.5 * t * t), 0.0, abs(x), tol
+    ).value
     half_mass = integral / math.sqrt(2 * math.pi)
     return 0.5 + half_mass if x > 0 else 0.5 - half_mass

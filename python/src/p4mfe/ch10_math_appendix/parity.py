@@ -20,8 +20,12 @@ class Parity(Enum):
     NEITHER = "neither"
 
 
-def _symmetric(f: Callable, xs: Sequence[float], sign: float, tol: float) -> bool:
-    return all(abs(f(-x) - sign * f(x)) <= tol * max(1.0, abs(f(x))) for x in xs)
+def _symmetric(
+    f: Callable, xs: Sequence[float], sign: float, tol: float
+) -> bool:
+    return all(
+        abs(f(-x) - sign * f(x)) <= tol * max(1.0, abs(f(x))) for x in xs
+    )
 
 
 def is_even(f: Callable, xs: Sequence[float], tol: float = 1e-12) -> bool:
@@ -49,7 +53,9 @@ def odd_part(f: Callable, x):
     return 0.5 * (f(x) - f(-x))
 
 
-def symmetric_integral(f: Callable, a: float, n: int = 200, rule: Rule = Rule.SIMPSON) -> float:
+def symmetric_integral(
+    f: Callable, a: float, n: int = 200, rule: Rule = Rule.SIMPSON
+) -> float:
     """int_{-a}^{a} f = 2 int_0^a f_e with chapter 2's quadrature (f vectorized)."""
     if a < 0:
         raise ValueError("need a >= 0")

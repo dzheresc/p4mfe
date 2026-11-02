@@ -42,7 +42,11 @@ def sums_of_powers_recursive(n: int, i: int) -> list[int]:
     """S_0(n), ..., S_i(n) from the telescoping recursion."""
     S = [n]
     for p in range(1, i + 1):
-        rhs = (n + 1) ** (p + 1) - 1 - sum(math.comb(p + 1, j) * S[j] for j in range(p))
+        rhs = (
+            (n + 1) ** (p + 1)
+            - 1
+            - sum(math.comb(p + 1, j) * S[j] for j in range(p))
+        )
         S.append(rhs // (p + 1))
     return S
 
@@ -50,7 +54,9 @@ def sums_of_powers_recursive(n: int, i: int) -> list[int]:
 def sum_of_powers_polynomial(i: int) -> np.ndarray:
     """Coefficients c_0..c_{i+1} of S_i(n) in n, by interpolation through m = 0..i+1."""
     ms = list(range(i + 2))
-    return interpolating_polynomial(ms, [float(sum_of_powers(m, i)) for m in ms])
+    return interpolating_polynomial(
+        ms, [float(sum_of_powers(m, i)) for m in ms]
+    )
 
 
 # 10.3.2 --------------------------------------------------------------------
@@ -75,7 +81,13 @@ def sum_k2_xk(n: int, x: float) -> float:
     if x == 1.0:
         return float(sum_k2(n))
     xn = x**n
-    num = 1 + x - (n + 1) ** 2 * xn + (2 * n * n + 2 * n - 1) * xn * x - n * n * xn * x * x
+    num = (
+        1
+        + x
+        - (n + 1) ** 2 * xn
+        + (2 * n * n + 2 * n - 1) * xn * x
+        - n * n * xn * x * x
+    )
     return x * num / (1 - x) ** 3
 
 

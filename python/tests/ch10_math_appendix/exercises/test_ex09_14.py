@@ -57,19 +57,31 @@ def test_ex09_sums_of_o_terms():
 def test_ex10_orders():
     n = 1
     while n <= 10**6:
-        assert ex10_ratio_k2(n) == pytest.approx(1 / 3 + 1 / (2 * n) + 1 / (6 * n * n), abs=1e-13)
-        assert ex10_remainder_ratio_k2(n) == pytest.approx(0.5 + 1 / (6 * n), abs=1e-13)
-        assert ex10_ratio_k3(n) == pytest.approx(0.25 + 1 / (2 * n) + 1 / (4 * n * n), abs=1e-13)
-        assert ex10_remainder_ratio_k3(n) == pytest.approx(0.5 + 1 / (4 * n), abs=1e-13)
+        assert ex10_ratio_k2(n) == pytest.approx(
+            1 / 3 + 1 / (2 * n) + 1 / (6 * n * n), abs=1e-13
+        )
+        assert ex10_remainder_ratio_k2(n) == pytest.approx(
+            0.5 + 1 / (6 * n), abs=1e-13
+        )
+        assert ex10_ratio_k3(n) == pytest.approx(
+            0.25 + 1 / (2 * n) + 1 / (4 * n * n), abs=1e-13
+        )
+        assert ex10_remainder_ratio_k3(n) == pytest.approx(
+            0.5 + 1 / (4 * n), abs=1e-13
+        )
         assert ex10_ratio_k2(n) <= 1 and ex10_remainder_ratio_k2(n) <= 2 / 3
         assert ex10_ratio_k3(n) <= 1 and ex10_remainder_ratio_k3(n) <= 0.75
         n = n + 1 if n < 20 else n * 3 // 2
     s2 = lambda n: float(sum_k2(int(n)))
     s3 = lambda n: float(sum_k3(int(n)))
     assert observed_power_at_infinity(s2, 1000.0) == pytest.approx(3, abs=1e-2)
-    assert observed_power_at_infinity(lambda n: s2(n) - n**3 / 3, 1000.0) == pytest.approx(2, abs=1e-2)
+    assert observed_power_at_infinity(
+        lambda n: s2(n) - n**3 / 3, 1000.0
+    ) == pytest.approx(2, abs=1e-2)
     assert observed_power_at_infinity(s3, 1000.0) == pytest.approx(4, abs=1e-2)
-    assert observed_power_at_infinity(lambda n: s3(n) - n**4 / 4, 1000.0) == pytest.approx(3, abs=1e-2)
+    assert observed_power_at_infinity(
+        lambda n: s3(n) - n**4 / 4, 1000.0
+    ) == pytest.approx(3, abs=1e-2)
 
 
 def test_ex11_binomial_identities():
@@ -107,7 +119,9 @@ def test_ex13_gamma():
         assert y < EX13_EULER_GAMMA < x
         prev_x, prev_y = x, y
     for n in (100, 1000, 10000):
-        assert ex13_x(n) - EX13_EULER_GAMMA == pytest.approx(1 / (2 * n) - 1 / (12 * n * n), abs=1e-3 / n**2)
+        assert ex13_x(n) - EX13_EULER_GAMMA == pytest.approx(
+            1 / (2 * n) - 1 / (12 * n * n), abs=1e-3 / n**2
+        )
 
 
 def test_ex14_radius_is_one():
@@ -117,9 +131,13 @@ def test_ex14_radius_is_one():
     assert radius_ratio_estimate(a) == pytest.approx(1, abs=1e-4)
     assert radius_root_estimate(a) == pytest.approx(1, abs=2e-4)
     s = ex14_partial_sum(0.9, 400)
-    assert ex14_partial_sum(0.9, 200) == pytest.approx(s, abs=0.9**201 / (0.1 * 201 * math.log(201)))
+    assert ex14_partial_sum(0.9, 200) == pytest.approx(
+        s, abs=0.9**201 / (0.1 * 201 * math.log(201))
+    )
     n = 20000
     s_even, s_odd = ex14_partial_sum(-1.0, n), ex14_partial_sum(-1.0, n + 1)
-    assert s_even - s_odd == pytest.approx(1 / ((n + 1) * math.log(n + 1)), abs=1e-12)
+    assert s_even - s_odd == pytest.approx(
+        1 / ((n + 1) * math.log(n + 1)), abs=1e-12
+    )
     assert ex14_partial_sum(-1.0, 2000) >= s_even
     assert ex14_partial_sum(-1.0, 2001) <= s_odd

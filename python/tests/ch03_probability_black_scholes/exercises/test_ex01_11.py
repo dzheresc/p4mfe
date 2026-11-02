@@ -45,7 +45,9 @@ def test_ex01():
     for k in range(2, 13):
         assert ex01_ways(k) == counts[k]
         assert ex01_breakeven_win(k) == pytest.approx(expected[k])
-        assert ex01_expected_gain(k, ex01_breakeven_win(k)) == pytest.approx(0, abs=1e-14)
+        assert ex01_expected_gain(k, ex01_breakeven_win(k)) == pytest.approx(
+            0, abs=1e-14
+        )
 
 
 def test_ex02():
@@ -61,18 +63,26 @@ def test_ex02():
 def test_ex03_04():
     assert ex03_expected_tosses() == 6
     for p in (0.5, 0.3, 0.8):
-        assert ex03_expected_tosses(p) == pytest.approx(ex04_expected_tosses(2, p))
+        assert ex03_expected_tosses(p) == pytest.approx(
+            ex04_expected_tosses(2, p)
+        )
         for k in range(1, 7):
             e = ex04_expected_tosses(k, p)
-            assert e == pytest.approx(ex04_expected_tosses_recursive(k, p), rel=1e-9)
-            assert e == pytest.approx(ex04_expected_tosses_markov(k, p), rel=1e-8)
+            assert e == pytest.approx(
+                ex04_expected_tosses_recursive(k, p), rel=1e-9
+            )
+            assert e == pytest.approx(
+                ex04_expected_tosses_markov(k, p), rel=1e-8
+            )
     for k in range(1, 11):
         assert ex04_expected_tosses(k, 0.5) == pytest.approx(2 ** (k + 1) - 2)
 
 
 def test_ex05():
     d = ex05_distribution()
-    assert d.values[0] == pytest.approx(35.38944) and d.values[3] == pytest.approx(46.305)
+    assert d.values[0] == pytest.approx(35.38944) and d.values[
+        3
+    ] == pytest.approx(46.305)
     assert d.mean() == pytest.approx(ex05_mean(), abs=1e-12)
     assert d.variance() == pytest.approx(ex05_variance(), abs=1e-10)
     assert ex05_mean() == pytest.approx(41.70362976, abs=1e-10)
@@ -81,7 +91,9 @@ def test_ex05():
 
 @pytest.mark.parametrize("a,b", [(0.0, 1.0), (-2.0, 5.0), (3.0, 3.5)])
 def test_ex06(a, b):
-    u = ContinuousDistribution(lambda x: np.where((x < a) | (x > b), 0.0, 1 / (b - a)), a, b)
+    u = ContinuousDistribution(
+        lambda x: np.where((x < a) | (x > b), 0.0, 1 / (b - a)), a, b
+    )
     assert u.mean() == pytest.approx(ex06_mean(a, b), abs=1e-8)
     assert u.variance() == pytest.approx(ex06_variance(a, b), abs=1e-8)
 
@@ -89,20 +101,30 @@ def test_ex06(a, b):
 @pytest.mark.parametrize("alpha", [0.5, 1.0, 3.0])
 def test_ex07(alpha):
     e = exponential_distribution(alpha)
-    assert e.expected_value(lambda x: np.ones_like(x)) == pytest.approx(1, abs=1e-8)
+    assert e.expected_value(lambda x: np.ones_like(x)) == pytest.approx(
+        1, abs=1e-8
+    )
     assert e.mean() == pytest.approx(1 / alpha, abs=1e-7)
     assert e.variance() == pytest.approx(1 / alpha**2, abs=1e-6)
     for x in (0.1, 1.0, 2.5):
         assert e.cdf(x) == pytest.approx(ex07_cdf(alpha, x), abs=1e-8)
-        assert ex07_tail(alpha, x) == pytest.approx(1 - ex07_cdf(alpha, x), abs=1e-15)
-        assert ex07_conditional_tail(alpha, 1.7, x) == pytest.approx(ex07_tail(alpha, x))
+        assert ex07_tail(alpha, x) == pytest.approx(
+            1 - ex07_cdf(alpha, x), abs=1e-15
+        )
+        assert ex07_conditional_tail(alpha, 1.7, x) == pytest.approx(
+            ex07_tail(alpha, x)
+        )
 
 
 @pytest.mark.parametrize("mu,sigma", [(0.0, 1.0), (1.5, 0.7), (-2.0, 3.0)])
 def test_ex08(mu, sigma):
     n = ContinuousDistribution(lambda x: normal_pdf(x, mu, sigma))
-    assert ex08_mean_abs(mu, sigma) == pytest.approx(n.expected_value(np.abs), abs=1e-7)
-    assert ex08_second_moment(mu, sigma) == pytest.approx(n.expected_value(lambda x: x * x), abs=1e-7)
+    assert ex08_mean_abs(mu, sigma) == pytest.approx(
+        n.expected_value(np.abs), abs=1e-7
+    )
+    assert ex08_second_moment(mu, sigma) == pytest.approx(
+        n.expected_value(lambda x: x * x), abs=1e-7
+    )
     assert ex08_mean_abs(0, 2) == pytest.approx(2 * math.sqrt(2 / math.pi))
 
 
@@ -121,7 +143,9 @@ def test_ex10():
         s = ex10_sides(x, y)
         assert s.lhs <= s.rhs * (1 + 1e-14)
         B, C = float(x @ y), float(y @ y)
-        assert ex10_quadratic(x, y, -B / C) == pytest.approx((s.rhs - s.lhs) / C, abs=1e-9)
+        assert ex10_quadratic(x, y, -B / C) == pytest.approx(
+            (s.rhs - s.lhs) / C, abs=1e-9
+        )
     s = ex10_sides([1, -2, 3], [-2.5, 5, -7.5])
     assert s.lhs == pytest.approx(s.rhs)
 

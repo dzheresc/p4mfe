@@ -52,11 +52,17 @@ def test_even_odd_decomposition():
 
 def test_symmetric_integrals():
     f = lambda x: np.exp(x) + x**3 * np.cos(x)
-    assert symmetric_integral(f, 1.5) == pytest.approx(2 * math.sinh(1.5), abs=1e-10)
-    assert symmetric_integral(f, 1.5) == pytest.approx(integrate(f, -1.5, 1.5, 400), abs=1e-10)
+    assert symmetric_integral(f, 1.5) == pytest.approx(
+        2 * math.sinh(1.5), abs=1e-10
+    )
+    assert symmetric_integral(f, 1.5) == pytest.approx(
+        integrate(f, -1.5, 1.5, 400), abs=1e-10
+    )
     assert symmetric_integral(np.sin, 3.0) == pytest.approx(0.0, abs=1e-15)
     pdf = lambda x: np.exp(-x * x / 2) / math.sqrt(2 * math.pi)
-    assert symmetric_integral(pdf, 2.0) == pytest.approx(2 * norm_cdf(2.0) - 1, abs=1e-10)
+    assert symmetric_integral(pdf, 2.0) == pytest.approx(
+        2 * norm_cdf(2.0) - 1, abs=1e-10
+    )
     with pytest.raises(ValueError):
         symmetric_integral(f, -1.0)
 
@@ -70,23 +76,33 @@ def test_reproduces_polynomials_exactly():
     np.testing.assert_allclose(interpolating_polynomial(xs, ys), a, atol=1e-12)
     assert c[-1] == pytest.approx(3.0, abs=1e-12)
     for x in [-2.0, 0.3, 1.1, 5.0]:
-        assert lagrange_interpolate(xs, ys, x) == pytest.approx(polynomial_value(a, x), abs=1e-10)
-        assert newton_interpolate(xs, c, x) == pytest.approx(polynomial_value(a, x), abs=1e-10)
+        assert lagrange_interpolate(xs, ys, x) == pytest.approx(
+            polynomial_value(a, x), abs=1e-10
+        )
+        assert newton_interpolate(xs, c, x) == pytest.approx(
+            polynomial_value(a, x), abs=1e-10
+        )
 
 
 def test_lagrange_basis_is_kronecker_delta():
     xs = [0.0, 1.0, 3.0, 4.5]
     for i in range(len(xs)):
         for j, xj in enumerate(xs):
-            assert lagrange_basis(xs, i, xj) == pytest.approx(1.0 if i == j else 0.0, abs=1e-15)
-    assert sum(lagrange_basis(xs, i, 2.2) for i in range(len(xs))) == pytest.approx(1.0, abs=1e-14)
+            assert lagrange_basis(xs, i, xj) == pytest.approx(
+                1.0 if i == j else 0.0, abs=1e-15
+            )
+    assert sum(
+        lagrange_basis(xs, i, 2.2) for i in range(len(xs))
+    ) == pytest.approx(1.0, abs=1e-14)
 
 
 def test_error_within_bound():
     xs = [i * math.pi / 8 for i in range(5)]
     ys = [math.sin(x) for x in xs]
     for x in [0.1, 0.5, 1.0, 1.5]:
-        assert abs(math.sin(x) - lagrange_interpolate(xs, ys, x)) <= interpolation_error_bound(1.0, xs, x)
+        assert abs(
+            math.sin(x) - lagrange_interpolate(xs, ys, x)
+        ) <= interpolation_error_bound(1.0, xs, x)
 
 
 def test_rejects_bad_nodes():

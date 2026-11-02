@@ -26,12 +26,19 @@ def ex01_f(x) -> float:
 
 
 def ex01_g(x) -> np.ndarray:
-    return np.array([x[0] ** 2 + x[1] ** 2 - x[3] ** 2 - 1, x[0] ** 2 + 2 * x[1] ** 2 + 3 * x[2] ** 2 - 6])
+    return np.array(
+        [
+            x[0] ** 2 + x[1] ** 2 - x[3] ** 2 - 1,
+            x[0] ** 2 + 2 * x[1] ** 2 + 3 * x[2] ** 2 - 6,
+        ]
+    )
 
 
 def ex01_x_from_lambda(lam) -> np.ndarray:
     l1, l2 = lam
-    return np.array([-1 / (2 * (l1 + l2)), 1 / (l1 + 2 * l2), -1 / (2 * l2), -2 / l1])
+    return np.array(
+        [-1 / (2 * (l1 + l2)), 1 / (l1 + 2 * l2), -1 / (2 * l2), -2 / l1]
+    )
 
 
 @dataclass
@@ -54,7 +61,14 @@ def ex01_stationary_points() -> list[Ex01Point]:
             continue
         if any(np.sum((p.x - r.x) ** 2) < 1e-10 for p in pts):
             continue
-        pts.append(Ex01Point(r.x, r.lam, ex01_f(r.x), classify_constrained(ex01_f, ex01_g, r.x, r.lam)))
+        pts.append(
+            Ex01Point(
+                r.x,
+                r.lam,
+                ex01_f(r.x),
+                classify_constrained(ex01_f, ex01_g, r.x, r.lam),
+            )
+        )
     return sorted(pts, key=lambda p: -p.value)
 
 

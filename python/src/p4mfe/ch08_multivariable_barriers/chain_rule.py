@@ -1,8 +1,8 @@
 """Section 8.1: the chain rule for functions of several variables.
 
-    d/dt f(g(t)) = grad f(g(t)) . g'(t)
-    grad (f o G)(x) = J_G(x)^T grad f(G(x))
-    J_(F o G)(x) = J_F(G(x)) J_G(x)
+d/dt f(g(t)) = grad f(g(t)) . g'(t)
+grad (f o G)(x) = J_G(x)^T grad f(G(x))
+J_(F o G)(x) = J_F(G(x)) J_G(x)
 """
 
 from __future__ import annotations
@@ -22,7 +22,9 @@ def curve_derivative(g: Callable[[float], np.ndarray], t: float) -> np.ndarray:
     return np.array([derivative(lambda s, i=i: g(s)[i], t) for i in range(n)])
 
 
-def chain_rule_derivative(f: Callable, g: Callable[[float], np.ndarray], t: float) -> float:
+def chain_rule_derivative(
+    f: Callable, g: Callable[[float], np.ndarray], t: float
+) -> float:
     return float(np.dot(gradient(f, g(t)), curve_derivative(g, t)))
 
 
@@ -33,5 +35,6 @@ def chain_rule_gradient(f: Callable, G: Callable, x) -> np.ndarray:
 
 def chain_rule_jacobian(F: Callable, G: Callable, x) -> np.ndarray:
     x = np.asarray(x, float)
-    return finite_difference_jacobian(F, np.asarray(G(x)), 1e-6, Difference.CENTRAL) @ finite_difference_jacobian(
-        G, x, 1e-6, Difference.CENTRAL)
+    return finite_difference_jacobian(
+        F, np.asarray(G(x)), 1e-6, Difference.CENTRAL
+    ) @ finite_difference_jacobian(G, x, 1e-6, Difference.CENTRAL)

@@ -46,4 +46,6 @@ def ex02_solve() -> Ex02Result:
     y = bond_yield_newton(cf, B).x
     m = bond_metrics(cf, y)
     y2 = 2.0 * (math.exp(y / 2.0) - 1.0)
-    return Ex02Result(B, y, m.duration, m.convexity, y2, modified_duration(cf, y2, 2))
+    return Ex02Result(
+        B, y, m.duration, m.convexity, y2, modified_duration(cf, y2, 2)
+    )

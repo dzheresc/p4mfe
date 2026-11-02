@@ -42,8 +42,12 @@ def test_big_o_small_h():
     hs = [1e-1, 1e-2, 1e-3, 1e-4]
     q1 = order_ratios(r, lambda h: h, hs)
     assert all(b < a / 5 for a, b in zip(q1, q1[1:]))  # o(h)
-    assert order_ratios(r, lambda h: h * h, hs) == pytest.approx([0.5] * 4, abs=0.06)  # O(h^2)
-    simpson_err = lambda h: integrate(np.exp, 0.0, 1.0, round(1 / h)) - (math.e - 1)
+    assert order_ratios(r, lambda h: h * h, hs) == pytest.approx(
+        [0.5] * 4, abs=0.06
+    )  # O(h^2)
+    simpson_err = lambda h: integrate(np.exp, 0.0, 1.0, round(1 / h)) - (
+        math.e - 1
+    )
     assert observed_power(simpson_err, 1 / 16) == pytest.approx(4.0, abs=0.01)
 
 
@@ -58,9 +62,15 @@ def test_big_o_large_n():
 # 10.6 ----------------------------------------------------------------------
 @pytest.mark.parametrize("x", [-0.6, 0.3, 0.9])
 def test_matches_chapter6_partial_sums(x):
-    assert exp_power_series(12)(x) == pytest.approx(exp_series(x, 12), abs=1e-15)
-    assert geometric_power_series(30)(x) == pytest.approx(geometric_series(x, 30), abs=1e-14)
-    assert log1p_power_series(40)(x) == pytest.approx(log1p_series(x, 40), abs=1e-14)
+    assert exp_power_series(12)(x) == pytest.approx(
+        exp_series(x, 12), abs=1e-15
+    )
+    assert geometric_power_series(30)(x) == pytest.approx(
+        geometric_series(x, 30), abs=1e-14
+    )
+    assert log1p_power_series(40)(x) == pytest.approx(
+        log1p_series(x, 40), abs=1e-14
+    )
 
 
 def test_term_by_term_calculus():
@@ -68,18 +78,30 @@ def test_term_by_term_calculus():
     assert derivative(e).a == pytest.approx(e.a[:-1], abs=1e-18)
     g = PowerSeries([(-1.0) ** k for k in range(201)])  # 1/(1+t)
     assert antiderivative(g)(0.5) == pytest.approx(math.log1p(0.5), abs=1e-14)
-    h = PowerSeries([0.0 if k % 2 else (-1.0) ** (k // 2) for k in range(201)])  # 1/(1+t^2)
+    h = PowerSeries(
+        [0.0 if k % 2 else (-1.0) ** (k // 2) for k in range(201)]
+    )  # 1/(1+t^2)
     assert antiderivative(h)(0.6) == pytest.approx(math.atan(0.6), abs=1e-14)
 
 
 def test_cauchy_product_and_radius():
     e = exp_power_series(15)
-    assert cauchy_product(e, e).a == pytest.approx([2.0**k * c for k, c in enumerate(e.a)], abs=1e-14)
-    assert cauchy_product(geometric_power_series(10), geometric_power_series(10)).a == [k + 1.0 for k in range(11)]
-    assert radius_ratio_estimate(log1p_power_series(1000).a) == pytest.approx(1.0, abs=1e-2)
-    assert radius_root_estimate(log1p_power_series(1000).a) == pytest.approx(1.0, abs=1e-2)
+    assert cauchy_product(e, e).a == pytest.approx(
+        [2.0**k * c for k, c in enumerate(e.a)], abs=1e-14
+    )
+    assert cauchy_product(
+        geometric_power_series(10), geometric_power_series(10)
+    ).a == [k + 1.0 for k in range(11)]
+    assert radius_ratio_estimate(log1p_power_series(1000).a) == pytest.approx(
+        1.0, abs=1e-2
+    )
+    assert radius_root_estimate(log1p_power_series(1000).a) == pytest.approx(
+        1.0, abs=1e-2
+    )
     assert radius_ratio_estimate(exp_power_series(50).a) > 49
-    assert radius_root_estimate(exp_power_series(50).a) > radius_root_estimate(exp_power_series(10).a)
+    assert radius_root_estimate(exp_power_series(50).a) > radius_root_estimate(
+        exp_power_series(10).a
+    )
 
 
 # 10.7 ----------------------------------------------------------------------
@@ -88,7 +110,9 @@ def test_stirling_relative_error(n):
     f = math.factorial(n)
     lo, hi = stirling_bounds(n)
     assert lo < f * (1 + 1e-14) and hi > f * (1 - 1e-14)
-    assert f / stirling(n) - 1 == pytest.approx(1 / (12 * n), abs=1 / (200 * n * n))
+    assert f / stirling(n) - 1 == pytest.approx(
+        1 / (12 * n), abs=1 / (200 * n * n)
+    )
     assert stirling(10) == pytest.approx(3598695.6187, abs=1e-3)
 
 
@@ -101,7 +125,9 @@ def test_stirling_series_improves():
 @pytest.mark.parametrize("n", [10, 100, 400])
 def test_central_binomial(n):
     assert central_binomial(10) == 184756
-    assert central_binomial_stirling(n) / central_binomial(n) - 1 == pytest.approx(1 / (8 * n), abs=1 / (50 * n * n))
+    assert central_binomial_stirling(n) / central_binomial(
+        n
+    ) - 1 == pytest.approx(1 / (8 * n), abs=1 / (50 * n * n))
 
 
 # 10.8 ----------------------------------------------------------------------
@@ -110,7 +136,9 @@ def test_geometric_derivative_bound():
     C = math.exp(2 * x)
     n = taylor_terms_needed(C, 2.0, 0.0, x, 1e-10)
     assert abs(exp_power_series(n)(2 * x) - math.exp(2 * x)) < 1e-10
-    assert abs(exp_power_series(n - 1)(2 * x) - math.exp(2 * x)) <= taylor_bound_geometric(C, 2.0, 0.0, x, n - 1)
+    assert abs(
+        exp_power_series(n - 1)(2 * x) - math.exp(2 * x)
+    ) <= taylor_bound_geometric(C, 2.0, 0.0, x, n - 1)
     assert taylor_bound_geometric(C, 2.0, 0.0, x, n - 1) >= 1e-10
     assert taylor_bound_geometric(1.0, 1.0, 0.0, 10.0, 60) < 1e-15
 

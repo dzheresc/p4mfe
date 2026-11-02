@@ -35,7 +35,9 @@ def test_ex05_alternating_sign():
     c = ex_fit_constants(ex05_basis(), init)
     y = recursion_terms(EX05_RECURSION, init, 30)
     for n, yn in enumerate(y):
-        assert ex_evaluate(ex05_basis(), c, n) == pytest.approx(yn, rel=1e-9, abs=1e-9)
+        assert ex_evaluate(ex05_basis(), c, n) == pytest.approx(
+            yn, rel=1e-9, abs=1e-9
+        )
 
 
 def test_ex06_closed_form():
@@ -56,7 +58,9 @@ def test_ex07_closed_form():
     x = recursion_terms(EX07_RECURSION, EX07_INIT, 30)
     for n in range(30):
         assert x[n] == d[n] == ex07_closed_form(n)
-    assert list(ex07_constants()) == pytest.approx([-1.25, -0.5, 2.25], abs=1e-12)
+    assert list(ex07_constants()) == pytest.approx(
+        [-1.25, -0.5, 2.25], abs=1e-12
+    )
 
 
 def test_ex08_double_root():
@@ -70,6 +74,8 @@ def test_ex08_double_root():
         assert abs(r) == pytest.approx(1.7 * 9, abs=1e-12)
     b = [0.5, -1.2, 0.3, 2.0]
     for n in range(11):
-        assert ex08_residual(b, 0.8, -2.0, n) == pytest.approx(ex08_hint(b, 0.8, -2.0, n), abs=1e-12)
+        assert ex08_residual(b, 0.8, -2.0, n) == pytest.approx(
+            ex08_hint(b, 0.8, -2.0, n), abs=1e-12
+        )
     x = recursion_terms([-4.0, 0.0, 3.0], [0.0, 2.0, 8.0], 40)
     assert x == [n * 2.0**n for n in range(40)]

@@ -38,7 +38,11 @@ def ex07_discount(r: float, t: float, m: int) -> float:
 
 
 def ex07_discount_dr(r: float, t: float, m: int) -> float:
-    return -t * math.exp(-r * t) if m == 0 else -t * (1.0 + r / m) ** (-m * t - 1.0)
+    return (
+        -t * math.exp(-r * t)
+        if m == 0
+        else -t * (1.0 + r / m) ** (-m * t - 1.0)
+    )
 
 
 def ex07_bootstrap_compounded(quotes, m: int, freq: int = 2) -> ZeroCurve:
@@ -56,20 +60,34 @@ def ex07_bootstrap_compounded(quotes, m: int, freq: int = 2) -> ZeroCurve:
         c, t, w = [], [], []
         for ti, ci in zip(cf.times, cf.amounts):
             if not empty and ti <= T_last:
-                pv_known += ci * ex07_discount(zero_rate_linear(curve, ti), ti, m)
+                pv_known += ci * ex07_discount(
+                    zero_rate_linear(curve, ti), ti, m
+                )
             else:
                 c.append(ci)
                 t.append(ti)
                 w.append(1.0 if empty else (ti - T_last) / (T - T_last))
 
-        def f(x, c=c, t=t, w=w, pv_known=pv_known, r_last=r_last, price=bq.price):
-            pv = sum(ci * ex07_discount(r_last + (x - r_last) * wi, ti, m) for ci, ti, wi in zip(c, t, w))
+        def f(
+            x, c=c, t=t, w=w, pv_known=pv_known, r_last=r_last, price=bq.price
+        ):
+            pv = sum(
+                ci * ex07_discount(r_last + (x - r_last) * wi, ti, m)
+                for ci, ti, wi in zip(c, t, w)
+            )
             return pv_known + pv - price
 
         def df(x, c=c, t=t, w=w, r_last=r_last):
-            return sum(ci * wi * ex07_discount_dr(r_last + (x - r_last) * wi, ti, m) for ci, ti, wi in zip(c, t, w))
+            return sum(
+                ci * wi * ex07_discount_dr(r_last + (x - r_last) * wi, ti, m)
+                for ci, ti, wi in zip(c, t, w)
+            )
 
-        rates.append(newton(f, df, 0.05 if empty else r_last, Tolerances(1e-12, 1e-12, 100)).x)
+        rates.append(
+            newton(
+                f, df, 0.05 if empty else r_last, Tolerances(1e-12, 1e-12, 100)
+            ).x
+        )
         times.append(T)
     return ZeroCurve(np.array(times), np.array(rates))
 

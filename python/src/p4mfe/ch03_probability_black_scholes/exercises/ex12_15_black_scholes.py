@@ -46,14 +46,24 @@ def ex13_call_zero_strike(S: float, T: float, q: float = 0.0) -> float:
     return S * math.exp(-q * T)
 
 
-def ex14_rho_put_from_parity(S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
-    return bs_greeks(OptionType.CALL, S, K, T, sigma, r, q).rho - K * T * math.exp(-r * T)
+def ex14_rho_put_from_parity(
+    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
+    return bs_greeks(
+        OptionType.CALL, S, K, T, sigma, r, q
+    ).rho - K * T * math.exp(-r * T)
 
 
-def ex15_aon_call(S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+def ex15_aon_call(
+    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
     return S * math.exp(-q * T) * norm_cdf(bs_d1_d2(S, K, T, sigma, r, q)[0])
 
 
-def ex15_aon_delta(S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0) -> float:
+def ex15_aon_delta(
+    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+) -> float:
     d1 = bs_d1_d2(S, K, T, sigma, r, q)[0]
-    return math.exp(-q * T) * (norm_cdf(d1) + norm_pdf(d1) / (sigma * math.sqrt(T)))
+    return math.exp(-q * T) * (
+        norm_cdf(d1) + norm_pdf(d1) / (sigma * math.sqrt(T))
+    )

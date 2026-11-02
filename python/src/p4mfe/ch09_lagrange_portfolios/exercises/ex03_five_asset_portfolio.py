@@ -25,15 +25,23 @@ from p4mfe.ch09_lagrange_portfolios.portfolio import (
 
 @dataclass(frozen=True)
 class Ex03Data:
-    mu: np.ndarray = field(default_factory=lambda: np.array([0.08, 0.10, 0.13, 0.15, 0.20]))
-    sigma: np.ndarray = field(default_factory=lambda: np.array([0.14, 0.18, 0.23, 0.25, 0.35]))
-    corr: np.ndarray = field(default_factory=lambda: np.array([
-        [1.0, -0.3, 0.4, 0.25, -0.2],
-        [-0.3, 1.0, -0.1, -0.2, 0.15],
-        [0.4, -0.1, 1.0, 0.35, 0.25],
-        [0.25, -0.2, 0.35, 1.0, -0.15],
-        [-0.2, 0.15, 0.25, -0.15, 1.0],
-    ]))
+    mu: np.ndarray = field(
+        default_factory=lambda: np.array([0.08, 0.10, 0.13, 0.15, 0.20])
+    )
+    sigma: np.ndarray = field(
+        default_factory=lambda: np.array([0.14, 0.18, 0.23, 0.25, 0.35])
+    )
+    corr: np.ndarray = field(
+        default_factory=lambda: np.array(
+            [
+                [1.0, -0.3, 0.4, 0.25, -0.2],
+                [-0.3, 1.0, -0.1, -0.2, 0.15],
+                [0.4, -0.1, 1.0, 0.35, 0.25],
+                [0.25, -0.2, 0.35, 1.0, -0.15],
+                [-0.2, 0.15, 0.25, -0.15, 1.0],
+            ]
+        )
+    )
 
     def covariance(self) -> np.ndarray:
         return covariance_matrix(self.sigma, self.corr)
@@ -46,13 +54,17 @@ class Ex03Portfolio:
     std_dev: float
 
 
-def ex03_min_variance(target_mean: float = 0.15, d: Ex03Data = Ex03Data()) -> Ex03Portfolio:
+def ex03_min_variance(
+    target_mean: float = 0.15, d: Ex03Data = Ex03Data()
+) -> Ex03Portfolio:
     S = d.covariance()
     w = min_variance_portfolio(d.mu, S, target_mean)
     return Ex03Portfolio(w, portfolio_mean(w, d.mu), portfolio_std_dev(w, S))
 
 
-def ex03_max_return(target_std: float = 0.25, d: Ex03Data = Ex03Data()) -> Ex03Portfolio:
+def ex03_max_return(
+    target_std: float = 0.25, d: Ex03Data = Ex03Data()
+) -> Ex03Portfolio:
     S = d.covariance()
     w = max_return_portfolio(d.mu, S, target_std)
     return Ex03Portfolio(w, portfolio_mean(w, d.mu), portfolio_std_dev(w, S))

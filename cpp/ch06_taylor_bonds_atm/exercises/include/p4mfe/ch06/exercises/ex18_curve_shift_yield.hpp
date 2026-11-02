@@ -2,12 +2,11 @@
 // Exercise 18 (section 6.11): yield of a bond priced off a zero curve, and
 // how the yield moves under parallel shifts of the curve.
 
-#include <p4mfe/ch02/bonds.hpp>
-#include <p4mfe/ch06/yield_curve_shifts.hpp>
-
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <p4mfe/ch02/bonds.hpp>
+#include <p4mfe/ch06/yield_curve_shifts.hpp>
 
 namespace p4mfe::ch06::ex {
 
@@ -36,26 +35,30 @@ namespace p4mfe::ch06::ex {
 // years), and the shortfall grows linearly in dr. A flat curve would move the
 // yield by exactly dr (section 6.5).
 [[nodiscard]] inline double ex18_zero_rate(double t) {
-    return 0.025 + std::exp(-t / 100.0) / 100.0 + t / (100.0 * (t + 1.0));
+  return 0.025 + std::exp(-t / 100.0) / 100.0 + t / (100.0 * (t + 1.0));
 }
-[[nodiscard]] inline ch02::CashFlows ex18_cash_flows() { return ch02::bond_cash_flows(4.0, 0.06, 2); }
+[[nodiscard]] inline ch02::CashFlows ex18_cash_flows() {
+  return ch02::bond_cash_flows(4.0, 0.06, 2);
+}
 
 struct Ex18Result {
-    double price, yield;
+  double price, yield;
 };
 [[nodiscard]] inline Ex18Result ex18_solve() {
-    const auto cf = ex18_cash_flows();
-    const double B = ch02::bond_price_from_zero_rate(cf, ex18_zero_rate);
-    return {B, ch02::bond_yield(cf, B)};
+  const auto cf = ex18_cash_flows();
+  const double B = ch02::bond_price_from_zero_rate(cf, ex18_zero_rate);
+  return {B, ch02::bond_yield(cf, B)};
 }
 
-inline constexpr std::array<double, 5> ex18_shifts{0.001, 0.002, 0.005, 0.01, 0.02};
+inline constexpr std::array<double, 5> ex18_shifts{0.001, 0.002, 0.005, 0.01,
+                                                   0.02};
 
 [[nodiscard]] inline std::array<double, 5> ex18_yield_changes() {
-    const auto cf = ex18_cash_flows();
-    std::array<double, 5> out{};
-    for (std::size_t i = 0; i < out.size(); ++i) out[i] = yield_change_from_shift(cf, ex18_zero_rate, ex18_shifts[i]);
-    return out;
+  const auto cf = ex18_cash_flows();
+  std::array<double, 5> out{};
+  for (std::size_t i = 0; i < out.size(); ++i)
+    out[i] = yield_change_from_shift(cf, ex18_zero_rate, ex18_shifts[i]);
+  return out;
 }
 
 }  // namespace p4mfe::ch06::ex

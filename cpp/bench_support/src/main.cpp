@@ -10,8 +10,6 @@
 //
 // The counters are global atomics. Peak bytes are tracked across all threads,
 // which is what the (single-threaded) benchmarks need.
-#include <p4mfe/bench/tier.hpp>
-
 #include <benchmark/benchmark.h>
 
 #include <atomic>
@@ -20,6 +18,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <new>
+#include <p4mfe/bench/tier.hpp>
 #include <string>
 
 #if defined(_MSC_VER)
@@ -36,27 +35,30 @@ namespace {
 // ---------------------------------------------------------------- counters --
 
 struct HeapCounters {
-    std::atomic<std::int64_t> allocs{0};
-    std::atomic<std::int64_t> total_bytes{0};
-    std::atomic<std::int64_t> current_bytes{0};
-    std::atomic<std::int64_t> peak_bytes{0};
+  std::atomic<std::int64_t> allocs{0};
+  std::atomic<std::int64_t> total_bytes{0};
+  std::atomic<std::int64_t> current_bytes{0};
+  std::atomic<std::int64_t> peak_bytes{0};
 };
 
 // Constant-initialized, so usable before any dynamic initialization runs.
 constinit HeapCounters heap;
 
 void record_alloc(std::size_t n) noexcept {
-    const auto bytes = static_cast<std::int64_t>(n);
-    heap.allocs.fetch_add(1, std::memory_order_relaxed);
-    heap.total_bytes.fetch_add(bytes, std::memory_order_relaxed);
-    const std::int64_t now = heap.current_bytes.fetch_add(bytes, std::memory_order_relaxed) + bytes;
-    std::int64_t peak = heap.peak_bytes.load(std::memory_order_relaxed);
-    while (now > peak && !heap.peak_bytes.compare_exchange_weak(peak, now, std::memory_order_relaxed)) {
-    }
+  const auto bytes = static_cast<std::int64_t>(n);
+  heap.allocs.fetch_add(1, std::memory_order_relaxed);
+  heap.total_bytes.fetch_add(bytes, std::memory_order_relaxed);
+  const std::int64_t now =
+      heap.current_bytes.fetch_add(bytes, std::memory_order_relaxed) + bytes;
+  std::int64_t peak = heap.peak_bytes.load(std::memory_order_relaxed);
+  while (now > peak && !heap.peak_bytes.compare_exchange_weak(
+                           peak, now, std::memory_order_relaxed)) {
+  }
 }
 
 void record_free(std::size_t n) noexcept {
-    heap.current_bytes.fetch_sub(static_cast<std::int64_t>(n), std::memory_order_relaxed);
+  heap.current_bytes.fetch_sub(static_cast<std::int64_t>(n),
+                               std::memory_order_relaxed);
 }
 
 // Every block carries a header just before the returned pointer:
@@ -66,153 +68,174 @@ void record_free(std::size_t n) noexcept {
 constexpr std::size_t min_header = 2 * sizeof(std::size_t);
 
 void* counted_alloc(std::size_t n, std::size_t align) noexcept {
-    const std::size_t header = align > min_header ? align : min_header;
-    void* raw = nullptr;
-    if (align > alignof(std::max_align_t)) {
-        const std::size_t total = (n + header + align - 1) / align * align;
+  const std::size_t header = align > min_header ? align : min_header;
+  void* raw = nullptr;
+  if (align > alignof(std::max_align_t)) {
+    const std::size_t total = (n + header + align - 1) / align * align;
 #if defined(_MSC_VER)
-        raw = _aligned_malloc(total, align);
+    raw = _aligned_malloc(total, align);
 #else
-        raw = std::aligned_alloc(align, total);
+    raw = std::aligned_alloc(align, total);
 #endif
-    } else {
-        raw = std::malloc(n + header);
-    }
-    if (raw == nullptr) return nullptr;
-    auto* user = static_cast<unsigned char*>(raw) + header;
-    auto* meta = reinterpret_cast<std::size_t*>(user);
-    meta[-2] = header;
-    meta[-1] = n;
-    record_alloc(n);
-    return user;
+  } else {
+    raw = std::malloc(n + header);
+  }
+  if (raw == nullptr) return nullptr;
+  auto* user = static_cast<unsigned char*>(raw) + header;
+  auto* meta = reinterpret_cast<std::size_t*>(user);
+  meta[-2] = header;
+  meta[-1] = n;
+  record_alloc(n);
+  return user;
 }
 
 void counted_free(void* p, std::size_t align) noexcept {
-    if (p == nullptr) return;
-    auto* meta = static_cast<std::size_t*>(p);
-    const std::size_t header = meta[-2];
-    record_free(meta[-1]);
-    void* raw = static_cast<unsigned char*>(p) - header;
+  if (p == nullptr) return;
+  auto* meta = static_cast<std::size_t*>(p);
+  const std::size_t header = meta[-2];
+  record_free(meta[-1]);
+  void* raw = static_cast<unsigned char*>(p) - header;
 #if defined(_MSC_VER)
-    if (align > alignof(std::max_align_t)) {
-        _aligned_free(raw);
-        return;
-    }
+  if (align > alignof(std::max_align_t)) {
+    _aligned_free(raw);
+    return;
+  }
 #else
-    (void)align;
+  (void)align;
 #endif
-    std::free(raw);
+  std::free(raw);
 }
 
 void* counted_new(std::size_t n, std::size_t align) {
-    if (n == 0) n = 1;
-    for (;;) {
-        if (void* p = counted_alloc(n, align)) return p;
-        std::new_handler h = std::get_new_handler();
-        if (h == nullptr) throw std::bad_alloc();
-        h();
-    }
+  if (n == 0) n = 1;
+  for (;;) {
+    if (void* p = counted_alloc(n, align)) return p;
+    std::new_handler h = std::get_new_handler();
+    if (h == nullptr) throw std::bad_alloc();
+    h();
+  }
 }
 
 // ------------------------------------------------------- memory manager ----
 
 class CountingMemoryManager final : public benchmark::MemoryManager {
-public:
-    void Start() override {
-        allocs0_ = heap.allocs.load();
-        total0_ = heap.total_bytes.load();
-        current0_ = heap.current_bytes.load();
-        heap.peak_bytes.store(current0_);
-    }
-    void Stop(Result& r) override {
-        r.num_allocs = heap.allocs.load() - allocs0_;
-        r.total_allocated_bytes = heap.total_bytes.load() - total0_;
-        r.max_bytes_used = heap.peak_bytes.load() - current0_;
-        r.net_heap_growth = heap.current_bytes.load() - current0_;
-    }
+ public:
+  void Start() override {
+    allocs0_ = heap.allocs.load();
+    total0_ = heap.total_bytes.load();
+    current0_ = heap.current_bytes.load();
+    heap.peak_bytes.store(current0_);
+  }
+  void Stop(Result& r) override {
+    r.num_allocs = heap.allocs.load() - allocs0_;
+    r.total_allocated_bytes = heap.total_bytes.load() - total0_;
+    r.max_bytes_used = heap.peak_bytes.load() - current0_;
+    r.net_heap_growth = heap.current_bytes.load() - current0_;
+  }
 
-private:
-    std::int64_t allocs0_ = 0, total0_ = 0, current0_ = 0;
+ private:
+  std::int64_t allocs0_ = 0, total0_ = 0, current0_ = 0;
 };
 
 const char* compiler_id() {
 #if defined(__clang__)
-    return "clang " __clang_version__;
+  return "clang " __clang_version__;
 #elif defined(__GNUC__)
-    return "gcc " __VERSION__;
+  return "gcc " __VERSION__;
 #elif defined(_MSC_VER)
-    static const std::string s = "msvc " + std::to_string(_MSC_FULL_VER);
-    return s.c_str();
+  static const std::string s = "msvc " + std::to_string(_MSC_FULL_VER);
+  return s.c_str();
 #else
-    return "unknown";
+  return "unknown";
 #endif
 }
 
 }  // namespace
 
-// ------------------------------------------- replacement operator new/delete --
+// ------------------------------------------- replacement operator new/delete
+// --
 
 void* operator new(std::size_t n) { return counted_new(n, 0); }
 void* operator new[](std::size_t n) { return counted_new(n, 0); }
-void* operator new(std::size_t n, std::align_val_t a) { return counted_new(n, static_cast<std::size_t>(a)); }
-void* operator new[](std::size_t n, std::align_val_t a) { return counted_new(n, static_cast<std::size_t>(a)); }
-void* operator new(std::size_t n, const std::nothrow_t&) noexcept { return counted_alloc(n ? n : 1, 0); }
-void* operator new[](std::size_t n, const std::nothrow_t&) noexcept { return counted_alloc(n ? n : 1, 0); }
-void* operator new(std::size_t n, std::align_val_t a, const std::nothrow_t&) noexcept {
-    return counted_alloc(n ? n : 1, static_cast<std::size_t>(a));
+void* operator new(std::size_t n, std::align_val_t a) {
+  return counted_new(n, static_cast<std::size_t>(a));
 }
-void* operator new[](std::size_t n, std::align_val_t a, const std::nothrow_t&) noexcept {
-    return counted_alloc(n ? n : 1, static_cast<std::size_t>(a));
+void* operator new[](std::size_t n, std::align_val_t a) {
+  return counted_new(n, static_cast<std::size_t>(a));
+}
+void* operator new(std::size_t n, const std::nothrow_t&) noexcept {
+  return counted_alloc(n ? n : 1, 0);
+}
+void* operator new[](std::size_t n, const std::nothrow_t&) noexcept {
+  return counted_alloc(n ? n : 1, 0);
+}
+void* operator new(std::size_t n, std::align_val_t a,
+                   const std::nothrow_t&) noexcept {
+  return counted_alloc(n ? n : 1, static_cast<std::size_t>(a));
+}
+void* operator new[](std::size_t n, std::align_val_t a,
+                     const std::nothrow_t&) noexcept {
+  return counted_alloc(n ? n : 1, static_cast<std::size_t>(a));
 }
 
 void operator delete(void* p) noexcept { counted_free(p, 0); }
 void operator delete[](void* p) noexcept { counted_free(p, 0); }
 void operator delete(void* p, std::size_t) noexcept { counted_free(p, 0); }
 void operator delete[](void* p, std::size_t) noexcept { counted_free(p, 0); }
-void operator delete(void* p, std::align_val_t a) noexcept { counted_free(p, static_cast<std::size_t>(a)); }
-void operator delete[](void* p, std::align_val_t a) noexcept { counted_free(p, static_cast<std::size_t>(a)); }
+void operator delete(void* p, std::align_val_t a) noexcept {
+  counted_free(p, static_cast<std::size_t>(a));
+}
+void operator delete[](void* p, std::align_val_t a) noexcept {
+  counted_free(p, static_cast<std::size_t>(a));
+}
 void operator delete(void* p, std::size_t, std::align_val_t a) noexcept {
-    counted_free(p, static_cast<std::size_t>(a));
+  counted_free(p, static_cast<std::size_t>(a));
 }
 void operator delete[](void* p, std::size_t, std::align_val_t a) noexcept {
-    counted_free(p, static_cast<std::size_t>(a));
+  counted_free(p, static_cast<std::size_t>(a));
 }
-void operator delete(void* p, const std::nothrow_t&) noexcept { counted_free(p, 0); }
-void operator delete[](void* p, const std::nothrow_t&) noexcept { counted_free(p, 0); }
-void operator delete(void* p, std::align_val_t a, const std::nothrow_t&) noexcept {
-    counted_free(p, static_cast<std::size_t>(a));
+void operator delete(void* p, const std::nothrow_t&) noexcept {
+  counted_free(p, 0);
 }
-void operator delete[](void* p, std::align_val_t a, const std::nothrow_t&) noexcept {
-    counted_free(p, static_cast<std::size_t>(a));
+void operator delete[](void* p, const std::nothrow_t&) noexcept {
+  counted_free(p, 0);
+}
+void operator delete(void* p, std::align_val_t a,
+                     const std::nothrow_t&) noexcept {
+  counted_free(p, static_cast<std::size_t>(a));
+}
+void operator delete[](void* p, std::align_val_t a,
+                       const std::nothrow_t&) noexcept {
+  counted_free(p, static_cast<std::size_t>(a));
 }
 
 // ------------------------------------------------------------------ main ----
 
 int main(int argc, char** argv) {
-    const auto tier = p4mfe::bench::tier();  // validates P4MFE_BENCH_TIER early
-    benchmark::AddCustomContext("p4mfe_tier", p4mfe::bench::tier_name(tier));
-    benchmark::AddCustomContext("p4mfe_build_type", P4MFE_BUILD_TYPE);
-    benchmark::AddCustomContext("p4mfe_compiler", compiler_id());
+  const auto tier = p4mfe::bench::tier();  // validates P4MFE_BENCH_TIER early
+  benchmark::AddCustomContext("p4mfe_tier", p4mfe::bench::tier_name(tier));
+  benchmark::AddCustomContext("p4mfe_build_type", P4MFE_BUILD_TYPE);
+  benchmark::AddCustomContext("p4mfe_compiler", compiler_id());
 
-    benchmark::Initialize(&argc, argv);
-    if (benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
+  benchmark::Initialize(&argc, argv);
+  if (benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
 
-    static CountingMemoryManager mm;
-    benchmark::RegisterMemoryManager(&mm);
-    benchmark::RunSpecifiedBenchmarks();
-    benchmark::RegisterMemoryManager(nullptr);
-    benchmark::Shutdown();
+  static CountingMemoryManager mm;
+  benchmark::RegisterMemoryManager(&mm);
+  benchmark::RunSpecifiedBenchmarks();
+  benchmark::RegisterMemoryManager(nullptr);
+  benchmark::Shutdown();
 
 #if defined(P4MFE_HAVE_GETRUSAGE)
-    rusage ru{};
-    if (getrusage(RUSAGE_SELF, &ru) == 0) {
+  rusage ru{};
+  if (getrusage(RUSAGE_SELF, &ru) == 0) {
 #if defined(__APPLE__)
-        const long kb = static_cast<long>(ru.ru_maxrss / 1024);  // bytes on macOS
+    const long kb = static_cast<long>(ru.ru_maxrss / 1024);  // bytes on macOS
 #else
-        const long kb = static_cast<long>(ru.ru_maxrss);  // kilobytes on Linux
+    const long kb = static_cast<long>(ru.ru_maxrss);  // kilobytes on Linux
 #endif
-        std::fprintf(stderr, "p4mfe peak_rss_kb: %ld\n", kb);
-    }
+    std::fprintf(stderr, "p4mfe peak_rss_kb: %ld\n", kb);
+  }
 #endif
-    return 0;
+  return 0;
 }

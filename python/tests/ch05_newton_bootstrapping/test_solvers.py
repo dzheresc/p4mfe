@@ -13,7 +13,11 @@ def _observed_order(xs, root):
 def test_all_three_find_sqrt2():
     f, df = (lambda x: x * x - 2), (lambda x: 2 * x)
     tol = Tolerances(1e-12, 1e-12)
-    b, n, s = bisection(f, 1, 2, tol), newton(f, df, 1, tol), secant(f, 2, 1, tol)
+    b, n, s = (
+        bisection(f, 1, 2, tol),
+        newton(f, df, 1, tol),
+        secant(f, 2, 1, tol),
+    )
     for x in (b.x, n.x, s.x):
         assert x == pytest.approx(math.sqrt(2), abs=1e-12)
     assert n.iterations < s.iterations < b.iterations
@@ -29,15 +33,23 @@ def test_bisection_halves_the_bracket():
 
 def test_both_stopping_criteria_must_hold():
     f = lambda x: 1e-6 * (x - 1)  # noqa: E731
-    assert newton(f, lambda x: 1e-6, 3.0, Tolerances(1e-3, 1e-12)).x == pytest.approx(1, abs=1e-12)
-    assert bisection(f, 0, 3, Tolerances(1e-3, 1e-9)).x == pytest.approx(1, abs=1e-9)
+    assert newton(
+        f, lambda x: 1e-6, 3.0, Tolerances(1e-3, 1e-12)
+    ).x == pytest.approx(1, abs=1e-12)
+    assert bisection(f, 0, 3, Tolerances(1e-3, 1e-9)).x == pytest.approx(
+        1, abs=1e-9
+    )
 
 
 def test_convergence_orders():
     f, root = (lambda x: math.exp(x) - 2), math.log(2)
     tol = Tolerances(1e-15, 1e-15)
-    assert _observed_order(newton(f, math.exp, 2.0, tol).iterates, root) == pytest.approx(2, abs=0.1)
-    assert _observed_order(secant(f, 2.1, 2.0, tol).iterates, root) == pytest.approx(1.618, abs=0.15)
+    assert _observed_order(
+        newton(f, math.exp, 2.0, tol).iterates, root
+    ) == pytest.approx(2, abs=0.1)
+    assert _observed_order(
+        secant(f, 2.1, 2.0, tol).iterates, root
+    ) == pytest.approx(1.618, abs=0.15)
 
 
 def test_quartic_with_logistic_term():

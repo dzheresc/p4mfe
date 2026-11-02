@@ -48,3 +48,16 @@ jobs:
         run: pip install -e "python[dev]"
       - name: Test
         run: pytest python
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install formatters
+        run: pip install clang-format==18.1.3 "pyink==26.5.1"
+      - name: C++ (clang-format, Google style)
+        run: git ls-files 'cpp/*.hpp' 'cpp/*.cpp' | xargs clang-format --dry-run --Werror
+      - name: Python (pyink, Google style)
+        run: pyink --config python/pyproject.toml --check python tools
