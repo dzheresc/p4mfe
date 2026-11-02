@@ -14,6 +14,20 @@ git ls-files 'cpp/*.hpp' 'cpp/*.cpp' | xargs clang-format -i   # .clang-format, 
 pyink --config python/pyproject.toml python tools               # [tool.pyink] in python/pyproject.toml
 ```
 
+Naming is enforced by the `naming` CI job (C++: `.clang-tidy`,
+`readability-identifier-naming` with Google rules; Python: ruff's pep8-naming
+rules in `[tool.ruff.lint]`). Check locally with:
+
+```sh
+cmake -S . -B build/tidy -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DP4MFE_BUILD_BENCHMARKS=ON -DCMAKE_CXX_COMPILER=clang++
+run-clang-tidy-18 -p build/tidy -quiet "$PWD/cpp/"            # clang-tidy 18
+ruff check --config python/pyproject.toml python tools
+```
+
+Book symbols (S, K, T, sigma_P, ...) stay in comments; in code use descriptive
+lower_case names (`spot`, `strike`, `maturity`), and give a function a verb
+(`ComputeX`, `MakeX`, `GetX`) when its CamelCase name would equal a type name.
+
 ## Performance work (C++)
 
 The plan is [docs/performance-testing-plan.md](docs/performance-testing-plan.md).
