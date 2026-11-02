@@ -14,8 +14,8 @@
 #include <cmath>
 #include <concepts>
 #include <cstddef>
-#include <optional>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 namespace p4mfe::ch02 {
@@ -40,6 +40,8 @@ struct CashFlows {
     if (coupon != 0.0) {
         // Number of coupon dates in (0, T]; the small slack absorbs rounding in T*freq.
         const auto k = static_cast<std::size_t>(std::ceil(T * freq - 1e-9));
+        cf.times.reserve(k);
+        cf.amounts.reserve(k);
         for (std::size_t i = k; i >= 1; --i) {
             cf.times.push_back(T - static_cast<double>(i - 1) * dt);
             cf.amounts.push_back(coupon);
@@ -204,27 +206,33 @@ struct ZeroCurve {
 [[nodiscard]] inline ZeroCurve bootstrap_zero_rates(std::vector<BondQuote> quotes, int freq, double face = 100.0) {
     std::sort(quotes.begin(), quotes.end(),
               [](const BondQuote& a, const BondQuote& b) { return a.maturity < b.maturity; });
+    // Quotes are sorted by maturity, so `times` grows in increasing order and
+    // each bond's coupon dates can be matched with one forward scan instead
+    // of a linear search per date (O(N^2) overall instead of O(N^3)).
+    constexpr double kTimeTolerance = 1e-9;
     std::vector<double> times, discounts;
-    const auto known = [&](double t) -> std::optional<double> {
-        for (std::size_t j = 0; j < times.size(); ++j)
-            if (std::abs(times[j] - t) < 1e-9) return discounts[j];
-        return std::nullopt;
-    };
+    times.reserve(quotes.size());
+    discounts.reserve(quotes.size());
     for (const auto& q : quotes) {
         const auto cf = bond_cash_flows(q.maturity, q.coupon_rate, freq, face);
         double pv = 0.0;
+        std::size_t known = 0;  // first earlier maturity not before the coupon date
         for (std::size_t i = 0; i + 1 < cf.times.size(); ++i) {
-            const auto d = known(cf.times[i]);
-            if (!d) throw std::invalid_argument("bootstrap_zero_rates: a coupon date has no earlier bond");
-            pv += cf.amounts[i] * *d;
+            const double t = cf.times[i];
+            while (known < times.size() && times[known] < t - kTimeTolerance) ++known;
+            if (known == times.size() || std::abs(times[known] - t) >= kTimeTolerance)
+                throw std::invalid_argument("bootstrap_zero_rates: a coupon date has no earlier bond");
+            pv += cf.amounts[i] * discounts[known];
         }
-        if (known(q.maturity)) throw std::invalid_argument("bootstrap_zero_rates: duplicate maturity");
+        if (!times.empty() && std::abs(times.back() - q.maturity) < kTimeTolerance)
+            throw std::invalid_argument("bootstrap_zero_rates: duplicate maturity");
         times.push_back(q.maturity);
         discounts.push_back((q.price - pv) / cf.amounts.back());
     }
     ZeroCurve curve;
-    curve.times = times;
+    curve.rates.reserve(times.size());
     for (std::size_t j = 0; j < times.size(); ++j) curve.rates.push_back(zero_rate_from_discount(discounts[j], times[j]));
+    curve.times = std::move(times);
     return curve;
 }
 
