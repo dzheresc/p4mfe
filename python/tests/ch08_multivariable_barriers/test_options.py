@@ -25,11 +25,14 @@ from p4mfe.ch08_multivariable_barriers.early_exercise import (
 )
 from p4mfe.ch08_multivariable_barriers.heat_equation import (
     bs_from_heat,
+    bs_heat_crank_nicolson,
     bs_heat_fd,
     bs_price_via_heat,
+    european_heat_crank_nicolson,
     european_heat_fd,
     heat_from_bs,
     heat_transform,
+    solve_heat_crank_nicolson,
     solve_heat_explicit,
     to_heat_variables,
 )
@@ -161,6 +164,72 @@ def test_heat_fd():
     assert g.alpha > 0.5 and abs(g.u[20]) > 1e3
 
 
+def test_heat_crank_nicolson_agrees_with_explicit():
+    strike, maturity, sigma, r, q = 40, 0.5, 0.25, 0.05, 0.02
+    for option_type in OptionType:
+        for spot in (35.0, 40.0, 46.0):
+            cn = european_heat_crank_nicolson(
+                option_type, spot, strike, maturity, sigma, r, q
+            )
+            assert cn == pytest.approx(
+                bs_price(option_type, spot, strike, maturity, sigma, r, q),
+                abs=2e-3,
+            )
+            assert cn == pytest.approx(
+                european_heat_fd(
+                    option_type, spot, strike, maturity, sigma, r, q
+                ),
+                abs=2e-3,
+            )
+    # O(dx^2) at the money, where the kink sits on a grid node.
+    exact = bs_call(strike, strike, maturity, sigma, r, q)
+
+    def error(nx):
+        return abs(
+            european_heat_crank_nicolson(
+                OptionType.CALL, strike, strike, maturity, sigma, r, q, nx
+            )
+            - exact
+        )
+
+    assert error(100) / error(800) > 40
+
+
+def test_heat_crank_nicolson_grid():
+    tau_final = 0.05
+
+    def u0(x):
+        return np.sin(math.pi * x)
+
+    ex = solve_heat_explicit(
+        u0, lambda t: 0.0, lambda t: 0.0, 0, 1, tau_final, 50, 500
+    )
+    cn = solve_heat_crank_nicolson(
+        u0, lambda t: 0.0, lambda t: 0.0, 0, 1, tau_final, 50, 50
+    )
+    assert np.array_equal(cn.x, ex.x)
+    exact = math.exp(-math.pi**2 * tau_final) * u0(cn.x)
+    assert np.max(np.abs(cn.u - exact)) < 2e-4
+    assert np.max(np.abs(cn.u - ex.u)) < 2e-4
+    # Bounded where the explicit scheme blows up (alpha > 1/2).
+    g = solve_heat_crank_nicolson(
+        lambda x: np.maximum(x, 0.0),
+        lambda t: 0.0,
+        lambda t: 1.0,
+        -1,
+        1,
+        0.1,
+        40,
+        20,
+    )
+    assert g.alpha > 0.5
+    assert np.all(g.u >= -1e-12) and np.all(g.u <= 1 + 1e-12)
+    with pytest.raises(ValueError):
+        solve_heat_crank_nicolson(
+            u0, lambda t: 0.0, lambda t: 0.0, 0, 1, 0.1, 1, 10
+        )
+
+
 # 8.9 -----------------------------------------------------------------------
 @pytest.mark.parametrize("barrier", [80.0, 95.0, 110.0])
 def test_down_and_out_call(barrier):
@@ -201,6 +270,23 @@ def test_down_and_out_call(barrier):
             600,
         )
         assert fd == pytest.approx(out, abs=5e-3)
+        cn = bs_heat_crank_nicolson(
+            lambda s: np.where(s > barrier, np.maximum(s - strike, 0.0), 0.0),
+            lambda th: 0.0,
+            lambda th: spot_max * math.exp(-q * th)
+            - strike * math.exp(-r * th),
+            spot,
+            strike,
+            maturity,
+            sigma,
+            r,
+            q,
+            barrier,
+            spot_max,
+            600,
+        )
+        assert cn == pytest.approx(out, abs=5e-3)
+        assert cn == pytest.approx(fd, abs=5e-3)
     assert (
         down_and_out_call(barrier, strike, barrier, maturity, sigma, r, q) == 0
     )

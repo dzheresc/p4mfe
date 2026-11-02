@@ -11,7 +11,8 @@ Mirrors ``cpp/ch08_multivariable_barriers``:
                                      the risk-neutral integral
 - ``box_muller``        8.7          Box-Muller normals
 - ``heat_equation``     8.8          Black-Scholes to the heat equation, heat
-                                     kernel and explicit finite differences
+                                     kernel, explicit finite differences and
+                                     Crank-Nicolson
 - ``barrier``           8.9          knock-out/knock-in by the method of images
 - ``early_exercise``    8.10         binomial American vs. European prices
 """
