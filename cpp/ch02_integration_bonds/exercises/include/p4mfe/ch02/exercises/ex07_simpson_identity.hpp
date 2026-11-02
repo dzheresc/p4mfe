@@ -27,9 +27,9 @@ namespace p4mfe::ch02::ex {
 
 // (2/3) M_n + (1/3) T_n, to compare with simpson_rule(f, a, b, n).
 template <std::invocable<double> F>
-[[nodiscard]] double ex07_simpson_from_mt(F&& f, double a, double b,
-                                          std::size_t n) {
-  return (2.0 * midpoint_rule(f, a, b, n) + trapezoidal_rule(f, a, b, n)) / 3.0;
+[[nodiscard]] double Ex07SimpsonFromMt(F&& f, double a, double b,
+                                       std::size_t n) {
+  return (2.0 * MidpointRule(f, a, b, n) + TrapezoidalRule(f, a, b, n)) / 3.0;
 }
 
 }  // namespace p4mfe::ch02::ex

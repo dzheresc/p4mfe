@@ -21,8 +21,8 @@ namespace p4mfe::ch02::ex {
 //   = 92.9839, D = (1/B) sum t_i c_i e^(-0.09 t_i) = 2.352418, C = (1/B) sum
 //   t_i^2 c_i e^(-0.09 t_i) = 5.736739.
 // The bond trades below par since its 6% coupon is under the 9% yield.
-[[nodiscard]] inline BondMetrics ex14_metrics() {
-  return bond_metrics(bond_cash_flows(2.5, 0.06, 2), 0.09);
+[[nodiscard]] inline BondMetrics Ex14Metrics() {
+  return ComputeBondMetrics(BondCashFlows(2.5, 0.06, 2), 0.09);
 }
 
 // ----------------------------------------------------------- Exercise 15 ---
@@ -35,8 +35,8 @@ namespace p4mfe::ch02::ex {
 //   B = 101.7049,  D = 1.118911,  C = 1.285705.
 // (B is the full price, which includes the interest accrued since the last
 // coupon date one month ago.)
-[[nodiscard]] inline BondMetrics ex15_metrics() {
-  return bond_metrics(bond_cash_flows(14.0 / 12.0, 0.08, 4), 0.07);
+[[nodiscard]] inline BondMetrics Ex15Metrics() {
+  return ComputeBondMetrics(BondCashFlows(14.0 / 12.0, 0.08, 4), 0.07);
 }
 
 // ----------------------------------------------------------- Exercise 16 ---
@@ -59,9 +59,10 @@ namespace p4mfe::ch02::ex {
 // coupons alone. Financially: a bond paying more of its value sooner is less
 // exposed to the yield, since less of its value sits at long maturities where
 // a yield change compounds over more years.
-[[nodiscard]] inline BondMetrics ex16_metrics(double T, double coupon_rate,
-                                              int freq, double y) {
-  return bond_metrics(bond_cash_flows(T, coupon_rate, freq), y);
+[[nodiscard]] inline BondMetrics Ex16Metrics(double maturity,
+                                             double coupon_rate, int freq,
+                                             double y) {
+  return ComputeBondMetrics(BondCashFlows(maturity, coupon_rate, freq), y);
 }
 
 // ----------------------------------------------------------- Exercise 17 ---
@@ -73,14 +74,14 @@ namespace p4mfe::ch02::ex {
 // and with convexity -D dy + C dy^2/2 = -1% + 0.005% = -0.995%. The exact
 // relative change is e^(-10 * 0.001) - 1 = -0.9950%. So the price drops by
 // about 1% (0.995% exactly), whatever the current yield.
-inline constexpr double ex17_duration_estimate = -0.01;
-[[nodiscard]] inline double ex17_exact_relative_change(double T = 10.0,
-                                                       double dy = 0.001) {
-  return std::expm1(-T * dy);
-}
-[[nodiscard]] inline double ex17_convexity_estimate(double T = 10.0,
+inline constexpr double kEx17DurationEstimate = -0.01;
+[[nodiscard]] inline double Ex17ExactRelativeChange(double maturity = 10.0,
                                                     double dy = 0.001) {
-  return -T * dy + 0.5 * T * T * dy * dy;
+  return std::expm1(-maturity * dy);
+}
+[[nodiscard]] inline double Ex17ConvexityEstimate(double maturity = 10.0,
+                                                  double dy = 0.001) {
+  return -maturity * dy + 0.5 * maturity * maturity * dy * dy;
 }
 
 // ----------------------------------------------------------- Exercise 18 ---
@@ -91,9 +92,10 @@ inline constexpr double ex17_duration_estimate = -0.01;
 //   B(y + dy) ~ B (1 - D dy) = 102 (1 + 3.5 * 0.005) = 103.785.
 // The true value is a little higher, since convexity adds B C dy^2 / 2 > 0
 // (for example C ~ 15 would add about 0.019).
-[[nodiscard]] inline double ex18_new_price(double B = 102.0, double D = 3.5,
-                                           double dy = -0.005) {
-  return price_approx_duration(B, D, dy);
+[[nodiscard]] inline double Ex18NewPrice(double price = 102.0,
+                                         double duration = 3.5,
+                                         double dy = -0.005) {
+  return PriceApproxDuration(price, duration, dy);
 }
 
 // ----------------------------------------------------------- Exercise 19 ---
@@ -107,9 +109,9 @@ inline constexpr double ex17_duration_estimate = -0.01;
 // value weights, and duration falls as the yield rises.)
 
 // dD/dy by a central difference, to check the identity numerically.
-[[nodiscard]] inline double ex19_duration_slope(const CashFlows& cf, double y,
-                                                double h = 1e-5) {
-  return (bond_duration(cf, y + h) - bond_duration(cf, y - h)) / (2.0 * h);
+[[nodiscard]] inline double Ex19DurationSlope(const CashFlows& cf, double y,
+                                              double h = 1e-5) {
+  return (BondDuration(cf, y + h) - BondDuration(cf, y - h)) / (2.0 * h);
 }
 
 }  // namespace p4mfe::ch02::ex

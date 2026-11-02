@@ -18,17 +18,17 @@ TEST(Ch05Ex01, YieldDurationConvexity) {
   EXPECT_NEAR(r.convexity, 22.573118, 5e-7);
   // Independent checks: the yield reprices the bond; D and C are the
   // first two (scaled) derivatives of B(y), by finite differences.
-  const auto cf = ch02::bond_cash_flows(5.0, 0.03375, 2);
+  const auto cf = ch02::BondCashFlows(5.0, 0.03375, 2);
   const double B = 100.0 + 1.0 / 32.0;
-  EXPECT_NEAR(ch02::bond_price(cf, r.yield), B, 1e-10);
+  EXPECT_NEAR(ch02::BondPrice(cf, r.yield), B, 1e-10);
   const double h = 1e-4;
-  const double Bp = ch02::bond_price(cf, r.yield + h),
-               Bm = ch02::bond_price(cf, r.yield - h);
+  const double Bp = ch02::BondPrice(cf, r.yield + h),
+               Bm = ch02::BondPrice(cf, r.yield - h);
   EXPECT_NEAR(-(Bp - Bm) / (2 * h) / B, r.duration, 1e-6);
   EXPECT_NEAR((Bp - 2 * B + Bm) / (h * h) / B, r.convexity, 1e-4);
   // Agrees with the bisection and secant yields and with chapter 2.
   EXPECT_NEAR(bond_yield_bisection(cf, B).x, r.yield, 1e-10);
-  EXPECT_NEAR(ch02::bond_yield(cf, B), r.yield, 1e-10);
+  EXPECT_NEAR(ch02::BondYield(cf, B), r.yield, 1e-10);
 }
 
 TEST(Ch05Ex02, BondOffZeroCurve) {
@@ -46,11 +46,11 @@ TEST(Ch05Ex02, BondOffZeroCurve) {
   EXPECT_NEAR(r.price, B, 1e-12);
   // Both yields reprice the bond; modified duration is -(1/B) dB/dy_2.
   const auto cf = ex02_cash_flows();
-  EXPECT_NEAR(ch02::bond_price(cf, r.yield), B, 1e-10);
-  EXPECT_NEAR(ch02::bond_price_discrete(cf, r.yield_semiannual, 2), B, 1e-10);
+  EXPECT_NEAR(ch02::BondPrice(cf, r.yield), B, 1e-10);
+  EXPECT_NEAR(ch02::BondPriceDiscrete(cf, r.yield_semiannual, 2), B, 1e-10);
   const double h = 1e-5;
-  const double dB = (ch02::bond_price_discrete(cf, r.yield_semiannual + h, 2) -
-                     ch02::bond_price_discrete(cf, r.yield_semiannual - h, 2)) /
+  const double dB = (ch02::BondPriceDiscrete(cf, r.yield_semiannual + h, 2) -
+                     ch02::BondPriceDiscrete(cf, r.yield_semiannual - h, 2)) /
                     (2 * h);
   EXPECT_NEAR(-dB / B, r.modified_duration_semiannual, 1e-7);
 }

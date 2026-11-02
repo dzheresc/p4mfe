@@ -65,8 +65,8 @@ template <std::invocable<double> G>
 template <std::invocable<double> Pdf>
 struct ContinuousDistribution {
   Pdf pdf;
-  double a = -ch02::infinity;
-  double b = ch02::infinity;
+  double a = -ch02::kInfinity;
+  double b = ch02::kInfinity;
 };
 template <class Pdf>
 ContinuousDistribution(Pdf, double, double) -> ContinuousDistribution<Pdf>;
@@ -81,7 +81,7 @@ template <class Pdf, std::invocable<double> G>
     const double p = d.pdf(x);
     return p == 0.0 ? 0.0 : g(x) * p;
   };
-  return ch02::improper_integral(integrand, d.a, d.b, tol).value;
+  return ch02::ImproperIntegral(integrand, d.a, d.b, tol).value;
 }
 template <class Pdf>
 [[nodiscard]] double mean(const ContinuousDistribution<Pdf>& d,
@@ -100,7 +100,7 @@ template <class Pdf>
                          double tol = 1e-9) {
   if (t <= d.a) return 0.0;
   if (t >= d.b) return 1.0;
-  return ch02::improper_integral(d.pdf, d.a, t, tol).value;
+  return ch02::ImproperIntegral(d.pdf, d.a, t, tol).value;
 }
 
 // Exponential distribution with parameter lambda: f(x) = lambda e^(-lambda x),
@@ -113,7 +113,7 @@ template <class Pdf>
       [lambda](double x) {
         return x < 0.0 ? 0.0 : lambda * std::exp(-lambda * x);
       },
-      0.0, ch02::infinity};
+      0.0, ch02::kInfinity};
 }
 
 // -------------------------------------------------------------- 3.2.1 ------

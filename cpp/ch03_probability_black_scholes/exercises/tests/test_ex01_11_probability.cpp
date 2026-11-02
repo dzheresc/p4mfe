@@ -99,7 +99,7 @@ TEST(Ch03Ex08, NormalAbsoluteMoment) {
        {std::pair{0.0, 1.0}, std::pair{1.5, 0.7}, std::pair{-2.0, 3.0}}) {
     const ContinuousDistribution n{
         [mu, sigma](double x) { return normal_pdf(x, mu, sigma); },
-        -p4mfe::ch02::infinity, p4mfe::ch02::infinity};
+        -p4mfe::ch02::kInfinity, p4mfe::ch02::kInfinity};
     EXPECT_NEAR(ex08_mean_abs(mu, sigma),
                 expected_value(n, [](double x) { return std::abs(x); }), 1e-7);
     EXPECT_NEAR(ex08_second_moment(mu, sigma),

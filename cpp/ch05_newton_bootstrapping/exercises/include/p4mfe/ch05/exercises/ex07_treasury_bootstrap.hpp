@@ -86,7 +86,7 @@ struct Ex07Quotes {
             });
   ch02::ZeroCurve curve;
   for (const auto& bq : quotes) {
-    const auto cf = ch02::bond_cash_flows(bq.maturity, bq.coupon_rate, freq);
+    const auto cf = ch02::BondCashFlows(bq.maturity, bq.coupon_rate, freq);
     const double T = bq.maturity;
     const bool empty = curve.times.empty();
     const double T_last = empty ? 0.0 : curve.times.back();

@@ -14,7 +14,7 @@ int main() {
   using namespace p4mfe::ch05;
 
   // 5.3: 3-year semiannual 6% bond at 101.
-  const auto cf = ch02::bond_cash_flows(3.0, 0.06, 2);
+  const auto cf = ch02::BondCashFlows(3.0, 0.06, 2);
   const auto yn = bond_yield_newton(cf, 101.0);
   const auto ys = bond_yield_secant(cf, 101.0);
   const auto yb = bond_yield_bisection(cf, 101.0);
@@ -43,9 +43,9 @@ int main() {
     std::printf("%8.2f  %10.6f\n", curve.times[j], curve.rates[j]);
   std::printf("\nRepricing check:\n");
   for (const auto& q : quotes) {
-    const auto c = ch02::bond_cash_flows(q.maturity, q.coupon_rate, 2);
+    const auto c = ch02::BondCashFlows(q.maturity, q.coupon_rate, 2);
     std::printf("  T = %.1f  quote %.4f  model %.10f\n", q.maturity, q.price,
-                ch02::bond_price_from_zero_rate(
+                ch02::BondPriceFromZeroRate(
                     c, [&](double t) { return zero_rate_linear(curve, t); }));
   }
 }

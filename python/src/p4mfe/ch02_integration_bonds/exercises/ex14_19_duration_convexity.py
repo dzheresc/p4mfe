@@ -38,23 +38,25 @@ def ex15_metrics() -> BondMetrics:
 
 
 def ex16_metrics(
-    T: float, coupon_rate: float, freq: int, y: float
+    maturity: float, coupon_rate: float, freq: int, y: float
 ) -> BondMetrics:
-    return bond_metrics(bond_cash_flows(T, coupon_rate, freq), y)
+    return bond_metrics(bond_cash_flows(maturity, coupon_rate, freq), y)
 
 
-def ex17_exact_relative_change(T: float = 10.0, dy: float = 0.001) -> float:
-    return math.expm1(-T * dy)
+def ex17_exact_relative_change(
+    maturity: float = 10.0, dy: float = 0.001
+) -> float:
+    return math.expm1(-maturity * dy)
 
 
-def ex17_convexity_estimate(T: float = 10.0, dy: float = 0.001) -> float:
-    return -T * dy + 0.5 * T * T * dy * dy
+def ex17_convexity_estimate(maturity: float = 10.0, dy: float = 0.001) -> float:
+    return -maturity * dy + 0.5 * maturity * maturity * dy * dy
 
 
 def ex18_new_price(
-    B: float = 102.0, D: float = 3.5, dy: float = -0.005
+    price: float = 102.0, duration: float = 3.5, dy: float = -0.005
 ) -> float:
-    return price_approx_duration(B, D, dy)
+    return price_approx_duration(price, duration, dy)
 
 
 def ex19_duration_slope(cf: CashFlows, y: float, h: float = 1e-5) -> float:

@@ -23,16 +23,16 @@ from p4mfe.normal import norm_cdf, norm_pdf
 
 
 class Ex05Params(NamedTuple):
-    K: float
-    T: float
+    strike: float
+    maturity: float
     sigma: float
     r: float
 
 
 def ex05_b(p: Ex05Params, x: float) -> float:
-    return (math.log(x / p.K) + (p.r + 0.5 * p.sigma**2) * p.T) / (
-        p.sigma * math.sqrt(p.T)
-    )
+    return (
+        math.log(x / p.strike) + (p.r + 0.5 * p.sigma**2) * p.maturity
+    ) / (p.sigma * math.sqrt(p.maturity))
 
 
 def ex05_g(p: Ex05Params, x: float) -> float:
@@ -41,7 +41,9 @@ def ex05_g(p: Ex05Params, x: float) -> float:
 
 def ex05_g_prime(p: Ex05Params, x: float) -> float:
     b = ex05_b(p, x)
-    return math.exp(-0.5 * b * b) / (x * p.sigma * math.sqrt(2 * math.pi * p.T))
+    return math.exp(-0.5 * b * b) / (
+        x * p.sigma * math.sqrt(2 * math.pi * p.maturity)
+    )
 
 
 def ex06_g_normal(t: float) -> float:
@@ -59,29 +61,35 @@ def ex06_g(h: Callable, t: float, tol: float = 1e-10) -> float:
 
 
 class Ex06Market(NamedTuple):
-    S: float
-    T: float
+    spot: float
+    maturity: float
     sigma: float
     r: float
 
 
-def ex06_call(m: Ex06Market, K: float) -> float:
-    sv = m.sigma * math.sqrt(m.T)
-    d1 = (math.log(m.S / K) + (m.r + 0.5 * m.sigma**2) * m.T) / sv
-    return m.S * norm_cdf(d1) - K * math.exp(-m.r * m.T) * norm_cdf(d1 - sv)
+def ex06_call(m: Ex06Market, strike: float) -> float:
+    sv = m.sigma * math.sqrt(m.maturity)
+    d1 = (
+        math.log(m.spot / strike) + (m.r + 0.5 * m.sigma**2) * m.maturity
+    ) / sv
+    return m.spot * norm_cdf(d1) - strike * math.exp(
+        -m.r * m.maturity
+    ) * norm_cdf(d1 - sv)
 
 
-def ex06_discounted_density(m: Ex06Market, K):
+def ex06_discounted_density(m: Ex06Market, strike):
     """e^(-rT) times the lognormal density of S(T) at K (accepts arrays)."""
-    K = np.asarray(K, dtype=float)
-    sv = m.sigma * math.sqrt(m.T)
+    strike = np.asarray(strike, dtype=float)
+    sv = m.sigma * math.sqrt(m.maturity)
     with np.errstate(divide="ignore", invalid="ignore"):
-        z = (np.log(K / m.S) - (m.r - 0.5 * m.sigma**2) * m.T) / sv
+        z = (
+            np.log(strike / m.spot) - (m.r - 0.5 * m.sigma**2) * m.maturity
+        ) / sv
         out = np.where(
-            K > 0,
-            math.exp(-m.r * m.T)
+            strike > 0,
+            math.exp(-m.r * m.maturity)
             * np.exp(-0.5 * z * z)
-            / (K * sv * math.sqrt(2 * math.pi)),
+            / (strike * sv * math.sqrt(2 * math.pi)),
             0.0,
         )
     return float(out) if out.ndim == 0 else out

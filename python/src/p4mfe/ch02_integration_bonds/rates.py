@@ -27,11 +27,11 @@ def discount_factor(r: float, t: float) -> float:
     return math.exp(-r * t)
 
 
-def zero_rate_from_discount(D: float, t: float) -> float:
+def zero_rate_from_discount(discount: float, t: float) -> float:
     """r(0, t) = -ln(D) / t."""
-    if t <= 0 or D <= 0:
+    if t <= 0 or discount <= 0:
         raise ValueError("t and D must be positive")
-    return -math.log(D) / t
+    return -math.log(discount) / t
 
 
 # 2.5 -----------------------------------------------------------------------
@@ -70,12 +70,12 @@ def forward_rate(r1: float, t1: float, r2: float, t2: float) -> float:
 
 
 def forward_rate_from_discounts(
-    D1: float, t1: float, D2: float, t2: float
+    discount1: float, t1: float, discount2: float, t2: float
 ) -> float:
     """r(t1, t2) = ln(D1 / D2) / (t2 - t1)."""
     if not t2 > t1:
         raise ValueError("need t2 > t1")
-    return math.log(D1 / D2) / (t2 - t1)
+    return math.log(discount1 / discount2) / (t2 - t1)
 
 
 def forward_rate_from_inst_rate(

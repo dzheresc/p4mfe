@@ -40,7 +40,7 @@ using ch02::CashFlows;
 // C - D^2 = sum_i w_i (t_i - D)^2.
 [[nodiscard]] inline double cash_flow_dispersion(const CashFlows& cf,
                                                  double y) {
-  const auto m = ch02::bond_metrics(cf, y);
+  const auto m = ch02::ComputeBondMetrics(cf, y);
   return m.convexity - m.duration * m.duration;
 }
 
@@ -53,7 +53,7 @@ using ch02::CashFlows;
   double B = 0.0, B2 = 0.0;
   for (std::size_t i = 0; i < cf.times.size(); ++i) {
     const double t = cf.times[i];
-    const double v = cf.amounts[i] * ch02::discount_factor_discrete(y, t, m);
+    const double v = cf.amounts[i] * ch02::DiscountFactorDiscrete(y, t, m);
     B += v;
     B2 += v * t * (t + 1.0 / m) / (g * g);
   }

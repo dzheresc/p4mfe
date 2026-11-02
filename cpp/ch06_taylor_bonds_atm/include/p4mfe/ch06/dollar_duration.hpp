@@ -49,13 +49,13 @@ struct DollarRisk {
 // ---------------------------------------------------------------- 6.7 ------
 // Dollar convexity of one bond, B C (chapter 2 gives dollar_duration = B D).
 [[nodiscard]] inline double dollar_convexity(const CashFlows& cf, double y) {
-  const auto m = ch02::bond_metrics(cf, y);
+  const auto m = ch02::ComputeBondMetrics(cf, y);
   return m.price * m.convexity;
 }
 
 [[nodiscard]] inline DollarRisk bond_dollar_risk(const CashFlows& cf,
                                                  double y) {
-  const auto m = ch02::bond_metrics(cf, y);
+  const auto m = ch02::ComputeBondMetrics(cf, y);
   return {m.price, m.price * m.duration, m.price * m.convexity};
 }
 
@@ -107,11 +107,10 @@ struct DollarRisk {
 // DV01 from repricing: V(y - 1bp) - V(y), and the central version
 // (V(y - 1bp) - V(y + 1bp)) / 2, which matches D$/10000 to O(bp^3).
 [[nodiscard]] inline double dv01_reprice(const CashFlows& cf, double y) {
-  return ch02::bond_price(cf, y - 1e-4) - ch02::bond_price(cf, y);
+  return ch02::BondPrice(cf, y - 1e-4) - ch02::BondPrice(cf, y);
 }
 [[nodiscard]] inline double dv01_central(const CashFlows& cf, double y) {
-  return 0.5 *
-         (ch02::bond_price(cf, y - 1e-4) - ch02::bond_price(cf, y + 1e-4));
+  return 0.5 * (ch02::BondPrice(cf, y - 1e-4) - ch02::BondPrice(cf, y + 1e-4));
 }
 
 // -------------------------------------------------------------- 6.7.2 ------

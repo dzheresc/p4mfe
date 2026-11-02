@@ -149,7 +149,7 @@ TEST(Ch06Ex18, YieldUnderParallelShifts) {
   EXPECT_NEAR(r.price, 106.199524, 5e-7);
   EXPECT_NEAR(r.yield, 0.042511, 5e-7);
   const auto cf = ex18_cash_flows();
-  EXPECT_NEAR(ch02::bond_price(cf, r.yield), r.price, 1e-9);
+  EXPECT_NEAR(ch02::BondPrice(cf, r.yield), r.price, 1e-9);
   const auto dy = ex18_yield_changes();
   const double expected[] = {0.00099979, 0.00199957, 0.00499893, 0.00999784,
                              0.01999562};
@@ -159,6 +159,6 @@ TEST(Ch06Ex18, YieldUnderParallelShifts) {
     EXPECT_GT(dy[i], 0.999 * ex18_shifts[i]);
     // The new yield reprices the shifted bond.
     const double B = shifted_curve_price(cf, ex18_zero_rate, ex18_shifts[i]);
-    EXPECT_NEAR(ch02::bond_price(cf, r.yield + dy[i]), B, 1e-9);
+    EXPECT_NEAR(ch02::BondPrice(cf, r.yield + dy[i]), B, 1e-9);
   }
 }

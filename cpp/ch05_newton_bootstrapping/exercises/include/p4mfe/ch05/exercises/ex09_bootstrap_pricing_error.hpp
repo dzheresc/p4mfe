@@ -48,9 +48,9 @@ inline constexpr ch02::BondQuote ex09_three_year{3.0, 0.045,
 }
 
 [[nodiscard]] inline double ex09_model_price(const ch02::ZeroCurve& c) {
-  const auto cf = ch02::bond_cash_flows(ex09_three_year.maturity,
-                                        ex09_three_year.coupon_rate, 2);
-  return ch02::bond_price_from_zero_rate(
+  const auto cf = ch02::BondCashFlows(ex09_three_year.maturity,
+                                      ex09_three_year.coupon_rate, 2);
+  return ch02::BondPriceFromZeroRate(
       cf, [&](double t) { return zero_rate_linear(c, t); });
 }
 [[nodiscard]] inline double ex09_relative_error(const ch02::ZeroCurve& c) {

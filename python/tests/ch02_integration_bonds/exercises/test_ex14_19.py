@@ -21,10 +21,18 @@ from p4mfe.ch02_integration_bonds.exercises.ex14_19_duration_convexity import (
 
 def _check_against_price(cf, y):
     h = 1e-4
-    B, Bp, Bm = bond_price(cf, y), bond_price(cf, y + h), bond_price(cf, y - h)
+    price, price_up, price_down = (
+        bond_price(cf, y),
+        bond_price(cf, y + h),
+        bond_price(cf, y - h),
+    )
     m = bond_metrics(cf, y)
-    assert m.duration == pytest.approx(-(Bp - Bm) / (2 * h) / B, abs=1e-7)
-    assert m.convexity == pytest.approx((Bp - 2 * B + Bm) / h**2 / B, abs=1e-5)
+    assert m.duration == pytest.approx(
+        -(price_up - price_down) / (2 * h) / price, abs=1e-7
+    )
+    assert m.convexity == pytest.approx(
+        (price_up - 2 * price + price_down) / h**2 / price, abs=1e-5
+    )
 
 
 def test_ex14():

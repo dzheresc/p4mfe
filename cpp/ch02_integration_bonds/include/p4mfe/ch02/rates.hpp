@@ -24,40 +24,39 @@ namespace p4mfe::ch02 {
 
 // -------------------------------------------------------------- 2.5.1 ------
 // Constant rate r: D(0, t) = e^(-r t).
-[[nodiscard]] inline double discount_factor(double r, double t) noexcept {
+[[nodiscard]] inline double DiscountFactor(double r, double t) noexcept {
   return std::exp(-r * t);
 }
 
 // The zero rate implied by a discount factor: r(0, t) = -ln(D) / t.
-[[nodiscard]] inline double zero_rate_from_discount(double D, double t) {
+[[nodiscard]] inline double ZeroRateFromDiscount(double discount, double t) {
   if (t <= 0.0)
     throw std::domain_error("zero_rate_from_discount: t must be positive");
-  if (D <= 0.0)
+  if (discount <= 0.0)
     throw std::domain_error("zero_rate_from_discount: D must be positive");
-  return -std::log(D) / t;
+  return -std::log(discount) / t;
 }
 
 // ---------------------------------------------------------------- 2.5 ------
 // D(0, t) = exp(-integral_0^t r(s) ds) for an instantaneous rate curve r(s).
 template <std::invocable<double> R>
-[[nodiscard]] double discount_factor_from_inst_rate(R&& r, double t,
-                                                    double tol = 1e-12) {
+[[nodiscard]] double DiscountFactorFromInstRate(R&& r, double t,
+                                                double tol = 1e-12) {
   if (t == 0.0) return 1.0;
-  return std::exp(-integrate_to_tolerance(r, 0.0, t, tol, Rule::Simpson).value);
+  return std::exp(-IntegrateToTolerance(r, 0.0, t, tol, Rule::kSimpson).value);
 }
 
 // r(0, t) = (1/t) integral_0^t r(s) ds.
 template <std::invocable<double> R>
-[[nodiscard]] double zero_rate_from_inst_rate(R&& r, double t,
-                                              double tol = 1e-12) {
+[[nodiscard]] double ZeroRateFromInstRate(R&& r, double t, double tol = 1e-12) {
   if (t <= 0.0)
     throw std::domain_error("zero_rate_from_inst_rate: t must be positive");
-  return integrate_to_tolerance(r, 0.0, t, tol, Rule::Simpson).value / t;
+  return IntegrateToTolerance(r, 0.0, t, tol, Rule::kSimpson).value / t;
 }
 
 // r(t) = d/dt (t r(0, t)), by a central difference that stays inside t > 0.
 template <std::invocable<double> Z>
-[[nodiscard]] double inst_rate_from_zero_rate(Z&& zero, double t) {
+[[nodiscard]] double InstRateFromZeroRate(Z&& zero, double t) {
   if (t <= 0.0)
     throw std::domain_error("inst_rate_from_zero_rate: t must be positive");
   const double h = std::min(
@@ -72,32 +71,33 @@ template <std::invocable<double> Z>
 //   r(t1, t2) = (r(0, t2) t2 - r(0, t1) t1) / (t2 - t1)
 //             = ln(D(0, t1) / D(0, t2)) / (t2 - t1)
 //             = (1 / (t2 - t1)) integral_{t1}^{t2} r(s) ds.
-[[nodiscard]] inline double forward_rate(double r1, double t1, double r2,
-                                         double t2) {
+[[nodiscard]] inline double ForwardRate(double r1, double t1, double r2,
+                                        double t2) {
   if (!(t2 > t1)) throw std::invalid_argument("forward_rate: need t2 > t1");
   return (r2 * t2 - r1 * t1) / (t2 - t1);
 }
 
-[[nodiscard]] inline double forward_rate_from_discounts(double D1, double t1,
-                                                        double D2, double t2) {
+[[nodiscard]] inline double ForwardRateFromDiscounts(double discount1,
+                                                     double t1,
+                                                     double discount2,
+                                                     double t2) {
   if (!(t2 > t1))
     throw std::invalid_argument("forward_rate_from_discounts: need t2 > t1");
-  return std::log(D1 / D2) / (t2 - t1);
+  return std::log(discount1 / discount2) / (t2 - t1);
 }
 
 template <std::invocable<double> R>
-[[nodiscard]] double forward_rate_from_inst_rate(R&& r, double t1, double t2,
-                                                 double tol = 1e-12) {
+[[nodiscard]] double ForwardRateFromInstRate(R&& r, double t1, double t2,
+                                             double tol = 1e-12) {
   if (!(t2 > t1))
     throw std::invalid_argument("forward_rate_from_inst_rate: need t2 > t1");
-  return integrate_to_tolerance(r, t1, t2, tol, Rule::Simpson).value /
-         (t2 - t1);
+  return IntegrateToTolerance(r, t1, t2, tol, Rule::kSimpson).value / (t2 - t1);
 }
 
 // ---------------------------------------------------------------- 2.8 ------
 // Rate r compounded n times a year: D(0, t) = (1 + r/n)^(-n t).
-[[nodiscard]] inline double discount_factor_discrete(double r, double t,
-                                                     double n) {
+[[nodiscard]] inline double DiscountFactorDiscrete(double r, double t,
+                                                   double n) {
   if (n <= 0.0)
     throw std::invalid_argument("discount_factor_discrete: n must be positive");
   return std::pow(1.0 + r / n, -n * t);
@@ -105,12 +105,12 @@ template <std::invocable<double> R>
 
 // Equivalent rates (same growth over any horizon):
 //   e^r = (1 + r_n/n)^n  <=>  r = n ln(1 + r_n/n),  r_n = n (e^(r/n) - 1).
-[[nodiscard]] inline double continuous_from_discrete(double r_n, double n) {
+[[nodiscard]] inline double ContinuousFromDiscrete(double r_n, double n) {
   if (n <= 0.0)
     throw std::invalid_argument("continuous_from_discrete: n must be positive");
   return n * std::log1p(r_n / n);
 }
-[[nodiscard]] inline double discrete_from_continuous(double r, double n) {
+[[nodiscard]] inline double DiscreteFromContinuous(double r, double n) {
   if (n <= 0.0)
     throw std::invalid_argument("discrete_from_continuous: n must be positive");
   return n * std::expm1(r / n);

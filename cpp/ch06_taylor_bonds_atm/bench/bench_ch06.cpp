@@ -85,9 +85,9 @@ void BM_portfolio_risk(benchmark::State& state) {
     durations.push_back(risks.back().dollar_duration / risks.back().value);
   }
   const auto h1 =
-      ch06::bond_dollar_risk(p4mfe::ch02::bond_cash_flows(2.0, 0.04, 2), 0.05);
-  const auto h2 = ch06::bond_dollar_risk(
-      p4mfe::ch02::bond_cash_flows(10.0, 0.045, 2), 0.05);
+      ch06::bond_dollar_risk(p4mfe::ch02::BondCashFlows(2.0, 0.04, 2), 0.05);
+  const auto h2 =
+      ch06::bond_dollar_risk(p4mfe::ch02::BondCashFlows(10.0, 0.045, 2), 0.05);
   for (auto _ : state) {
     const auto p = ch06::portfolio_dollar_risk(units, risks);
     auto imm = ch06::immunize(p, h1, h2);

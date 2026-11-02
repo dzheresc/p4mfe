@@ -60,13 +60,13 @@ def test_ex09_curves(t):
     assert ex09_zero_rate(t) == pytest.approx(
         zero_rate_from_inst_rate(ex09_inst_rate, t), abs=1e-12
     )
-    D = math.exp(-ex09_zero_rate(t) * t)
+    discount = math.exp(-ex09_zero_rate(t) * t)
     assert discount_factor_discrete(
         ex09_annual_zero_rate(t), t, 1
-    ) == pytest.approx(D, abs=1e-14)
+    ) == pytest.approx(discount, abs=1e-14)
     assert discount_factor_discrete(
         ex09_semiannual_zero_rate(t), t, 2
-    ) == pytest.approx(D, abs=1e-14)
+    ) == pytest.approx(discount, abs=1e-14)
     assert ex09_annual_zero_rate(t) == pytest.approx(
         discrete_from_continuous(ex09_zero_rate(t), 1), abs=1e-15
     )

@@ -70,10 +70,11 @@ template <std::invocable<double> F>
 // int_{-a}^{a} f = 2 int_0^a f_e, with chapter 2's quadrature on [0, a]
 // (n intervals). The odd part is dropped exactly rather than integrated.
 template <std::invocable<double> F>
-[[nodiscard]] double symmetric_integral(F&& f, double a, std::size_t n = 200,
-                                        ch02::Rule rule = ch02::Rule::Simpson) {
+[[nodiscard]] double symmetric_integral(
+    F&& f, double a, std::size_t n = 200,
+    ch02::Rule rule = ch02::Rule::kSimpson) {
   if (a < 0.0) throw std::invalid_argument("symmetric_integral: need a >= 0");
-  return 2.0 * ch02::integrate([&](double x) { return even_part(f, x); }, 0.0,
+  return 2.0 * ch02::Integrate([&](double x) { return even_part(f, x); }, 0.0,
                                a, n, rule);
 }
 

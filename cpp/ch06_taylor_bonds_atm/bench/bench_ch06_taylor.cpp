@@ -44,8 +44,8 @@ void BM_atm_linearized(benchmark::State& state) {
 void BM_dollar_risk_rest(benchmark::State& state) {
   const auto u =
       p4mfe::bench::bond_universe(p4mfe::bench::bond_universe_size());
-  const auto hedge = ch06::bond_dollar_risk(
-      p4mfe::ch02::bond_cash_flows(10.0, 0.045, 2), 0.05);
+  const auto hedge =
+      ch06::bond_dollar_risk(p4mfe::ch02::BondCashFlows(10.0, 0.045, 2), 0.05);
   std::vector<double> values(u.size()), convexities(u.size());
   for (std::size_t i = 0; i < u.size(); ++i) {
     values[i] = u[i].price;

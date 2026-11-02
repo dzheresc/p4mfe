@@ -39,7 +39,8 @@ TEST(Ch03Continuous, Exponential) {
 
 TEST(Ch03Continuous, StandardNormalMoments) {
   const ContinuousDistribution Z{[](double x) { return norm_pdf(x); },
-                                 -p4mfe::ch02::infinity, p4mfe::ch02::infinity};
+                                 -p4mfe::ch02::kInfinity,
+                                 p4mfe::ch02::kInfinity};
   EXPECT_NEAR(mean(Z), 0.0, 1e-9);
   EXPECT_NEAR(variance(Z), 1.0, 1e-8);
   EXPECT_NEAR(cdf(Z, 1.0), norm_cdf(1.0), 1e-8);

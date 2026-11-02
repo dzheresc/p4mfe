@@ -83,9 +83,9 @@ def test_ex03():
 
 
 def test_ex04_midpoint_and_exact():
-    I = ex04_exact()
-    assert I == pytest.approx(0.1791711722673056, abs=1e-15)
-    assert I == pytest.approx(
+    integral = ex04_exact()
+    assert integral == pytest.approx(0.1791711722673056, abs=1e-15)
+    assert integral == pytest.approx(
         integrate_to_tolerance(
             lambda u: 2 * u**6 / (1 + u**4), 0, 1, 1e-14
         ).value,
@@ -93,7 +93,7 @@ def test_ex04_midpoint_and_exact():
     )
     m = ex04_midpoint()
     assert m.intervals == 512
-    assert m.value == pytest.approx(I, abs=1e-6)
+    assert m.value == pytest.approx(integral, abs=1e-6)
 
 
 def test_ex04_fourth_derivative_unbounded():
@@ -157,16 +157,18 @@ def test_ex06_polynomial_decay():
 
 def test_ex06_call_density():
     m = Ex06Market(100.0, 1.0, 0.25, 0.03)
-    for K in (70.0, 95.0, 100.0, 120.0, 150.0):
-        h = 1e-2 * K
+    for strike in (70.0, 95.0, 100.0, 120.0, 150.0):
+        h = 1e-2 * strike
         c2 = (
-            ex06_call(m, K + h) - 2 * ex06_call(m, K) + ex06_call(m, K - h)
+            ex06_call(m, strike + h)
+            - 2 * ex06_call(m, strike)
+            + ex06_call(m, strike - h)
         ) / h**2
-        assert c2 == pytest.approx(ex06_discounted_density(m, K), abs=1e-5)
-    K = 110.0
+        assert c2 == pytest.approx(ex06_discounted_density(m, strike), abs=1e-5)
+    strike = 110.0
     assert ex06_g(
-        lambda x: ex06_discounted_density(m, x), K, 1e-11
-    ) == pytest.approx(ex06_call(m, K), abs=1e-7)
+        lambda x: ex06_discounted_density(m, x), strike, 1e-11
+    ) == pytest.approx(ex06_call(m, strike), abs=1e-7)
 
 
 def test_ex07_identity():

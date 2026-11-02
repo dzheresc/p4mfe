@@ -31,10 +31,10 @@ namespace p4mfe::bench {
 
 // Coupon rate that prices a bond at par off the true curve.
 [[nodiscard]] inline double par_coupon(double T, int freq) {
-  const auto annuity = ch02::bond_price_from_zero_rate(
-      ch02::bond_cash_flows(T, 1.0, freq, 100.0), true_zero_rate);
-  const auto zero = ch02::bond_price_from_zero_rate(
-      ch02::bond_cash_flows(T, 0.0, freq, 100.0), true_zero_rate);
+  const auto annuity = ch02::BondPriceFromZeroRate(
+      ch02::BondCashFlows(T, 1.0, freq, 100.0), true_zero_rate);
+  const auto zero = ch02::BondPriceFromZeroRate(
+      ch02::BondCashFlows(T, 0.0, freq, 100.0), true_zero_rate);
   // price(c) = zero + (annuity - zero) * c, with the annuity at c = 1 (100%).
   return (100.0 - zero) / (annuity - zero);
 }
@@ -50,8 +50,8 @@ namespace p4mfe::bench {
     const double c =
         std::round(par_coupon(T, freq) * 8000.0) / 8000.0;  // 1/8 bp
     out.push_back({T, c,
-                   ch02::bond_price_from_zero_rate(
-                       ch02::bond_cash_flows(T, c, freq), true_zero_rate)});
+                   ch02::BondPriceFromZeroRate(ch02::BondCashFlows(T, c, freq),
+                                               true_zero_rate)});
   }
   return out;
 }
@@ -63,8 +63,8 @@ namespace p4mfe::bench {
   for (const double T : {0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 20.0, 30.0}) {
     const double c = std::round(par_coupon(T, freq) * 8000.0) / 8000.0;
     out.push_back({T, c,
-                   ch02::bond_price_from_zero_rate(
-                       ch02::bond_cash_flows(T, c, freq), true_zero_rate)});
+                   ch02::BondPriceFromZeroRate(ch02::BondCashFlows(T, c, freq),
+                                               true_zero_rate)});
   }
   return out;
 }
@@ -93,8 +93,8 @@ struct Bond {
     constexpr int freqs[] = {1, 2, 4};
     const int freq = freqs[freq_pick(rng)];
     const double s = spread(rng);
-    auto cf = ch02::bond_cash_flows(T, c, freq);
-    const double price = ch02::bond_price_from_zero_rate(
+    auto cf = ch02::BondCashFlows(T, c, freq);
+    const double price = ch02::BondPriceFromZeroRate(
         cf, [s](double t) { return true_zero_rate(t) + s; });
     out.push_back({std::move(cf), freq, c, s, price});
   }

@@ -28,30 +28,30 @@ namespace p4mfe::ch02::ex {
 // 11. The par yield is the coupon rate c that makes the bond trade at par:
 //   100 = (100 c/2) sum_i D_i + 100 D4   =>   c = 2 (1 - D4) / sum_i D_i
 //   = 5.5661%.
-inline constexpr std::array<double, 4> ex10_times = {0.5, 1.0, 1.5, 2.0};
-inline constexpr std::array<double, 4> ex10_zero_rates = {0.05, 0.0525, 0.0535,
-                                                          0.055};
+inline constexpr std::array<double, 4> kEx10Times = {0.5, 1.0, 1.5, 2.0};
+inline constexpr std::array<double, 4> kEx10ZeroRates = {0.05, 0.0525, 0.0535,
+                                                         0.055};
 
-[[nodiscard]] inline std::array<double, 4> ex10_discount_factors() {
+[[nodiscard]] inline std::array<double, 4> Ex10DiscountFactors() {
   std::array<double, 4> d{};
   for (std::size_t i = 0; i < d.size(); ++i)
-    d[i] = discount_factor(ex10_zero_rates[i], ex10_times[i]);
+    d[i] = DiscountFactor(kEx10ZeroRates[i], kEx10Times[i]);
   return d;
 }
 
-[[nodiscard]] inline double ex10_price(double coupon_rate = 0.05) {
-  const auto d = ex10_discount_factors();
+[[nodiscard]] inline double Ex10Price(double coupon_rate = 0.05) {
+  const auto d = Ex10DiscountFactors();
   // The bond's cash flow dates are exactly the curve's dates.
-  return bond_price_from_discount(
-      bond_cash_flows(2.0, coupon_rate, 2), [&](double t) {
+  return BondPriceFromDiscount(
+      BondCashFlows(2.0, coupon_rate, 2), [&](double t) {
         for (std::size_t i = 0; i < d.size(); ++i)
-          if (std::abs(t - ex10_times[i]) < 1e-12) return d[i];
+          if (std::abs(t - kEx10Times[i]) < 1e-12) return d[i];
         throw std::invalid_argument("ex10: no zero rate for this date");
       });
 }
 
-[[nodiscard]] inline double ex11_par_yield() {
-  const auto d = ex10_discount_factors();
+[[nodiscard]] inline double Ex11ParYield() {
+  const auto d = Ex10DiscountFactors();
   double annuity = 0.0;
   for (double v : d) annuity += v;
   return 2.0 * (1.0 - d.back()) / annuity;
@@ -71,21 +71,21 @@ inline constexpr std::array<double, 4> ex10_zero_rates = {0.05, 0.0525, 0.0535,
 // (ii) D(0, t) = exp(-0.05 t - 0.005 ((1 + t) ln(1 + t) - t)):
 //   D(0.5) = 0.974782,  D(1) = 0.949394,  D(1.5) = 0.924083,  D(2) = 0.898994.
 // (iii) B = 2.5 (D(0.5) + D(1) + D(1.5) + D(2)) + 100 D(2) = 99.2675.
-[[nodiscard]] inline double ex12_inst_rate(double t) {
+[[nodiscard]] inline double Ex12InstRate(double t) {
   return 0.05 + 0.005 * std::log1p(t);
 }
-[[nodiscard]] inline double ex12_integral(double t) {
+[[nodiscard]] inline double Ex12Integral(double t) {
   return 0.05 * t + 0.005 * ((1.0 + t) * std::log1p(t) - t);
 }
-[[nodiscard]] inline double ex12_zero_rate(double t) {
-  return t == 0.0 ? 0.05 : ex12_integral(t) / t;
+[[nodiscard]] inline double Ex12ZeroRate(double t) {
+  return t == 0.0 ? 0.05 : Ex12Integral(t) / t;
 }
-[[nodiscard]] inline double ex12_discount_factor(double t) {
-  return std::exp(-ex12_integral(t));
+[[nodiscard]] inline double Ex12DiscountFactor(double t) {
+  return std::exp(-Ex12Integral(t));
 }
-[[nodiscard]] inline double ex12_price(double coupon_rate = 0.05) {
-  return bond_price_from_discount(bond_cash_flows(2.0, coupon_rate, 2),
-                                  ex12_discount_factor);
+[[nodiscard]] inline double Ex12Price(double coupon_rate = 0.05) {
+  return BondPriceFromDiscount(BondCashFlows(2.0, coupon_rate, 2),
+                               Ex12DiscountFactor);
 }
 
 // ----------------------------------------------------------- Exercise 13 ---
@@ -105,23 +105,23 @@ inline constexpr std::array<double, 4> ex10_zero_rates = {0.05, 0.0525, 0.0535,
 //   B = 5 (D(0,1) + D(0,2) + D(0,3)) + 100 D(0,3) = 100.2364.
 // The bond trades above par because the rates (between 4.4% and 5%) are below
 // the 5% coupon.
-[[nodiscard]] inline double ex13_inst_rate(double t) {
+[[nodiscard]] inline double Ex13InstRate(double t) {
   return 0.05 / (1.0 + std::exp(-(1.0 + t) * (1.0 + t)));
 }
 
-[[nodiscard]] inline IntegrationResult ex13_integral(double t, double tol) {
-  return integrate_to_tolerance(ex13_inst_rate, 0.0, t, tol, Rule::Simpson, 4);
+[[nodiscard]] inline IntegrationResult Ex13Integral(double t, double tol) {
+  return IntegrateToTolerance(Ex13InstRate, 0.0, t, tol, Rule::kSimpson, 4);
 }
-[[nodiscard]] inline double ex13_discount_factor(double t, double tol) {
-  return std::exp(-ex13_integral(t, tol).value);
+[[nodiscard]] inline double Ex13DiscountFactor(double t, double tol) {
+  return std::exp(-Ex13Integral(t, tol).value);
 }
 // The accuracy the exercise asks for: 1e-6 for t <= 2, 1e-8 for t = 3.
-[[nodiscard]] inline double ex13_tol(double t) { return t > 2.0 ? 1e-8 : 1e-6; }
+[[nodiscard]] inline double Ex13Tol(double t) { return t > 2.0 ? 1e-8 : 1e-6; }
 
-[[nodiscard]] inline double ex13_price(double coupon_rate = 0.05) {
-  return bond_price_from_discount(
-      bond_cash_flows(3.0, coupon_rate, 1),
-      [](double t) { return ex13_discount_factor(t, ex13_tol(t)); });
+[[nodiscard]] inline double Ex13Price(double coupon_rate = 0.05) {
+  return BondPriceFromDiscount(
+      BondCashFlows(3.0, coupon_rate, 1),
+      [](double t) { return Ex13DiscountFactor(t, Ex13Tol(t)); });
 }
 
 }  // namespace p4mfe::ch02::ex

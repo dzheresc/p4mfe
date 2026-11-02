@@ -33,9 +33,9 @@ struct Ex01Result {
   double duration, convexity;
 };
 [[nodiscard]] inline Ex01Result ex01_solve(const Ex01Bond& b = {}) {
-  const auto cf = ch02::bond_cash_flows(b.maturity, b.coupon_rate, b.freq);
+  const auto cf = ch02::BondCashFlows(b.maturity, b.coupon_rate, b.freq);
   const auto res = bond_yield_newton(cf, b.price);
-  const auto m = ch02::bond_metrics(cf, res.x);
+  const auto m = ch02::ComputeBondMetrics(cf, res.x);
   return {res.x, res.iterations, m.duration, m.convexity};
 }
 

@@ -52,7 +52,7 @@ TEST(Ch04Ex10, AtmCallDelta) {
 TEST(Ch04Ex11, PutByIntegration) {
   const double P = ex11_put_bs();
   EXPECT_NEAR(P, 3.918999, 1e-6);
-  for (auto rule : {ch02::Rule::Midpoint, ch02::Rule::Simpson}) {
+  for (auto rule : {ch02::Rule::kMidpoint, ch02::Rule::kSimpson}) {
     const auto steps = ex11_run(rule);
     ASSERT_GE(steps.size(), 2u);
     EXPECT_NEAR(steps.back().value, P, 5e-7);  // six decimal digits
@@ -60,13 +60,13 @@ TEST(Ch04Ex11, PutByIntegration) {
     for (std::size_t i = 3; i < steps.size(); ++i)
       EXPECT_LT(std::abs(steps[i].error), std::abs(steps[i - 1].error));
   }
-  EXPECT_EQ(ex11_run(ch02::Rule::Midpoint).back().n, 8192u);
-  EXPECT_EQ(ex11_run(ch02::Rule::Simpson).back().n, 128u);
+  EXPECT_EQ(ex11_run(ch02::Rule::kMidpoint).back().n, 8192u);
+  EXPECT_EQ(ex11_run(ch02::Rule::kSimpson).back().n, 128u);
   // Observed orders 2 and 4.
   const auto f = [](double x) { return ex11_integrand(x); };
-  EXPECT_NEAR(ch02::observed_order(f, 0.0, 50.0, P, 64, ch02::Rule::Midpoint),
+  EXPECT_NEAR(ch02::ObservedOrder(f, 0.0, 50.0, P, 64, ch02::Rule::kMidpoint),
               2.0, 0.1);
-  EXPECT_NEAR(ch02::observed_order(f, 0.0, 50.0, P, 32, ch02::Rule::Simpson),
+  EXPECT_NEAR(ch02::ObservedOrder(f, 0.0, 50.0, P, 32, ch02::Rule::kSimpson),
               4.0, 0.2);
 }
 
@@ -87,7 +87,7 @@ double rn_price_above(G g, double z_lo, const Case& c) {
   const auto f = [&](double z) {
     return g(price_from_normal(z, c.S, c.T, c.sigma, c.r, c.q)) * norm_pdf(z);
   };
-  return std::exp(-c.r * c.T) * ch02::simpson_rule(f, z_lo, 12.0, 20000);
+  return std::exp(-c.r * c.T) * ch02::SimpsonRule(f, z_lo, 12.0, 20000);
 }
 double z_at(double K, const Case& c) {
   return -ch03::bs_d1_d2(c.S, K, c.T, c.sigma, c.r, c.q).d2;
@@ -125,7 +125,7 @@ TEST(Ch04Ex14, NormalModel) {
   const double F = ex14_book_forward(S0, r, T);
   // (i) closed form vs direct integration against phi.
   const ch03::ContinuousDistribution Z{[](double z) { return norm_pdf(z); },
-                                       -ch02::infinity, ch02::infinity};
+                                       -ch02::kInfinity, ch02::kInfinity};
   const double s = sigma * std::sqrt(T);
   const double numeric =
       std::exp(-r * T) *

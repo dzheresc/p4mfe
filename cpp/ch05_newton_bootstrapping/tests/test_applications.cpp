@@ -14,26 +14,25 @@ using namespace p4mfe::ch05;
 
 // ------------------------------------------------------------------ 5.3 ---
 TEST(Ch05BondYield, ThreeMethodsAgreeWithChapter2) {
-  const auto cf = ch02::bond_cash_flows(3.0, 0.06, 2);
+  const auto cf = ch02::BondCashFlows(3.0, 0.06, 2);
   for (double price : {90.0, 101.0, 105.0}) {
-    const double y2 = ch02::bond_yield(cf, price);
+    const double y2 = ch02::BondYield(cf, price);
     const auto n = bond_yield_newton(cf, price);
     const auto s = bond_yield_secant(cf, price);
     const auto b = bond_yield_bisection(cf, price);
     EXPECT_NEAR(n.x, y2, 1e-12);
     EXPECT_NEAR(s.x, y2, 1e-12);
     EXPECT_NEAR(b.x, y2, 1e-11);
-    EXPECT_NEAR(ch02::bond_price(cf, n.x), price, 1e-10);
+    EXPECT_NEAR(ch02::BondPrice(cf, n.x), price, 1e-10);
     EXPECT_LE(n.iterations, 6u);
     EXPECT_LT(n.iterations, b.iterations);
   }
 }
 
 TEST(Ch05BondYield, RoundTripLongBond) {
-  const auto cf =
-      ch02::bond_cash_flows(29.75, 0.045, 2);  // between coupon dates
+  const auto cf = ch02::BondCashFlows(29.75, 0.045, 2);  // between coupon dates
   for (double y : {-0.005, 0.02, 0.12}) {
-    const double price = ch02::bond_price(cf, y);
+    const double price = ch02::BondPrice(cf, y);
     EXPECT_NEAR(bond_yield_newton(cf, price).x, y, 1e-12);
   }
 }
@@ -101,9 +100,9 @@ TEST(Ch05Bootstrapping, RecoversPiecewiseLinearCurve) {
   const double coupons[] = {0.0, 0.05, 0.055, 0.06};
   for (int j = 0; j < 4; ++j) {
     const double T = truth.times[static_cast<std::size_t>(j) + 1];
-    const auto cf = ch02::bond_cash_flows(T, coupons[j], 2);
+    const auto cf = ch02::BondCashFlows(T, coupons[j], 2);
     quotes.push_back(
-        {T, coupons[j], ch02::bond_price_from_zero_rate(cf, [&](double t) {
+        {T, coupons[j], ch02::BondPriceFromZeroRate(cf, [&](double t) {
            return zero_rate_linear(truth, t);
          })});
   }
@@ -121,7 +120,7 @@ TEST(Ch05Bootstrapping, AgreesWithChapter2WhenNoInterpolationIsNeeded) {
                                       {1.0, 0.05, 100.0},
                                       {1.5, 0.055, 100.3},
                                       {2.0, 0.06, 101.0}};
-  const auto c2 = ch02::bootstrap_zero_rates(quotes, 2);
+  const auto c2 = ch02::BootstrapZeroRates(quotes, 2);
   const auto c5 = bootstrap_zero_curve(quotes, 2);
   ASSERT_EQ(c5.times.size(), c2.times.size());
   for (std::size_t j = 0; j < c2.times.size(); ++j)
@@ -130,15 +129,15 @@ TEST(Ch05Bootstrapping, AgreesWithChapter2WhenNoInterpolationIsNeeded) {
 
 TEST(Ch05Bootstrapping, FirstBondWithoutCurveGetsItsYield) {
   // With no starting curve, the first bond is priced at a flat rate: its yield.
-  const auto cf = ch02::bond_cash_flows(2.0, 0.04, 2);
+  const auto cf = ch02::BondCashFlows(2.0, 0.04, 2);
   const double price = 99.0;
-  EXPECT_NEAR(bootstrap_next_rate({}, cf, price).x, ch02::bond_yield(cf, price),
+  EXPECT_NEAR(bootstrap_next_rate({}, cf, price).x, ch02::BondYield(cf, price),
               1e-12);
 }
 
 TEST(Ch05Bootstrapping, MaturityMustExtendTheCurve) {
   const ZeroCurve c{{0.0, 1.0}, {0.05, 0.06}};
   EXPECT_THROW(
-      (void)bootstrap_next_rate(c, ch02::bond_cash_flows(1.0, 0.05, 2), 100.0),
+      (void)bootstrap_next_rate(c, ch02::BondCashFlows(1.0, 0.05, 2), 100.0),
       std::invalid_argument);
 }

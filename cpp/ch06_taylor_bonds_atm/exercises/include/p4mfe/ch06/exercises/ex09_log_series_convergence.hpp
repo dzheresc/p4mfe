@@ -59,7 +59,7 @@ namespace p4mfe::ch06::ex {
     return sign * std::pow(x - t, n) / std::pow(1.0 + t, n + 1);
   };
   const double v =
-      ch02::integrate_to_tolerance(g, std::min(0.0, x), std::max(0.0, x), tol)
+      ch02::IntegrateToTolerance(g, std::min(0.0, x), std::max(0.0, x), tol)
           .value;
   return x > 0.0 ? v : -v;
 }
@@ -73,7 +73,7 @@ namespace p4mfe::ch06::ex {
   const auto g = [&](double t) {
     return std::pow((x - t) / (1.0 + t), n) / (1.0 + t);
   };
-  return ch02::integrate_to_tolerance(g, 0.0, x, tol).value;
+  return ch02::IntegrateToTolerance(g, 0.0, x, tol).value;
 }
 
 // (ii)-(iii): the final bound, |x|^n |ln(1 + x)|, valid for every |x| < 1.
@@ -92,7 +92,7 @@ namespace p4mfe::ch06::ex {
   const auto g = [&](double z) {
     return std::pow(s - z, n) / std::pow(1.0 - z, n + 1);
   };
-  return ch02::integrate_to_tolerance(g, 0.0, s, tol).value;
+  return ch02::IntegrateToTolerance(g, 0.0, s, tol).value;
 }
 
 }  // namespace p4mfe::ch06::ex

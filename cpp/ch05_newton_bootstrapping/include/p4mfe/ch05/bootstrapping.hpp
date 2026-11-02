@@ -58,7 +58,7 @@ using ch02::ZeroCurve;
 [[nodiscard]] inline RootResult bootstrap_next_rate(
     const ZeroCurve& curve, const CashFlows& cf, double price,
     const Tolerances& tol = {1e-12, 1e-12, 100}) {
-  ch02::detail::check(cf);
+  ch02::detail::Check(cf);
   const double T = cf.times.back();
   const bool empty = curve.times.empty();
   const double T_last = empty ? 0.0 : curve.times.back();
@@ -109,8 +109,7 @@ using ch02::ZeroCurve;
               return a.maturity < b.maturity;
             });
   for (const auto& q : quotes) {
-    const auto cf =
-        ch02::bond_cash_flows(q.maturity, q.coupon_rate, freq, face);
+    const auto cf = ch02::BondCashFlows(q.maturity, q.coupon_rate, freq, face);
     const double r = bootstrap_next_rate(curve, cf, q.price, tol).x;
     curve.times.push_back(q.maturity);
     curve.rates.push_back(r);
