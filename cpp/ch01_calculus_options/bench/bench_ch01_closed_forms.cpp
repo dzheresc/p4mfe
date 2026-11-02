@@ -16,17 +16,18 @@
 namespace {
 
 namespace ch01 = p4mfe::ch01;
-using p4mfe::bench::set_items;
+using p4mfe::bench::SetItems;
 
 void BmParitySweep(benchmark::State& state) {
   const auto chain =
-      p4mfe::bench::make_option_chain(p4mfe::bench::chain_spec_for_tier());
+      p4mfe::bench::MakeOptionChain(p4mfe::bench::ChainSpecForTier());
   const p4mfe::bench::ChainSpec spec;
   std::vector<double> calls, puts;
   for (const auto& o : chain) {
-    calls.push_back(
-        p4mfe::ch03::BsCall(o.S, o.K, o.T, o.sigma, spec.r, spec.q));
-    puts.push_back(p4mfe::ch03::BsPut(o.S, o.K, o.T, o.sigma, spec.r, spec.q) +
+    calls.push_back(p4mfe::ch03::BsCall(o.spot, o.strike, o.maturity, o.sigma,
+                                        spec.r, spec.q));
+    puts.push_back(p4mfe::ch03::BsPut(o.spot, o.strike, o.maturity, o.sigma,
+                                      spec.r, spec.q) +
                    0.01);  // a small mispricing
   }
   for (auto _ : state) {
@@ -34,20 +35,23 @@ void BmParitySweep(benchmark::State& state) {
     std::size_t arbs = 0;
     for (std::size_t i = 0; i < chain.size(); ++i) {
       const auto& o = chain[i];
-      sum += ch01::PutFromCall(calls[i], o.S, o.K, o.T, spec.r, spec.q);
-      sum += ch01::CallFromPut(puts[i], o.S, o.K, o.T, spec.r, spec.q);
-      sum += ch01::SyntheticForwardValue(calls[i], puts[i]) +
-             ch01::LongForwardValue(o.S, o.K, o.T, spec.r, spec.q);
-      sum += ch01::CompoundingFactor(spec.r, o.T, 12.0) +
-             ch01::ContinuousCompoundingFactor(spec.r, o.T);
-      if (ch01::FindParityArbitrage(calls[i], puts[i], o.S, o.K, o.T, spec.r,
-                                    spec.q, 1e-6))
+      sum += ch01::PutFromCall(calls[i], o.spot, o.strike, o.maturity, spec.r,
+                               spec.q);
+      sum += ch01::CallFromPut(puts[i], o.spot, o.strike, o.maturity, spec.r,
+                               spec.q);
+      sum +=
+          ch01::SyntheticForwardValue(calls[i], puts[i]) +
+          ch01::LongForwardValue(o.spot, o.strike, o.maturity, spec.r, spec.q);
+      sum += ch01::CompoundingFactor(spec.r, o.maturity, 12.0) +
+             ch01::ContinuousCompoundingFactor(spec.r, o.maturity);
+      if (ch01::FindParityArbitrage(calls[i], puts[i], o.spot, o.strike,
+                                    o.maturity, spec.r, spec.q, 1e-6))
         ++arbs;
     }
     benchmark::DoNotOptimize(sum);
     benchmark::DoNotOptimize(arbs);
   }
-  set_items(state, chain.size(), "options");
+  SetItems(state, chain.size(), "options");
 }
 
 void BmCalculusMisc(benchmark::State& state) {

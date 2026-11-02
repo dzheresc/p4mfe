@@ -11,12 +11,12 @@
 
 namespace p4mfe::bench {
 
-enum class Tier { Smoke, Standard, Large };
+enum class Tier { kSmoke, kStandard, kLarge };
 
-[[nodiscard]] inline Tier parse_tier(std::string_view s) {
-  if (s.empty() || s == "standard") return Tier::Standard;
-  if (s == "smoke") return Tier::Smoke;
-  if (s == "large") return Tier::Large;
+[[nodiscard]] inline Tier ParseTier(std::string_view s) {
+  if (s.empty() || s == "standard") return Tier::kStandard;
+  if (s == "smoke") return Tier::kSmoke;
+  if (s == "large") return Tier::kLarge;
   throw std::invalid_argument(
       "P4MFE_BENCH_TIER must be smoke, standard or large, not '" +
       std::string(s) + "'");
@@ -24,21 +24,21 @@ enum class Tier { Smoke, Standard, Large };
 
 // Read once; benchmarks register at static-initialization time, so this is a
 // function-local static rather than a global.
-[[nodiscard]] inline Tier tier() {
-  static const Tier t = [] {
+[[nodiscard]] inline Tier GetTier() {
+  static const Tier kT = [] {
     const char* env = std::getenv("P4MFE_BENCH_TIER");
-    return parse_tier(env ? env : "");
+    return ParseTier(env ? env : "");
   }();
-  return t;
+  return kT;
 }
 
-[[nodiscard]] constexpr const char* tier_name(Tier t) noexcept {
+[[nodiscard]] constexpr const char* TierName(Tier t) noexcept {
   switch (t) {
-    case Tier::Smoke:
+    case Tier::kSmoke:
       return "smoke";
-    case Tier::Standard:
+    case Tier::kStandard:
       return "standard";
-    case Tier::Large:
+    case Tier::kLarge:
       return "large";
   }
   return "?";
@@ -46,13 +46,13 @@ enum class Tier { Smoke, Standard, Large };
 
 // The value for the current tier.
 template <class T>
-[[nodiscard]] T by_tier(T smoke, T standard, T large) {
-  switch (tier()) {
-    case Tier::Smoke:
+[[nodiscard]] T ByTier(T smoke, T standard, T large) {
+  switch (GetTier()) {
+    case Tier::kSmoke:
       return smoke;
-    case Tier::Standard:
+    case Tier::kStandard:
       return standard;
-    case Tier::Large:
+    case Tier::kLarge:
       return large;
   }
   return standard;

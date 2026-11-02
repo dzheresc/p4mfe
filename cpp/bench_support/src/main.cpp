@@ -44,7 +44,7 @@ struct HeapCounters {
 // Constant-initialized, so usable before any dynamic initialization runs.
 constinit HeapCounters heap;
 
-void record_alloc(std::size_t n) noexcept {
+void RecordAlloc(std::size_t n) noexcept {
   const auto bytes = static_cast<std::int64_t>(n);
   heap.allocs.fetch_add(1, std::memory_order_relaxed);
   heap.total_bytes.fetch_add(bytes, std::memory_order_relaxed);
@@ -56,7 +56,7 @@ void record_alloc(std::size_t n) noexcept {
   }
 }
 
-void record_free(std::size_t n) noexcept {
+void RecordFree(std::size_t n) noexcept {
   heap.current_bytes.fetch_sub(static_cast<std::int64_t>(n),
                                std::memory_order_relaxed);
 }
@@ -65,10 +65,10 @@ void record_free(std::size_t n) noexcept {
 //   [-2] offset from the raw block to the user pointer, [-1] requested size.
 // The header is at least 16 bytes, so default alignment is kept, and equal to
 // the alignment for over-aligned requests.
-constexpr std::size_t min_header = 2 * sizeof(std::size_t);
+constexpr std::size_t kMinHeader = 2 * sizeof(std::size_t);
 
-void* counted_alloc(std::size_t n, std::size_t align) noexcept {
-  const std::size_t header = align > min_header ? align : min_header;
+void* CountedAlloc(std::size_t n, std::size_t align) noexcept {
+  const std::size_t header = align > kMinHeader ? align : kMinHeader;
   void* raw = nullptr;
   if (align > alignof(std::max_align_t)) {
     const std::size_t total = (n + header + align - 1) / align * align;
@@ -85,15 +85,15 @@ void* counted_alloc(std::size_t n, std::size_t align) noexcept {
   auto* meta = reinterpret_cast<std::size_t*>(user);
   meta[-2] = header;
   meta[-1] = n;
-  record_alloc(n);
+  RecordAlloc(n);
   return user;
 }
 
-void counted_free(void* p, std::size_t align) noexcept {
+void CountedFree(void* p, std::size_t align) noexcept {
   if (p == nullptr) return;
   auto* meta = static_cast<std::size_t*>(p);
   const std::size_t header = meta[-2];
-  record_free(meta[-1]);
+  RecordFree(meta[-1]);
   void* raw = static_cast<unsigned char*>(p) - header;
 #if defined(_MSC_VER)
   if (align > alignof(std::max_align_t)) {
@@ -106,10 +106,10 @@ void counted_free(void* p, std::size_t align) noexcept {
   std::free(raw);
 }
 
-void* counted_new(std::size_t n, std::size_t align) {
+void* CountedNew(std::size_t n, std::size_t align) {
   if (n == 0) n = 1;
   for (;;) {
-    if (void* p = counted_alloc(n, align)) return p;
+    if (void* p = CountedAlloc(n, align)) return p;
     std::new_handler h = std::get_new_handler();
     if (h == nullptr) throw std::bad_alloc();
     h();
@@ -137,7 +137,7 @@ class CountingMemoryManager final : public benchmark::MemoryManager {
   std::int64_t allocs0_ = 0, total0_ = 0, current0_ = 0;
 };
 
-const char* compiler_id() {
+const char* CompilerId() {
 #if defined(__clang__)
   return "clang " __clang_version__;
 #elif defined(__GNUC__)
@@ -155,67 +155,68 @@ const char* compiler_id() {
 // ------------------------------------------- replacement operator new/delete
 // --
 
-void* operator new(std::size_t n) { return counted_new(n, 0); }
-void* operator new[](std::size_t n) { return counted_new(n, 0); }
+void* operator new(std::size_t n) { return CountedNew(n, 0); }
+void* operator new[](std::size_t n) { return CountedNew(n, 0); }
 void* operator new(std::size_t n, std::align_val_t a) {
-  return counted_new(n, static_cast<std::size_t>(a));
+  return CountedNew(n, static_cast<std::size_t>(a));
 }
 void* operator new[](std::size_t n, std::align_val_t a) {
-  return counted_new(n, static_cast<std::size_t>(a));
+  return CountedNew(n, static_cast<std::size_t>(a));
 }
 void* operator new(std::size_t n, const std::nothrow_t&) noexcept {
-  return counted_alloc(n ? n : 1, 0);
+  return CountedAlloc(n ? n : 1, 0);
 }
 void* operator new[](std::size_t n, const std::nothrow_t&) noexcept {
-  return counted_alloc(n ? n : 1, 0);
+  return CountedAlloc(n ? n : 1, 0);
 }
 void* operator new(std::size_t n, std::align_val_t a,
                    const std::nothrow_t&) noexcept {
-  return counted_alloc(n ? n : 1, static_cast<std::size_t>(a));
+  return CountedAlloc(n ? n : 1, static_cast<std::size_t>(a));
 }
 void* operator new[](std::size_t n, std::align_val_t a,
                      const std::nothrow_t&) noexcept {
-  return counted_alloc(n ? n : 1, static_cast<std::size_t>(a));
+  return CountedAlloc(n ? n : 1, static_cast<std::size_t>(a));
 }
 
-void operator delete(void* p) noexcept { counted_free(p, 0); }
-void operator delete[](void* p) noexcept { counted_free(p, 0); }
-void operator delete(void* p, std::size_t) noexcept { counted_free(p, 0); }
-void operator delete[](void* p, std::size_t) noexcept { counted_free(p, 0); }
+void operator delete(void* p) noexcept { CountedFree(p, 0); }
+void operator delete[](void* p) noexcept { CountedFree(p, 0); }
+void operator delete(void* p, std::size_t) noexcept { CountedFree(p, 0); }
+void operator delete[](void* p, std::size_t) noexcept { CountedFree(p, 0); }
 void operator delete(void* p, std::align_val_t a) noexcept {
-  counted_free(p, static_cast<std::size_t>(a));
+  CountedFree(p, static_cast<std::size_t>(a));
 }
 void operator delete[](void* p, std::align_val_t a) noexcept {
-  counted_free(p, static_cast<std::size_t>(a));
+  CountedFree(p, static_cast<std::size_t>(a));
 }
 void operator delete(void* p, std::size_t, std::align_val_t a) noexcept {
-  counted_free(p, static_cast<std::size_t>(a));
+  CountedFree(p, static_cast<std::size_t>(a));
 }
 void operator delete[](void* p, std::size_t, std::align_val_t a) noexcept {
-  counted_free(p, static_cast<std::size_t>(a));
+  CountedFree(p, static_cast<std::size_t>(a));
 }
 void operator delete(void* p, const std::nothrow_t&) noexcept {
-  counted_free(p, 0);
+  CountedFree(p, 0);
 }
 void operator delete[](void* p, const std::nothrow_t&) noexcept {
-  counted_free(p, 0);
+  CountedFree(p, 0);
 }
 void operator delete(void* p, std::align_val_t a,
                      const std::nothrow_t&) noexcept {
-  counted_free(p, static_cast<std::size_t>(a));
+  CountedFree(p, static_cast<std::size_t>(a));
 }
 void operator delete[](void* p, std::align_val_t a,
                        const std::nothrow_t&) noexcept {
-  counted_free(p, static_cast<std::size_t>(a));
+  CountedFree(p, static_cast<std::size_t>(a));
 }
 
 // ------------------------------------------------------------------ main ----
 
 int main(int argc, char** argv) {
-  const auto tier = p4mfe::bench::tier();  // validates P4MFE_BENCH_TIER early
-  benchmark::AddCustomContext("p4mfe_tier", p4mfe::bench::tier_name(tier));
+  const auto tier =
+      p4mfe::bench::GetTier();  // validates P4MFE_BENCH_TIER early
+  benchmark::AddCustomContext("p4mfe_tier", p4mfe::bench::TierName(tier));
   benchmark::AddCustomContext("p4mfe_build_type", P4MFE_BUILD_TYPE);
-  benchmark::AddCustomContext("p4mfe_compiler", compiler_id());
+  benchmark::AddCustomContext("p4mfe_compiler", CompilerId());
 
   benchmark::Initialize(&argc, argv);
   if (benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;

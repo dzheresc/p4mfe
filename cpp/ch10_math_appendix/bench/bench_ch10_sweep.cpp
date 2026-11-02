@@ -21,8 +21,8 @@
 namespace {
 
 namespace ch10 = p4mfe::ch10;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 
 constexpr std::size_t kNPoints = 1000;
 
@@ -38,7 +38,7 @@ void BmOrdersAndBounds(benchmark::State& state) {
   const auto xs = Grid(0.01, 1.0);
   const std::vector<double> nodes{0.0, 0.25, 0.5, 0.75, 1.0};
   const auto cube = [](double h) { return h * h * h + h * h * h * h; };
-  if (!check(state, std::abs(ch10::ObservedPower(cube, 1e-4) - 3.0) < 1e-3,
+  if (!Check(state, std::abs(ch10::ObservedPower(cube, 1e-4) - 3.0) < 1e-3,
              "observed power is not 3"))
     return;
   for (auto _ : state) {
@@ -54,14 +54,14 @@ void BmOrdersAndBounds(benchmark::State& state) {
     benchmark::DoNotOptimize(sum);
     benchmark::DoNotOptimize(r);
   }
-  set_items(state, kNPoints, "points");
+  SetItems(state, kNPoints, "points");
 }
 
 void BmParity(benchmark::State& state) {
   const auto xs = Grid(0.0, 3.0);
   const auto cosh_like = [](double x) { return std::exp(x) + std::exp(-x); };
   const auto mixed = [](double x) { return std::exp(x); };
-  if (!check(state,
+  if (!Check(state,
              ch10::ClassifyParity(cosh_like, xs) == ch10::Parity::kEven &&
                  ch10::ClassifyParity([](double x) { return x * x * x; }, xs) ==
                      ch10::Parity::kOdd &&
@@ -77,12 +77,12 @@ void BmParity(benchmark::State& state) {
     sum += ch10::SymmetricIntegral(mixed, 2.0);
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, kNPoints, "points");
+  SetItems(state, kNPoints, "points");
 }
 
 void BmStirlingAndSums(benchmark::State& state) {
   const auto xs = Grid(-0.95, 0.95);
-  if (!check(state,
+  if (!Check(state,
              ch10::SumK3(1000) == ch10::SumK(1000) * ch10::SumK(1000) &&
                  std::abs(ch10::SumKXk(50, 0.5) - ch10::SumKjXk(50, 1, 0.5)) <
                      1e-12,
@@ -105,13 +105,13 @@ void BmStirlingAndSums(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, kNPoints, "points");
+  SetItems(state, kNPoints, "points");
 }
 
 void BmTaylorConvergence(benchmark::State& state) {
   const auto xs = Grid(-2.0, 2.0);
   const std::vector<double> derivs(20, 1.0);  // e^x at 0
-  if (!check(state,
+  if (!Check(state,
              std::abs(ch10::TaylorSeries(derivs, 0.0)(1.0) - std::exp(1.0)) <
                  1e-12,
              "taylor_series is off"))
@@ -128,7 +128,7 @@ void BmTaylorConvergence(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum + d.back());
   }
-  set_items(state, kNPoints, "points");
+  SetItems(state, kNPoints, "points");
 }
 
 const bool kRegistered = [] {

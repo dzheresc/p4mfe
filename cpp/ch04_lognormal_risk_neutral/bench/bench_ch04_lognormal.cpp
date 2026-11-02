@@ -20,44 +20,47 @@ namespace {
 
 namespace ch03 = p4mfe::ch03;
 namespace ch04 = p4mfe::ch04;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 
 void BmAssetModel(benchmark::State& state) {
   // Real-world drift 8%; one evaluation of every model quantity per option.
-  const auto spec = p4mfe::bench::chain_spec_for_tier();
-  const auto chain = p4mfe::bench::make_option_chain(spec);
+  const auto spec = p4mfe::bench::ChainSpecForTier();
+  const auto chain = p4mfe::bench::MakeOptionChain(spec);
   const double mu = 0.08;
   {
     const auto& o = chain.front();
-    const auto ci =
-        ch04::PriceConfidenceInterval(0.95, o.S, o.T, o.sigma, mu, spec.q);
-    const double inside = ch04::PriceCdf(ci.hi, o.S, o.T, o.sigma, mu, spec.q) -
-                          ch04::PriceCdf(ci.lo, o.S, o.T, o.sigma, mu, spec.q);
-    if (!check(state, std::abs(inside - 0.95) < 1e-9,
+    const auto ci = ch04::PriceConfidenceInterval(0.95, o.spot, o.maturity,
+                                                  o.sigma, mu, spec.q);
+    const double inside =
+        ch04::PriceCdf(ci.hi, o.spot, o.maturity, o.sigma, mu, spec.q) -
+        ch04::PriceCdf(ci.lo, o.spot, o.maturity, o.sigma, mu, spec.q);
+    if (!Check(state, std::abs(inside - 0.95) < 1e-9,
                "confidence interval misses 95%"))
       return;
   }
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& o : chain) {
-      const auto lr = ch04::LogReturnDistribution(o.T, o.sigma, mu, spec.q);
-      sum += lr.mean + ch04::PriceMean(o.S, o.T, mu, spec.q);
-      sum += ch04::PriceVariance(o.S, o.T, o.sigma, mu, spec.q);
-      sum += ch04::PriceMedian(o.S, o.T, o.sigma, mu, spec.q);
-      sum += ch04::PricePdf(o.K, o.S, o.T, o.sigma, mu, spec.q);
-      sum += ch04::PriceCdf(o.K, o.S, o.T, o.sigma, mu, spec.q);
-      sum += ch04::PriceQuantile(0.25, o.S, o.T, o.sigma, mu, spec.q);
-      const auto ci =
-          ch04::PriceConfidenceInterval(0.9, o.S, o.T, o.sigma, mu, spec.q);
+      const auto lr =
+          ch04::LogReturnDistribution(o.maturity, o.sigma, mu, spec.q);
+      sum += lr.mean + ch04::PriceMean(o.spot, o.maturity, mu, spec.q);
+      sum += ch04::PriceVariance(o.spot, o.maturity, o.sigma, mu, spec.q);
+      sum += ch04::PriceMedian(o.spot, o.maturity, o.sigma, mu, spec.q);
+      sum += ch04::PricePdf(o.strike, o.spot, o.maturity, o.sigma, mu, spec.q);
+      sum += ch04::PriceCdf(o.strike, o.spot, o.maturity, o.sigma, mu, spec.q);
+      sum += ch04::PriceQuantile(0.25, o.spot, o.maturity, o.sigma, mu, spec.q);
+      const auto ci = ch04::PriceConfidenceInterval(0.9, o.spot, o.maturity,
+                                                    o.sigma, mu, spec.q);
       sum += ci.hi - ci.lo;
-      sum += ch04::ProbItm(o.type, o.S, o.K, o.T, o.sigma, mu, spec.q);
-      sum += ch04::ProbBetween(0.9 * o.K, 1.1 * o.K, o.S, o.T, o.sigma, mu,
-                               spec.q);
+      sum += ch04::ProbItm(o.type, o.spot, o.strike, o.maturity, o.sigma, mu,
+                           spec.q);
+      sum += ch04::ProbBetween(0.9 * o.strike, 1.1 * o.strike, o.spot,
+                               o.maturity, o.sigma, mu, spec.q);
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, chain.size(), "options");
+  SetItems(state, chain.size(), "options");
 }
 
 void BmDensityTransforms(benchmark::State& state) {
@@ -76,7 +79,7 @@ void BmDensityTransforms(benchmark::State& state) {
       phi, [](double y) { return std::log(y); },
       [](double y) { return y > 0.0; });
   const std::size_t n = 10'000;
-  if (!check(state,
+  if (!Check(state,
              std::abs(ex(1.5) - ch03::LognormalPdf(1.5, 0.0, 1.0)) < 1e-12 &&
                  std::abs(num(1.5) - ex(1.5)) < 1e-6,
              "transformed densities disagree"))
@@ -89,7 +92,7 @@ void BmDensityTransforms(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, n, "points");
+  SetItems(state, n, "points");
 }
 
 void BmIndependent(benchmark::State& state) {
@@ -106,7 +109,7 @@ void BmIndependent(benchmark::State& state) {
   const auto joint = ch04::IndependentJointPdf(phi, phi);
   // N(0,1) + N(0,1) = N(0,2).
   const double conv = ch04::SumPdf(phi, phi, 0.5);
-  if (!check(state,
+  if (!Check(state,
              std::abs(conv - ch03::NormalPdf(0.5, 0.0, std::sqrt(2.0))) < 1e-8,
              "sum_pdf is off"))
     return;
@@ -123,7 +126,7 @@ void BmIndependent(benchmark::State& state) {
     sum += ch04::LognormalParamsFromMoments(1.05, 0.04).variance;
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, n, "variables");
+  SetItems(state, n, "variables");
 }
 
 const bool kRegistered = [] {

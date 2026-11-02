@@ -22,8 +22,8 @@
 namespace {
 
 namespace ch06 = p4mfe::ch06;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 
 // ----------------------------------------------------------------- W1 -----
 
@@ -31,30 +31,30 @@ void BmAtm(benchmark::State& state) {
   // ATM-forward-ish quotes, zero rates as in the book's approximation.
   std::vector<p4mfe::bench::OptionQuote> atm;
   for (const auto& o :
-       p4mfe::bench::make_option_chain(p4mfe::bench::chain_spec_for_tier()))
+       p4mfe::bench::MakeOptionChain(p4mfe::bench::ChainSpecForTier()))
     if (std::abs(o.log_moneyness) < 0.02) atm.push_back(o);
-  if (!check(state, !atm.empty(), "no ATM quotes")) return;
+  if (!Check(state, !atm.empty(), "no ATM quotes")) return;
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& o : atm) {
-      sum += ch06::AtmCallApprox(o.S, o.T, o.sigma, 0.045, 0.015);
-      sum += ch06::AtmPutApprox(o.S, o.T, o.sigma, 0.045, 0.015);
-      sum += ch06::AtmImpliedVolApprox(ch06::AtmPriceExact(o.S, o.T, o.sigma),
-                                       o.S, o.T);
-      const auto g = ch06::AtmGreeksApprox(o.type, o.S, o.T, o.sigma);
+      sum += ch06::AtmCallApprox(o.spot, o.maturity, o.sigma, 0.045, 0.015);
+      sum += ch06::AtmPutApprox(o.spot, o.maturity, o.sigma, 0.045, 0.015);
+      sum += ch06::AtmImpliedVolApprox(
+          ch06::AtmPriceExact(o.spot, o.maturity, o.sigma), o.spot, o.maturity);
+      const auto g = ch06::AtmGreeksApprox(o.type, o.spot, o.maturity, o.sigma);
       sum += g.delta + g.gamma + g.vega + g.theta;
-      sum += ch06::AtmRelativeError(o.T, o.sigma);
+      sum += ch06::AtmRelativeError(o.maturity, o.sigma);
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, atm.size(), "options");
+  SetItems(state, atm.size(), "options");
 }
 
 // ----------------------------------------------------------------- W3 -----
 
 const std::vector<p4mfe::bench::Bond>& Universe() {
   static const auto kU =
-      p4mfe::bench::bond_universe(p4mfe::bench::bond_universe_size());
+      p4mfe::bench::BondUniverse(p4mfe::bench::BondUniverseSize());
   return kU;
 }
 
@@ -71,7 +71,7 @@ void BmDollarRisk(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, u.size(), "bonds");
+  SetItems(state, u.size(), "bonds");
 }
 
 void BmPortfolioRisk(benchmark::State& state) {
@@ -95,14 +95,14 @@ void BmPortfolioRisk(benchmark::State& state) {
     benchmark::DoNotOptimize(ch06::PortfolioDuration(values, durations));
     benchmark::DoNotOptimize(ch06::ValueChangeApproxConvexity(p, 0.001));
   }
-  set_items(state, u.size(), "bonds");
+  SetItems(state, u.size(), "bonds");
 }
 
 void BmCurveShifts(benchmark::State& state) {
   const auto& u = Universe();
   const std::size_t n = std::min<std::size_t>(
-      u.size(), p4mfe::bench::by_tier<std::size_t>(100, 1000, 10'000));
-  const auto z = [](double t) { return p4mfe::bench::true_zero_rate(t); };
+      u.size(), p4mfe::bench::ByTier<std::size_t>(100, 1000, 10'000));
+  const auto z = [](double t) { return p4mfe::bench::TrueZeroRate(t); };
   for (auto _ : state) {
     double sum = 0.0;
     for (std::size_t i = 0; i < n; ++i) {
@@ -115,7 +115,7 @@ void BmCurveShifts(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, n, "bonds");
+  SetItems(state, n, "bonds");
 }
 
 // ----------------------------------------------------------------- W8 -----
@@ -127,7 +127,7 @@ struct History {
 
 const History& GetHistory() {
   static const History kH = [] {
-    History x{p4mfe::bench::by_tier<std::size_t>(10, 500, 2000), 2520, {}};
+    History x{p4mfe::bench::ByTier<std::size_t>(10, 500, 2000), 2520, {}};
     std::mt19937_64 rng(42);
     std::normal_distribution<double> z;
     for (std::size_t a = 0; a < x.assets; ++a) {
@@ -157,7 +157,7 @@ void BmReturns(benchmark::State& state) {
     benchmark::DoNotOptimize(ch06::PortfolioLogReturn(w, r));
     benchmark::DoNotOptimize(ch06::PortfolioLogReturnApprox(w, r));
   }
-  set_items(state, h.assets * h.days, "prices");
+  SetItems(state, h.assets * h.days, "prices");
 }
 
 const bool kRegistered = [] {

@@ -25,10 +25,10 @@ class CauchySchwarzSides:
 def ex10_sides(x: Sequence[float], y: Sequence[float]) -> CauchySchwarzSides:
     if len(x) != len(y):
         raise ValueError("x and y must have the same length")
-    A = math.fsum(a * a for a in x)
-    B = math.fsum(a * b for a, b in zip(x, y))
-    call = math.fsum(b * b for b in y)
-    return CauchySchwarzSides(B * B, A * call)
+    sum_xx = math.fsum(a * a for a in x)
+    sum_xy = math.fsum(a * b for a, b in zip(x, y))
+    sum_yy = math.fsum(b * b for b in y)
+    return CauchySchwarzSides(sum_xy * sum_xy, sum_xx * sum_yy)
 
 
 def ex10_quadratic(
@@ -40,7 +40,7 @@ def ex10_quadratic(
 def ex11_sides(
     f: Callable, g: Callable, a: float, b: float, n: int = 1000
 ) -> CauchySchwarzSides:
-    A = simpson_rule(lambda x: f(x) * f(x), a, b, n)
-    B = simpson_rule(lambda x: f(x) * g(x), a, b, n)
-    call = simpson_rule(lambda x: g(x) * g(x), a, b, n)
-    return CauchySchwarzSides(B, math.sqrt(A) * math.sqrt(call))
+    int_ff = simpson_rule(lambda x: f(x) * f(x), a, b, n)
+    int_fg = simpson_rule(lambda x: f(x) * g(x), a, b, n)
+    int_gg = simpson_rule(lambda x: g(x) * g(x), a, b, n)
+    return CauchySchwarzSides(int_fg, math.sqrt(int_ff) * math.sqrt(int_gg))

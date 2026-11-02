@@ -13,7 +13,7 @@
 
 namespace {
 
-using p4mfe::bench::set_items;
+using p4mfe::bench::SetItems;
 
 std::vector<double> Grid(std::size_t n) {
   std::vector<double> x(n);
@@ -25,12 +25,12 @@ std::vector<double> Grid(std::size_t n) {
 
 const std::vector<double>& GetPoints() {
   static const auto kX =
-      Grid(p4mfe::bench::by_tier<std::size_t>(10'000, 1'000'000, 10'000'000));
+      Grid(p4mfe::bench::ByTier<std::size_t>(10'000, 1'000'000, 10'000'000));
   return kX;
 }
 const std::vector<double>& FewPoints() {
   static const auto kX =
-      Grid(p4mfe::bench::by_tier<std::size_t>(100, 10'000, 100'000));
+      Grid(p4mfe::bench::ByTier<std::size_t>(100, 10'000, 100'000));
   return kX;
 }
 
@@ -40,7 +40,7 @@ void Sweep(benchmark::State& state, const std::vector<double>& xs, F f,
   double worst = 0.0;
   for (const double x : xs)
     worst = std::max(worst, std::abs(f(x) - p4mfe::NormCdf(x)));
-  if (!p4mfe::bench::check(state, worst < max_error,
+  if (!p4mfe::bench::Check(state, worst < max_error,
                            "approximation error larger than expected"))
     return;
   for (auto _ : state) {
@@ -48,7 +48,7 @@ void Sweep(benchmark::State& state, const std::vector<double>& xs, F f,
     for (const double x : xs) sum += f(x);
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, xs.size(), "points");
+  SetItems(state, xs.size(), "points");
   state.counters["max_abs_error"] = worst;
 }
 

@@ -16,8 +16,8 @@ namespace {
 
 namespace ch03 = p4mfe::ch03;
 namespace ch07 = p4mfe::ch07;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 
 void BmFdStudy(benchmark::State& state) {
   const auto f = [](double x) { return std::exp(x) * std::sin(x); };
@@ -26,7 +26,7 @@ void BmFdStudy(benchmark::State& state) {
   };
   const double p =
       ch07::FdObservedOrder(f, 0.5, df(0.5), ch07::FdScheme::kCentral, 1e-2);
-  if (!check(
+  if (!Check(
           state,
           std::abs(p - ch07::TruncationOrder(ch07::FdScheme::kCentral)) < 0.1,
           "central order is not 2"))
@@ -48,41 +48,43 @@ void BmFdStudy(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, n, "points");
+  SetItems(state, n, "points");
 }
 
 void BmPdeSolutions(benchmark::State& state) {
-  const auto spec = p4mfe::bench::chain_spec_for_tier();
-  const auto chain = p4mfe::bench::make_option_chain(spec);
+  const auto spec = p4mfe::bench::ChainSpecForTier();
+  const auto chain = p4mfe::bench::MakeOptionChain(spec);
   std::vector<ch03::Greeks> gs;
   std::vector<double> w;
   for (const auto& o : chain) {
-    gs.push_back(
-        ch03::BsGreeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q));
-    w.push_back(o.K > o.S ? 1.0 : -1.0);
+    gs.push_back(ch03::BsGreeks(o.type, o.spot, o.strike, o.maturity, o.sigma,
+                                spec.r, spec.q));
+    w.push_back(o.strike > o.spot ? 1.0 : -1.0);
   }
   const auto& o0 = chain.front();
   const auto call = [&](double spot, double t) {
-    return ch03::BsPrice(o0.type, spot, o0.K, o0.T - t, o0.sigma, spec.r,
-                         spec.q);
+    return ch03::BsPrice(o0.type, spot, o0.strike, o0.maturity - t, o0.sigma,
+                         spec.r, spec.q);
   };
-  if (!check(state,
-             std::abs(ch07::BsPdeResidualFd(call, o0.S, 0.0, o0.sigma, spec.r,
-                                            spec.q)) < 1e-2,
+  if (!Check(state,
+             std::abs(ch07::BsPdeResidualFd(call, o0.spot, 0.0, o0.sigma,
+                                            spec.r, spec.q)) < 1e-2,
              "Black-Scholes price does not solve the PDE"))
     return;
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& o : chain) {
-      sum += ch07::PowerSolution(2.0, o.S, 0.0, o.sigma, spec.r, spec.q) * 1e-8;
+      sum +=
+          ch07::PowerSolution(2.0, o.spot, 0.0, o.sigma, spec.r, spec.q) * 1e-8;
       sum += ch07::PowerSolutionRate(-1.0, o.sigma, spec.r, spec.q);
-      sum += ch07::ForwardContractValue(o.S, 0.0, o.K, o.T, spec.r, spec.q);
+      sum += ch07::ForwardContractValue(o.spot, 0.0, o.strike, o.maturity,
+                                        spec.r, spec.q);
     }
-    sum += ch07::BsPdeResidualFd(call, o0.S, 0.0, o0.sigma, spec.r, spec.q);
+    sum += ch07::BsPdeResidualFd(call, o0.spot, 0.0, o0.sigma, spec.r, spec.q);
     const auto g = ch07::CombineGreeks(w, gs);
     benchmark::DoNotOptimize(sum + g.delta + g.gamma);
   }
-  set_items(state, chain.size(), "options");
+  SetItems(state, chain.size(), "options");
 }
 
 const bool kRegistered = [] {

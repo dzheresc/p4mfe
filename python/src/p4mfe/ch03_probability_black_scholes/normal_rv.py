@@ -51,14 +51,14 @@ def normal_cdf(x: float, mu: float, sigma: float) -> float:
 
 
 def linear_combination(
-    a: float, X: NormalParams, b: float, Y: NormalParams, rho: float = 0.0
+    a: float, x: NormalParams, b: float, y: NormalParams, rho: float = 0.0
 ) -> NormalParams:
     """aX + bY for jointly normal X, Y with correlation rho."""
     return NormalParams(
-        a * X.mean + b * Y.mean,
-        a * a * X.variance
-        + b * b * Y.variance
-        + 2 * a * b * rho * X.stddev * Y.stddev,
+        a * x.mean + b * y.mean,
+        a * a * x.variance
+        + b * b * y.variance
+        + 2 * a * b * rho * x.stddev * y.stddev,
     )
 
 

@@ -47,7 +47,7 @@ bool InSlice(const OptionQuote& o, Slice s) {
     case Slice::kWings:
       return std::abs(o.log_moneyness) > 0.3;
     case Slice::kShort:
-      return o.T <= 1.0 / 12.0;
+      return o.maturity <= 1.0 / 12.0;
   }
   return false;
 }
@@ -70,8 +70,8 @@ struct Market {
 const Market& GetMarket() {
   static const Market kM = [] {
     Market x;
-    x.spec = p4mfe::bench::chain_spec_for_tier();
-    x.chain = p4mfe::bench::make_option_chain(x.spec);
+    x.spec = p4mfe::bench::ChainSpecForTier();
+    x.chain = p4mfe::bench::MakeOptionChain(x.spec);
     for (const Slice s :
          {Slice::kAll, Slice::kAtm, Slice::kWings, Slice::kShort})
       for (const auto& o : x.chain)
@@ -80,7 +80,7 @@ const Market& GetMarket() {
       const auto& c = x.chain[i];
       const auto& p = x.chain[i + 1];
       if (c.type == OptionType::kCall && p.type == OptionType::kPut &&
-          c.K == p.K && c.T == p.T && c.S == p.S)
+          c.strike == p.strike && c.maturity == p.maturity && c.spot == p.spot)
         x.pairs.push_back({&c, c.price, p.price});
     }
     return x;
@@ -101,8 +101,8 @@ void BmBsPrice(benchmark::State& state) {
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& o : m.chain)
-      sum += p4mfe::ch03::BsPrice(o.type, o.S, o.K, o.T, o.sigma, m.spec.r,
-                                  m.spec.q);
+      sum += p4mfe::ch03::BsPrice(o.type, o.spot, o.strike, o.maturity, o.sigma,
+                                  m.spec.r, m.spec.q);
     benchmark::DoNotOptimize(sum);
   }
   SetItemsOptions(state, m.chain.size());
@@ -113,8 +113,8 @@ void BmBsGreeks(benchmark::State& state) {
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& o : m.chain) {
-      const auto g = p4mfe::ch03::BsGreeks(o.type, o.S, o.K, o.T, o.sigma,
-                                           m.spec.r, m.spec.q);
+      const auto g = p4mfe::ch03::BsGreeks(o.type, o.spot, o.strike, o.maturity,
+                                           o.sigma, m.spec.r, m.spec.q);
       sum += g.delta + g.gamma + g.vega + g.theta + g.rho;
     }
     benchmark::DoNotOptimize(sum);
@@ -127,9 +127,10 @@ void BmParityViolation(benchmark::State& state) {
   const auto& m = GetMarket();
   for (const auto& cp : m.pairs) {
     const auto& o = *cp.call;
-    const double v = p4mfe::ch01::ParityViolation(
-        cp.call_price, cp.put_price, o.S, o.K, o.T, m.spec.r, m.spec.q);
-    if (std::abs(v) > 1e-8 * o.S) {
+    const double v =
+        p4mfe::ch01::ParityViolation(cp.call_price, cp.put_price, o.spot,
+                                     o.strike, o.maturity, m.spec.r, m.spec.q);
+    if (std::abs(v) > 1e-8 * o.spot) {
       state.SkipWithError("put-call parity does not hold on model prices");
       return;
     }
@@ -138,8 +139,9 @@ void BmParityViolation(benchmark::State& state) {
     double sum = 0.0;
     for (const auto& cp : m.pairs) {
       const auto& o = *cp.call;
-      sum += p4mfe::ch01::ParityViolation(cp.call_price, cp.put_price, o.S, o.K,
-                                          o.T, m.spec.r, m.spec.q);
+      sum += p4mfe::ch01::ParityViolation(cp.call_price, cp.put_price, o.spot,
+                                          o.strike, o.maturity, m.spec.r,
+                                          m.spec.q);
     }
     benchmark::DoNotOptimize(sum);
   }
@@ -174,11 +176,11 @@ void BmImpliedVol(benchmark::State& state, IvSolver solve, Slice s) {
   std::size_t iterations = 0;
   for (const auto& o : quotes) {
     try {
-      const auto res =
-          solve(o.type, o.price, o.S, o.K, o.T, m.spec.r, m.spec.q);
+      const auto res = solve(o.type, o.price, o.spot, o.strike, o.maturity,
+                             m.spec.r, m.spec.q);
       // Recovered price within a hundredth of a tick, or vol within 1e-6.
       const double repriced = p4mfe::ch03::BsPrice(
-          o.type, o.S, o.K, o.T, res.sigma, m.spec.r, m.spec.q);
+          o.type, o.spot, o.strike, o.maturity, res.sigma, m.spec.r, m.spec.q);
       if (std::abs(res.sigma - o.sigma) > 1e-6 &&
           std::abs(repriced - o.price) > 1e-2 * m.spec.tick) {
         state.SkipWithError("implied vol does not recover the generating vol");
@@ -193,7 +195,9 @@ void BmImpliedVol(benchmark::State& state, IvSolver solve, Slice s) {
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& o : quotes)
-      sum += solve(o.type, o.price, o.S, o.K, o.T, m.spec.r, m.spec.q).sigma;
+      sum += solve(o.type, o.price, o.spot, o.strike, o.maturity, m.spec.r,
+                   m.spec.q)
+                 .sigma;
     benchmark::DoNotOptimize(sum);
   }
   SetItemsOptions(state, quotes.size());

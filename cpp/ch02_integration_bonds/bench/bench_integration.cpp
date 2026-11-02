@@ -15,8 +15,8 @@
 namespace {
 
 namespace ch02 = p4mfe::ch02;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 
 // Smooth, peaked and oscillatory integrands on [0, 1].
 double Smooth(double x) { return std::exp(-x * x); }
@@ -38,13 +38,13 @@ void BmRule(benchmark::State& state, double (*f)(double), ch02::Rule rule) {
   for (auto _ : state)
     benchmark::DoNotOptimize(ch02::Integrate(f, 0.0, 1.0, n, rule));
   state.SetComplexityN(static_cast<std::int64_t>(n));
-  set_items(state, n, "intervals");
+  SetItems(state, n, "intervals");
 }
 
 void BmToTolerance(benchmark::State& state, double (*f)(double), double exact,
                    double tol) {
   const auto res = ch02::IntegrateToTolerance(f, 0.0, 1.0, tol);
-  if (!check(state, std::abs(res.value - exact) < 100.0 * tol,
+  if (!Check(state, std::abs(res.value - exact) < 100.0 * tol,
              "integrate_to_tolerance is off"))
     return;
   for (auto _ : state)
@@ -53,7 +53,7 @@ void BmToTolerance(benchmark::State& state, double (*f)(double), double exact,
 }
 
 void BmGamma(benchmark::State& state, double x) {
-  if (!check(state,
+  if (!Check(state,
              std::abs(ch02::GammaFunction(x) - std::tgamma(x)) <
                  1e-6 * std::tgamma(x),
              "gamma_function is off"))
@@ -64,7 +64,7 @@ void BmGamma(benchmark::State& state, double x) {
 void BmImproperGaussian(benchmark::State& state) {
   const auto f = [](double x) { return std::exp(-0.5 * x * x); };
   const double exact = std::sqrt(2.0 * std::numbers::pi);
-  if (!check(
+  if (!Check(
           state,
           std::abs(ch02::ImproperIntegral(f, -ch02::kInfinity, ch02::kInfinity)
                        .value -
@@ -77,7 +77,7 @@ void BmImproperGaussian(benchmark::State& state) {
 }
 
 const bool kRegistered = [] {
-  const auto ns = p4mfe::bench::by_tier<std::vector<std::int64_t>>(
+  const auto ns = p4mfe::bench::ByTier<std::vector<std::int64_t>>(
       {1 << 10, 1 << 12}, {1 << 10, 1 << 14, 1 << 18, 1 << 22},
       {1 << 14, 1 << 18, 1 << 22, 1 << 24});
   const std::pair<const char*, ch02::Rule> rules[] = {

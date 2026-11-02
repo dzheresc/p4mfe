@@ -16,11 +16,11 @@
 namespace {
 
 namespace ch01 = p4mfe::ch01;
-using p4mfe::bench::set_items;
+using p4mfe::bench::SetItems;
 
 void BmDerivatives(benchmark::State& state) {
   const std::size_t n =
-      p4mfe::bench::by_tier<std::size_t>(1'000, 100'000, 1'000'000);
+      p4mfe::bench::ByTier<std::size_t>(1'000, 100'000, 1'000'000);
   const auto f = [](double x) { return std::exp(-x * x) * std::sin(3.0 * x); };
   for (auto _ : state) {
     double sum = 0.0;
@@ -31,7 +31,7 @@ void BmDerivatives(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, n, "points");
+  SetItems(state, n, "points");
 }
 
 void BmRiemann(benchmark::State& state) {
@@ -46,8 +46,7 @@ void BmForwardDividends(benchmark::State& state) {
   // Quarterly dividends over 30 years on 10,000 forwards.
   std::vector<ch01::Dividend> divs;
   for (int k = 1; k <= 120; ++k) divs.push_back({0.25 * k, 1.5});
-  const std::size_t n =
-      p4mfe::bench::by_tier<std::size_t>(100, 10'000, 100'000);
+  const std::size_t n = p4mfe::bench::ByTier<std::size_t>(100, 10'000, 100'000);
   for (auto _ : state) {
     double sum = 0.0;
     for (std::size_t i = 0; i < n; ++i) {
@@ -61,7 +60,7 @@ void BmForwardDividends(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, n, "forwards");
+  SetItems(state, n, "forwards");
 }
 
 void BmGradientHessian(benchmark::State& state) {
@@ -86,7 +85,7 @@ const bool kRegistered = [] {
                                BmDerivatives)
       ->Unit(benchmark::kMillisecond);
   auto* r = benchmark::RegisterBenchmark("W8/ch01/riemann_sum", BmRiemann);
-  for (const auto n : p4mfe::bench::by_tier<std::vector<std::int64_t>>(
+  for (const auto n : p4mfe::bench::ByTier<std::vector<std::int64_t>>(
            {1 << 10}, {1 << 10, 1 << 16, 1 << 22}, {1 << 16, 1 << 22, 1 << 24}))
     r->Arg(n);
   r->Complexity(benchmark::oN)->Unit(benchmark::kMicrosecond);
@@ -95,7 +94,7 @@ const bool kRegistered = [] {
       ->Unit(benchmark::kMicrosecond);
   auto* g = benchmark::RegisterBenchmark("W8/ch01/gradient+hessian",
                                          BmGradientHessian);
-  for (const auto n : p4mfe::bench::by_tier<std::vector<std::int64_t>>(
+  for (const auto n : p4mfe::bench::ByTier<std::vector<std::int64_t>>(
            {2, 10}, {2, 10, 50}, {10, 50, 100}))
     g->Arg(n);
   g->Complexity(benchmark::oNCubed)->Unit(benchmark::kMicrosecond);

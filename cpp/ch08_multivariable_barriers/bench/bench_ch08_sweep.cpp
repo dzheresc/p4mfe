@@ -26,12 +26,12 @@ namespace {
 
 namespace ch03 = p4mfe::ch03;
 namespace ch08 = p4mfe::ch08;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 
 void BmBoxMullerInverse(benchmark::State& state) {
   const std::size_t n =
-      p4mfe::bench::by_tier<std::size_t>(10'000, 1'000'000, 10'000'000);
+      p4mfe::bench::ByTier<std::size_t>(10'000, 1'000'000, 10'000'000);
   std::mt19937_64 rng(42);
   std::normal_distribution<double> z;
   std::vector<double> z1(n), z2(n);
@@ -47,7 +47,7 @@ void BmBoxMullerInverse(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, n, "pairs");
+  SetItems(state, n, "pairs");
 }
 
 void BmChainRule(benchmark::State& state) {
@@ -80,7 +80,7 @@ void BmChainRule(benchmark::State& state) {
   // d/dt f(g(t)) by the chain rule against a direct difference.
   const double direct =
       p4mfe::ch01::Derivative([&](double t) { return f(g(t)); }, 0.4);
-  if (!check(state,
+  if (!Check(state,
              std::abs(ch08::ChainRuleDerivative(f, g, 0.4) - direct) < 1e-5,
              "chain rule is off"))
     return;
@@ -95,7 +95,7 @@ void BmChainRule(benchmark::State& state) {
     benchmark::DoNotOptimize(gr);
     benchmark::DoNotOptimize(jacobian_sq);
   }
-  set_items(state, kN, "dimensions");
+  SetItems(state, kN, "dimensions");
 }
 
 void BmDoubleIntegrals(benchmark::State& state) {
@@ -110,7 +110,7 @@ void BmDoubleIntegrals(benchmark::State& state) {
       gauss, polar, 0.0, radius, 0.0, 2.0 * std::numbers::pi, 100, 100);
   const double exact =
       2.0 * std::numbers::pi * (1.0 - std::exp(-0.5 * radius * radius));
-  if (!check(state, std::abs(disk - exact) < 1e-6,
+  if (!Check(state, std::abs(disk - exact) < 1e-6,
              "change of variables integral is off"))
     return;
   for (auto _ : state) {
@@ -145,7 +145,7 @@ void BmCriticalPoints(benchmark::State& state) {
   };
   const p4mfe::ch01::Vector x0(5, 0.0);
   const auto xs = ch08::FindCriticalPoint(bowl, x0);
-  if (!check(state,
+  if (!Check(state,
              ch08::ClassifyCriticalPoint(bowl, xs) ==
                      ch08::CriticalPointType::kMinimum &&
                  ch08::ClassifyCriticalPoint(saddle, {0.0, 0.0}) ==
@@ -161,40 +161,44 @@ void BmCriticalPoints(benchmark::State& state) {
 }
 
 void BmExerciseAndHeat(benchmark::State& state) {
-  const auto spec = p4mfe::bench::chain_spec_for_tier();
-  const auto chain = p4mfe::bench::make_option_chain(spec);
+  const auto spec = p4mfe::bench::ChainSpecForTier();
+  const auto chain = p4mfe::bench::MakeOptionChain(spec);
   const auto& o = chain[chain.size() / 2];
-  const auto payoff = [strike = o.K](double s) {
+  const auto payoff = [strike = o.strike](double s) {
     return std::max(s - strike, 0.0);
   };
-  const double bs = ch03::BsPrice(p4mfe::ch01::OptionType::kCall, o.S, o.K, o.T,
-                                  o.sigma, spec.r, spec.q);
-  if (!check(state,
-             std::abs(ch08::BsPriceViaHeat(payoff, o.S, o.K, o.T, o.sigma,
-                                           spec.r, spec.q) -
+  const double bs =
+      ch03::BsPrice(p4mfe::ch01::OptionType::kCall, o.spot, o.strike,
+                    o.maturity, o.sigma, spec.r, spec.q);
+  if (!Check(state,
+             std::abs(ch08::BsPriceViaHeat(payoff, o.spot, o.strike, o.maturity,
+                                           o.sigma, spec.r, spec.q) -
                       bs) < 1e-4 * bs,
              "heat-equation price differs from Black-Scholes"))
     return;
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& c : chain) {
-      sum += ch08::CallExerciseLoss(c.S, c.K, c.T, c.sigma, spec.r);
-      sum += ch08::CallExerciseLossBound(c.K, c.T, spec.r);
-      sum += ch08::ToHeatVariables(c.S, c.K, c.T, c.sigma).tau;
+      sum +=
+          ch08::CallExerciseLoss(c.spot, c.strike, c.maturity, c.sigma, spec.r);
+      sum += ch08::CallExerciseLossBound(c.strike, c.maturity, spec.r);
+      sum += ch08::ToHeatVariables(c.spot, c.strike, c.maturity, c.sigma).tau;
     }
-    sum += ch08::BsPriceViaHeat(payoff, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
+    sum += ch08::BsPriceViaHeat(payoff, o.spot, o.strike, o.maturity, o.sigma,
+                                spec.r, spec.q);
     sum += ch08::HeatSolution([](double x) { return std::exp(-x * x); }, 0.1,
                               0.05);
     sum += ch08::ThetaFromMaturity(
         [&](double tau) {
-          return ch03::BsPrice(p4mfe::ch01::OptionType::kCall, o.S, o.K, tau,
-                               o.sigma, spec.r, spec.q);
+          return ch03::BsPrice(p4mfe::ch01::OptionType::kCall, o.spot, o.strike,
+                               tau, o.sigma, spec.r, spec.q);
         },
-        o.T);
-    sum += ch08::ThetaByIntegral(payoff, o.S, o.T, o.sigma, spec.r, spec.q);
+        o.maturity);
+    sum += ch08::ThetaByIntegral(payoff, o.spot, o.maturity, o.sigma, spec.r,
+                                 spec.q);
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, chain.size(), "options");
+  SetItems(state, chain.size(), "options");
 }
 
 const bool kRegistered = [] {
