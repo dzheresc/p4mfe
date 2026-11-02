@@ -27,12 +27,12 @@ namespace p4mfe::ch04::ex {
 // (equal in distribution, not as random variables). In general
 // sum a_i X_i ~ N(sum a_i mu_i, sum a_i^2 sigma_i^2) for independent normals,
 // which is ch04::independent_normal_combination.
-[[nodiscard]] inline NormalParams ex01_sum_independent() {
-  const std::vector<NormalParams> X{{0.0, 1.0}, {0.0, 1.0}};
-  return independent_normal_sum(X);
+[[nodiscard]] inline NormalParams Ex01SumIndependent() {
+  const std::vector<NormalParams> x_dist{{0.0, 1.0}, {0.0, 1.0}};
+  return IndependentNormalSum(x_dist);
 }
 // The literal reading: X1 + X2 = z + (-z) = 0 for every draw z.
-[[nodiscard]] inline double ex01_sum_as_written(double z) noexcept {
+[[nodiscard]] inline double Ex01SumAsWritten(double z) noexcept {
   return z + (-z);
 }
 
@@ -48,11 +48,11 @@ namespace p4mfe::ch04::ex {
 // Only uncorrelatedness is used (normality is not needed for these two
 // moments); the standard deviation of the average shrinks like 1/sqrt(n).
 // If the Xi are also independent, S_n ~ N(mu, sigma^2/n) by Exercise 1.
-[[nodiscard]] inline NormalParams ex02_average(double mu, double sigma,
-                                               std::size_t n) {
+[[nodiscard]] inline NormalParams Ex02Average(double mu, double sigma,
+                                              std::size_t n) {
   const std::vector<double> a(n, 1.0 / static_cast<double>(n));
-  const std::vector<NormalParams> X(n, NormalParams{mu, sigma * sigma});
-  return independent_normal_combination(a, X);
+  const std::vector<NormalParams> x_dist(n, NormalParams{mu, sigma * sigma});
+  return IndependentNormalCombination(a, x_dist);
 }
 
 }  // namespace p4mfe::ch04::ex

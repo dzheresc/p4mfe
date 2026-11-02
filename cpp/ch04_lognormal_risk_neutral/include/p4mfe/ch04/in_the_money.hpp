@@ -34,38 +34,44 @@ using ch01::OptionType;
 // ---------------------------------------------------------------- 4.6 ------
 // P(option finishes in the money) under drift mu: P(S_T > K) for a call,
 // P(S_T < K) for a put. Pass mu = r for the risk-neutral probability.
-[[nodiscard]] inline double prob_itm(OptionType type, double S0, double K,
-                                     double T, double sigma, double mu,
-                                     double q = 0.0) {
-  const double above = ch03::ProbPriceAbove(K, S0, T, sigma, mu, q);
+[[nodiscard]] inline double ProbItm(OptionType type, double spot0,
+                                    double strike, double maturity,
+                                    double sigma, double mu, double q = 0.0) {
+  const double above =
+      ch03::ProbPriceAbove(strike, spot0, maturity, sigma, mu, q);
   return type == OptionType::kCall ? above : 1.0 - above;
 }
 
 // P(K1 < S_T < K2), K1 < K2, under drift mu.
-[[nodiscard]] inline double prob_between(double K1, double K2, double S0,
-                                         double T, double sigma, double mu,
-                                         double q = 0.0) {
-  return ch03::ProbPriceAbove(K1, S0, T, sigma, mu, q) -
-         ch03::ProbPriceAbove(K2, S0, T, sigma, mu, q);
+[[nodiscard]] inline double ProbBetween(double strike1, double strike2,
+                                        double spot0, double maturity,
+                                        double sigma, double mu,
+                                        double q = 0.0) {
+  return ch03::ProbPriceAbove(strike1, spot0, maturity, sigma, mu, q) -
+         ch03::ProbPriceAbove(strike2, spot0, maturity, sigma, mu, q);
 }
 
 // ---------------------------------------------------------------- 4.7 ------
 // Cash-or-nothing: pays 1 if the option finishes in the money.
 //   call: e^(-rT) N(d2),  put: e^(-rT) N(-d2).
-[[nodiscard]] inline double cash_or_nothing(OptionType type, double S, double K,
-                                            double T, double sigma, double r,
-                                            double q = 0.0) {
-  const auto [d1, d2] = ch03::BsD1D2(S, K, T, sigma, r, q);
-  return std::exp(-r * T) * norm_cdf(type == OptionType::kCall ? d2 : -d2);
+[[nodiscard]] inline double CashOrNothing(OptionType type, double spot,
+                                          double strike, double maturity,
+                                          double sigma, double r,
+                                          double q = 0.0) {
+  const auto [d1, d2] = ch03::BsD1D2(spot, strike, maturity, sigma, r, q);
+  return std::exp(-r * maturity) *
+         norm_cdf(type == OptionType::kCall ? d2 : -d2);
 }
 
 // Asset-or-nothing: pays S_T if the option finishes in the money.
 //   call: S e^(-qT) N(d1),  put: S e^(-qT) N(-d1).
-[[nodiscard]] inline double asset_or_nothing(OptionType type, double S,
-                                             double K, double T, double sigma,
-                                             double r, double q = 0.0) {
-  const auto [d1, d2] = ch03::BsD1D2(S, K, T, sigma, r, q);
-  return S * std::exp(-q * T) * norm_cdf(type == OptionType::kCall ? d1 : -d1);
+[[nodiscard]] inline double AssetOrNothing(OptionType type, double spot,
+                                           double strike, double maturity,
+                                           double sigma, double r,
+                                           double q = 0.0) {
+  const auto [d1, d2] = ch03::BsD1D2(spot, strike, maturity, sigma, r, q);
+  return spot * std::exp(-q * maturity) *
+         norm_cdf(type == OptionType::kCall ? d1 : -d1);
 }
 
 // The two probabilities of the call, side by side:
@@ -76,9 +82,10 @@ struct ExerciseProbabilities {
   double n_d1;
   double n_d2;
 };
-[[nodiscard]] inline ExerciseProbabilities exercise_probabilities(
-    double S, double K, double T, double sigma, double r, double q = 0.0) {
-  const auto [d1, d2] = ch03::BsD1D2(S, K, T, sigma, r, q);
+[[nodiscard]] inline ExerciseProbabilities ComputeExerciseProbabilities(
+    double spot, double strike, double maturity, double sigma, double r,
+    double q = 0.0) {
+  const auto [d1, d2] = ch03::BsD1D2(spot, strike, maturity, sigma, r, q);
   return {norm_cdf(d1), norm_cdf(d2)};
 }
 

@@ -32,16 +32,17 @@ namespace p4mfe::ch04::ex {
 //       risk-neutral probability of exercise, not the real-world one; the
 //       higher real drift makes the put less likely to finish in the money.
 struct Ex09Market {
-  double S = 60.0, K = 55.0, T = 4.0 / 12.0, mu = 0.1, sigma = 0.3, r = 0.05;
+  double spot = 60.0, strike = 55.0, maturity = 4.0 / 12.0, mu = 0.1,
+         sigma = 0.3, r = 0.05;
 };
-[[nodiscard]] inline double ex09_prob_itm(const Ex09Market& m = {}) {
-  return prob_itm(OptionType::kPut, m.S, m.K, m.T, m.sigma, m.mu);
+[[nodiscard]] inline double Ex09ProbItm(const Ex09Market& m = {}) {
+  return ProbItm(OptionType::kPut, m.spot, m.strike, m.maturity, m.sigma, m.mu);
 }
-[[nodiscard]] inline double ex09_rn_prob_itm(const Ex09Market& m = {}) {
-  return prob_itm(OptionType::kPut, m.S, m.K, m.T, m.sigma, m.r);
+[[nodiscard]] inline double Ex09RnProbItm(const Ex09Market& m = {}) {
+  return ProbItm(OptionType::kPut, m.spot, m.strike, m.maturity, m.sigma, m.r);
 }
-[[nodiscard]] inline double ex09_n_minus_d2(const Ex09Market& m = {}) {
-  return norm_cdf(-ch03::BsD1D2(m.S, m.K, m.T, m.sigma, m.r).d2);
+[[nodiscard]] inline double Ex09NMinusD2(const Ex09Market& m = {}) {
+  return norm_cdf(-ch03::BsD1D2(m.spot, m.strike, m.maturity, m.sigma, m.r).d2);
 }
 
 // ----------------------------------------------------------- Exercise 10 ---
@@ -67,26 +68,27 @@ struct Ex09Market {
 // E.g. r = 5%, sigma = 20%: q* = 6.21% (T = 3 months), 5.56% (T = 1 year),
 // 4.28% (T = 5 years), so for long maturities the Delta can drop below 1/2
 // even when q < r. As the Note says, for typical inputs Delta is close to 0.5.
-[[nodiscard]] inline double ex10_atm_call_delta(double r, double q,
-                                                double sigma, double T) {
-  return std::exp(-q * T) *
-         norm_cdf((r - q + 0.5 * sigma * sigma) * std::sqrt(T) / sigma);
+[[nodiscard]] inline double Ex10AtmCallDelta(double r, double q, double sigma,
+                                             double maturity) {
+  return std::exp(-q * maturity) *
+         norm_cdf((r - q + 0.5 * sigma * sigma) * std::sqrt(maturity) / sigma);
 }
 // q* by bisection: Delta(ATM call) is decreasing in q.
-[[nodiscard]] inline double ex10_threshold_q(double r, double sigma, double T) {
+[[nodiscard]] inline double Ex10ThresholdQ(double r, double sigma,
+                                           double maturity) {
   if (!(r > -0.5 * sigma * sigma))
     throw std::domain_error("ex10_threshold_q: need r > -sigma^2/2");
   double lo = 0.0, hi = r + 0.5 * sigma * sigma;  // Delta(lo) > 1/2 > Delta(hi)
   for (int i = 0; i < 200 && hi - lo > 1e-15; ++i) {
     const double mid = 0.5 * (lo + hi);
-    (ex10_atm_call_delta(r, mid, sigma, T) > 0.5 ? lo : hi) = mid;
+    (Ex10AtmCallDelta(r, mid, sigma, maturity) > 0.5 ? lo : hi) = mid;
   }
   return 0.5 * (lo + hi);
 }
-[[nodiscard]] inline double ex10_threshold_q_approx(double r, double sigma,
-                                                    double T) {
+[[nodiscard]] inline double Ex10ThresholdQApprox(double r, double sigma,
+                                                 double maturity) {
   return (r + 0.5 * sigma * sigma) /
-         (1.0 + sigma * std::sqrt(std::numbers::pi * T / 2.0));
+         (1.0 + sigma * std::sqrt(std::numbers::pi * maturity / 2.0));
 }
 
 }  // namespace p4mfe::ch04::ex

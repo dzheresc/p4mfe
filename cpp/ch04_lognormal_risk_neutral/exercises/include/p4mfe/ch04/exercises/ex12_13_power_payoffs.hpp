@@ -33,16 +33,17 @@ namespace p4mfe::ch04::ex {
 // and in general
 //   V(0) = S_0^2 e^((r - 2q + sigma^2) T) N(d1 + sigma sqrt(T)) - 2 K S_0
 //   e^(-qT) N(d1) + K^2 e^(-rT) N(d2).
-[[nodiscard]] inline double ex12_squared_call(double S0, double K, double T,
-                                              double sigma, double r,
-                                              double q = 0.0) {
-  const double s = sigma * std::sqrt(T);
-  const double d2 = (std::log(S0 / K) + (r - q - 0.5 * sigma * sigma) * T) / s;
+[[nodiscard]] inline double Ex12SquaredCall(double spot0, double strike,
+                                            double maturity, double sigma,
+                                            double r, double q = 0.0) {
+  const double s = sigma * std::sqrt(maturity);
+  const double d2 =
+      (std::log(spot0 / strike) + (r - q - 0.5 * sigma * sigma) * maturity) / s;
   const double d1 = d2 + s;
-  return S0 * S0 * std::exp((r - 2.0 * q + sigma * sigma) * T) *
+  return spot0 * spot0 * std::exp((r - 2.0 * q + sigma * sigma) * maturity) *
              norm_cdf(d1 + s) -
-         2.0 * K * S0 * std::exp(-q * T) * norm_cdf(d1) +
-         K * K * std::exp(-r * T) * norm_cdf(d2);
+         2.0 * strike * spot0 * std::exp(-q * maturity) * norm_cdf(d1) +
+         strike * strike * std::exp(-r * maturity) * norm_cdf(d2);
 }
 
 // ----------------------------------------------------------- Exercise 13 ---
@@ -61,15 +62,17 @@ namespace p4mfe::ch04::ex {
 // alpha = 1 gives the Black-Scholes call; the statement has q = 0. The
 // d's need alpha > 0 (for alpha < 0, S^alpha decreases in S and the event
 // flips).
-[[nodiscard]] inline double ex13_power_call(double S0, double K, double T,
-                                            double sigma, double r,
-                                            double alpha, double q = 0.0) {
-  const double s = alpha * sigma * std::sqrt(T);
-  const double m = alpha * (std::log(S0) + (r - q - 0.5 * sigma * sigma) * T);
-  const double d2 = (m - std::log(K)) / s;
+[[nodiscard]] inline double Ex13PowerCall(double spot0, double strike,
+                                          double maturity, double sigma,
+                                          double r, double alpha,
+                                          double q = 0.0) {
+  const double s = alpha * sigma * std::sqrt(maturity);
+  const double m =
+      alpha * (std::log(spot0) + (r - q - 0.5 * sigma * sigma) * maturity);
+  const double d2 = (m - std::log(strike)) / s;
   const double d1 = d2 + s;
-  return std::exp(-r * T) *
-         (std::exp(m + 0.5 * s * s) * norm_cdf(d1) - K * norm_cdf(d2));
+  return std::exp(-r * maturity) *
+         (std::exp(m + 0.5 * s * s) * norm_cdf(d1) - strike * norm_cdf(d2));
 }
 
 }  // namespace p4mfe::ch04::ex

@@ -34,11 +34,11 @@ def test_lognormal_moments_from_mgf():
     assert m2 - m1 * m1 == pytest.approx(
         lognormal_variance(mu, sigma), abs=1e-14
     )
-    Y = ContinuousDistribution(
+    y_dist = ContinuousDistribution(
         lambda y: lognormal_pdf(y, mu, sigma), 0.0, math.inf
     )
     for n in [3.0, 0.5, -1.0]:
-        assert Y.expected_value(lambda y: y**n) == pytest.approx(
+        assert y_dist.expected_value(lambda y: y**n) == pytest.approx(
             lognormal_moment(n, mu, sigma), abs=1e-7
         )
 
@@ -75,14 +75,14 @@ def test_lognormal_params_from_moments():
 
 
 def test_convolution_of_normals_is_normal():
-    X, Y = NormalParams(1.0, 0.25), NormalParams(-0.5, 1.44)
-    S = independent_normal_sum([X, Y])
-    assert S.mean == 0.5
-    assert S.variance == pytest.approx(1.69, abs=1e-15)
-    fX = lambda x: normal_pdf(x, X.mean, X.stddev)  # noqa: E731
-    fY = lambda y: normal_pdf(y, Y.mean, Y.stddev)  # noqa: E731
+    x_dist, y_dist = NormalParams(1.0, 0.25), NormalParams(-0.5, 1.44)
+    sum = independent_normal_sum([x_dist, y_dist])
+    assert sum.mean == 0.5
+    assert sum.variance == pytest.approx(1.69, abs=1e-15)
+    f_x = lambda x: normal_pdf(x, x_dist.mean, x_dist.stddev)  # noqa: E731
+    f_y = lambda y: normal_pdf(y, y_dist.mean, y_dist.stddev)  # noqa: E731
     for z in [-3.0, 0.0, 0.5, 2.0]:
-        assert sum_pdf(fX, fY, z) == pytest.approx(
+        assert sum_pdf(f_x, f_y, z) == pytest.approx(
             normal_pdf(z, 0.5, 1.3), abs=1e-9
         )
 
@@ -110,31 +110,34 @@ def test_joint_density_factors():
 
 
 def test_linear_combination_of_normals():
-    X = [
+    x_dist = [
         NormalParams(1.0, 4.0),
         NormalParams(-2.0, 9.0),
         NormalParams(0.5, 1.0),
     ]
-    C = independent_normal_combination([2.0, -1.0, 3.0], X)
-    assert C.mean == pytest.approx(5.5)
-    assert C.variance == pytest.approx(34.0)
-    D = linear_combination(2.0, X[0], -1.0, X[1], 0.0)
-    E = independent_normal_combination([2.0, -1.0], X[:2])
-    assert (D.mean, D.variance) == pytest.approx((E.mean, E.variance))
+    combination = independent_normal_combination([2.0, -1.0, 3.0], x_dist)
+    assert combination.mean == pytest.approx(5.5)
+    assert combination.variance == pytest.approx(34.0)
+    pair_ch03 = linear_combination(2.0, x_dist[0], -1.0, x_dist[1], 0.0)
+    pair = independent_normal_combination([2.0, -1.0], x_dist[:2])
+    assert (pair_ch03.mean, pair_ch03.variance) == pytest.approx(
+        (pair.mean, pair.variance)
+    )
     with pytest.raises(ValueError):
-        independent_normal_combination([1.0], X)
+        independent_normal_combination([1.0], x_dist)
 
 
 def test_product_of_lognormals():
-    L1, L2 = NormalParams(0.1, 0.04), NormalParams(-0.3, 0.09)
-    P = independent_lognormal_product([L1, L2])
-    assert lognormal_mean(P.mean, P.stddev) == pytest.approx(
-        lognormal_mean(L1.mean, L1.stddev) * lognormal_mean(L2.mean, L2.stddev),
+    log1, log2 = NormalParams(0.1, 0.04), NormalParams(-0.3, 0.09)
+    product = independent_lognormal_product([log1, log2])
+    assert lognormal_mean(product.mean, product.stddev) == pytest.approx(
+        lognormal_mean(log1.mean, log1.stddev)
+        * lognormal_mean(log2.mean, log2.stddev),
         rel=1e-14,
     )
-    R = independent_lognormal_product([L1, L2], [1.0, -1.0])
-    assert lognormal_mean(R.mean, R.stddev) == pytest.approx(
-        lognormal_mean(L1.mean, L1.stddev)
-        * lognormal_moment(-1, L2.mean, L2.stddev),
+    ratio = independent_lognormal_product([log1, log2], [1.0, -1.0])
+    assert lognormal_mean(ratio.mean, ratio.stddev) == pytest.approx(
+        lognormal_mean(log1.mean, log1.stddev)
+        * lognormal_moment(-1, log2.mean, log2.stddev),
         rel=1e-14,
     )

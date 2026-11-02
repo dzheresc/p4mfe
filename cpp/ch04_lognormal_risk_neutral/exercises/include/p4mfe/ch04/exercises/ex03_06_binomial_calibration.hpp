@@ -19,9 +19,9 @@ namespace p4mfe::ch04::ex {
 // sum: p (S u) + (1 - p)(S d) = (p u + (1 - p) d) S. Likewise S^2(t + dt) is
 // S^2 u^2 with probability p and S^2 d^2 with probability 1 - p.
 // ex03_moment(k) = p (S u)^k + (1 - p)(S d)^k, the k-th moment by enumeration.
-[[nodiscard]] inline double ex03_moment(int k, double S, double u, double d,
-                                        double p) {
-  return p * std::pow(S * u, k) + (1.0 - p) * std::pow(S * d, k);
+[[nodiscard]] inline double Ex03Moment(int k, double spot, double u, double d,
+                                       double p) {
+  return p * std::pow(spot * u, k) + (1.0 - p) * std::pow(spot * d, k);
 }
 
 // ------------------------------------------------------------ Exercise 4 ---
@@ -38,12 +38,12 @@ namespace p4mfe::ch04::ex {
 //   E[S^2(t+dt)] = S^2 e^((2r - sigma^2) dt) E[e^(2 sigma sqrt(dt) Z)]
 //                = S^2 e^((2r - sigma^2) dt + 2 sigma^2 dt) = S^2 e^((2r +
 //                sigma^2) dt).
-[[nodiscard]] inline double ex04_first_moment(double S, double r, double dt) {
-  return S * std::exp(r * dt);
+[[nodiscard]] inline double Ex04FirstMoment(double spot, double r, double dt) {
+  return spot * std::exp(r * dt);
 }
-[[nodiscard]] inline double ex04_second_moment(double S, double r, double sigma,
-                                               double dt) {
-  return S * S * std::exp((2.0 * r + sigma * sigma) * dt);
+[[nodiscard]] inline double Ex04SecondMoment(double spot, double r,
+                                             double sigma, double dt) {
+  return spot * spot * std::exp((2.0 * r + sigma * sigma) * dt);
 }
 
 // ------------------------------------------------------------ Exercise 5 ---
@@ -79,11 +79,11 @@ struct BinomialStep {
   double d;
   double p;
 };
-[[nodiscard]] inline BinomialStep ex05_crr(double r, double sigma, double dt) {
-  const double A =
+[[nodiscard]] inline BinomialStep Ex05Crr(double r, double sigma, double dt) {
+  const double a =
       0.5 * (std::exp(-r * dt) + std::exp((r + sigma * sigma) * dt));
-  const double root = std::sqrt(A * A - 1.0);
-  const double u = A + root, d = A - root;
+  const double root = std::sqrt(a * a - 1.0);
+  const double u = a + root, d = a - root;
   return {u, d, (std::exp(r * dt) - d) / (u - d)};
 }
 // Residuals of (4.57) and (4.58): both zero for a calibrated step.
@@ -91,16 +91,15 @@ struct MomentResiduals {
   double first;
   double second;
 };
-[[nodiscard]] inline MomentResiduals moment_residuals(const BinomialStep& s,
-                                                      double r, double sigma,
-                                                      double dt) {
+[[nodiscard]] inline MomentResiduals ComputeMomentResiduals(
+    const BinomialStep& s, double r, double sigma, double dt) {
   return {s.p * s.u + (1.0 - s.p) * s.d - std::exp(r * dt),
           s.p * s.u * s.u + (1.0 - s.p) * s.d * s.d -
               std::exp((2.0 * r + sigma * sigma) * dt)};
 }
 // Residual of (4.60) for given u, d.
-[[nodiscard]] inline double ex05_residual_460(double u, double d, double r,
-                                              double sigma, double dt) {
+[[nodiscard]] inline double Ex05Residual460(double u, double d, double r,
+                                            double sigma, double dt) {
   const double g = std::exp(r * dt);
   return (g - d) * (u - g) - g * g * std::expm1(sigma * sigma * dt);
 }
@@ -119,8 +118,8 @@ struct MomentResiduals {
 // (Taking u > d.) d > 0 needs e^(sigma^2 dt) < 2, i.e. sigma^2 dt < ln 2, which
 // holds for any reasonable time step. For small dt, u ~ e^(r dt)(1 + sigma
 // sqrt(dt)).
-[[nodiscard]] inline BinomialStep ex06_equal_probability(double r, double sigma,
-                                                         double dt) {
+[[nodiscard]] inline BinomialStep Ex06EqualProbability(double r, double sigma,
+                                                       double dt) {
   const double x = std::sqrt(std::expm1(sigma * sigma * dt));
   if (x >= 1.0)
     throw std::domain_error("ex06_equal_probability: need sigma^2 dt < ln 2");

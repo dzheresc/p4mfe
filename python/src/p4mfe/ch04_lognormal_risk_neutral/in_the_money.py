@@ -20,64 +20,64 @@ from p4mfe.normal import norm_cdf
 # 4.6 -----------------------------------------------------------------------
 def prob_itm(
     option_type: OptionType,
-    S0: float,
-    K: float,
-    T: float,
+    spot0: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     mu: float,
     q: float = 0.0,
 ) -> float:
     """P(S_T > K) for a call, P(S_T < K) for a put, under drift mu (mu = r: risk neutral)."""
-    above = prob_price_above(K, S0, T, sigma, mu, q)
+    above = prob_price_above(strike, spot0, maturity, sigma, mu, q)
     return above if option_type is OptionType.CALL else 1.0 - above
 
 
 def prob_between(
-    K1: float,
-    K2: float,
-    S0: float,
-    T: float,
+    strike1: float,
+    strike2: float,
+    spot0: float,
+    maturity: float,
     sigma: float,
     mu: float,
     q: float = 0.0,
 ) -> float:
     """P(K1 < S_T < K2)."""
-    return prob_price_above(K1, S0, T, sigma, mu, q) - prob_price_above(
-        K2, S0, T, sigma, mu, q
-    )
+    return prob_price_above(
+        strike1, spot0, maturity, sigma, mu, q
+    ) - prob_price_above(strike2, spot0, maturity, sigma, mu, q)
 
 
 # 4.7 -----------------------------------------------------------------------
 def cash_or_nothing(
     option_type: OptionType,
-    S: float,
-    K: float,
-    T: float,
+    spot: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> float:
     """Pays 1 if in the money: e^(-rT) N(+/-d2)."""
-    _, d2 = bs_d1_d2(S, K, T, sigma, r, q)
-    return math.exp(-r * T) * norm_cdf(
+    _, d2 = bs_d1_d2(spot, strike, maturity, sigma, r, q)
+    return math.exp(-r * maturity) * norm_cdf(
         d2 if option_type is OptionType.CALL else -d2
     )
 
 
 def asset_or_nothing(
     option_type: OptionType,
-    S: float,
-    K: float,
-    T: float,
+    spot: float,
+    strike: float,
+    maturity: float,
     sigma: float,
     r: float,
     q: float = 0.0,
 ) -> float:
     """Pays S_T if in the money: S e^(-qT) N(+/-d1)."""
-    d1, _ = bs_d1_d2(S, K, T, sigma, r, q)
+    d1, _ = bs_d1_d2(spot, strike, maturity, sigma, r, q)
     return (
-        S
-        * math.exp(-q * T)
+        spot
+        * math.exp(-q * maturity)
         * norm_cdf(d1 if option_type is OptionType.CALL else -d1)
     )
 
@@ -89,9 +89,14 @@ class ExerciseProbabilities:
 
 
 def exercise_probabilities(
-    S: float, K: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float,
+    strike: float,
+    maturity: float,
+    sigma: float,
+    r: float,
+    q: float = 0.0,
 ) -> ExerciseProbabilities:
-    d1, d2 = bs_d1_d2(S, K, T, sigma, r, q)
+    d1, d2 = bs_d1_d2(spot, strike, maturity, sigma, r, q)
     return ExerciseProbabilities(norm_cdf(d1), norm_cdf(d2))
 
 

@@ -59,8 +59,10 @@ def main() -> None:
     labels = ("15 days", "1 month", "2 months", "6 months", "1 year")
     for rn in (False, True):
         print("  (ii) risk-neutral, mu = r = 5%" if rn else "  (i) mu = 8%")
-        for label, T in zip(labels, EX07_HORIZONS):
-            a, b = ex07_interval(0.95, T, rn), ex07_interval(0.99, T, rn)
+        for label, maturity in zip(labels, EX07_HORIZONS):
+            a, b = ex07_interval(0.95, maturity, rn), ex07_interval(
+                0.99, maturity, rn
+            )
             print(
                 f"    {label:<8} 95% [{a.lo:8.4f}, {a.hi:8.4f}]  99% [{b.lo:8.4f}, {b.hi:8.4f}]"
             )
@@ -86,10 +88,10 @@ def main() -> None:
     header(
         "Ex 10: dividend yield q* above which Delta(ATM call) < 0.5 (r = 5%, sigma = 20%)"
     )
-    for T in (0.25, 1.0, 5.0):
+    for maturity in (0.25, 1.0, 5.0):
         print(
-            f"  T = {T:4.2f}  Delta(q = 0) = {ex10_atm_call_delta(0.05, 0.0, 0.2, T):.6f}"
-            f"  q* = {ex10_threshold_q(0.05, 0.2, T):.6f}  (approx {ex10_threshold_q_approx(0.05, 0.2, T):.6f})"
+            f"  T = {maturity:4.2f}  Delta(q = 0) = {ex10_atm_call_delta(0.05, 0.0, 0.2, maturity):.6f}"
+            f"  q* = {ex10_threshold_q(0.05, 0.2, maturity):.6f}  (approx {ex10_threshold_q_approx(0.05, 0.2, maturity):.6f})"
         )
 
     header(
@@ -117,10 +119,10 @@ def main() -> None:
     header(
         "Ex 14: normal model, S0 = 50, K = 52, T = 0.75, sigma = 8 (price units), r = 4%"
     )
-    F = ex14_book_forward(50, 0.04, 0.75)
+    forward = ex14_book_forward(50, 0.04, 0.75)
     print(
         f"  C = {ex14_call(50, 52, 0.75, 8, 0.04):.6f}  P (parity) = {ex14_put_parity(50, 52, 0.75, 8, 0.04):.6f}"
-        f"  P (direct, book's mean S0 + rT) = {ex14_put_forward(F, 52, 0.75, 8, 0.04):.6f}"
+        f"  P (direct, book's mean S0 + rT) = {ex14_put_forward(forward, 52, 0.75, 8, 0.04):.6f}"
     )
 
     header("Ex 15: S0 = 50, K = 50, T = 1, sigma = 30%, r = 5%, q = 2%")

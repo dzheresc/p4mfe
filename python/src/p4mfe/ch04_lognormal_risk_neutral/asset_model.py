@@ -22,59 +22,75 @@ from p4mfe.normal import norm_inv
 
 
 def log_return_distribution(
-    T: float, sigma: float, mu: float, q: float = 0.0
+    maturity: float, sigma: float, mu: float, q: float = 0.0
 ) -> NormalParams:
     """ln(S_T / S_0) ~ N((mu - q - sigma^2/2) T, sigma^2 T)."""
-    return NormalParams((mu - q - 0.5 * sigma * sigma) * T, sigma * sigma * T)
+    return NormalParams(
+        (mu - q - 0.5 * sigma * sigma) * maturity, sigma * sigma * maturity
+    )
 
 
 def price_from_normal(
-    z, S0: float, T: float, sigma: float, mu: float, q: float = 0.0
+    z, spot0: float, maturity: float, sigma: float, mu: float, q: float = 0.0
 ):
     """S_T for the standard normal draw z (accepts arrays)."""
-    out = S0 * np.exp(
-        (mu - q - 0.5 * sigma * sigma) * T
-        + sigma * math.sqrt(T) * np.asarray(z, float)
+    out = spot0 * np.exp(
+        (mu - q - 0.5 * sigma * sigma) * maturity
+        + sigma * math.sqrt(maturity) * np.asarray(z, float)
     )
     return float(out) if np.ndim(out) == 0 else out
 
 
-def price_mean(S0: float, T: float, mu: float, q: float = 0.0) -> float:
-    return S0 * math.exp((mu - q) * T)
+def price_mean(
+    spot0: float, maturity: float, mu: float, q: float = 0.0
+) -> float:
+    return spot0 * math.exp((mu - q) * maturity)
 
 
 def price_variance(
-    S0: float, T: float, sigma: float, mu: float, q: float = 0.0
+    spot0: float, maturity: float, sigma: float, mu: float, q: float = 0.0
 ) -> float:
     """S_0^2 e^(2 (mu - q) T) (e^(sigma^2 T) - 1)."""
-    m = price_mean(S0, T, mu, q)
-    return m * m * math.expm1(sigma * sigma * T)
+    m = price_mean(spot0, maturity, mu, q)
+    return m * m * math.expm1(sigma * sigma * maturity)
 
 
 def price_median(
-    S0: float, T: float, sigma: float, mu: float, q: float = 0.0
+    spot0: float, maturity: float, sigma: float, mu: float, q: float = 0.0
 ) -> float:
-    return price_from_normal(0.0, S0, T, sigma, mu, q)
+    return price_from_normal(0.0, spot0, maturity, sigma, mu, q)
 
 
-def price_pdf(x, S0: float, T: float, sigma: float, mu: float, q: float = 0.0):
-    L = log_price_distribution(S0, T, sigma, mu, q)
-    return lognormal_pdf(x, L.mean, L.stddev)
+def price_pdf(
+    x, spot0: float, maturity: float, sigma: float, mu: float, q: float = 0.0
+):
+    log_price = log_price_distribution(spot0, maturity, sigma, mu, q)
+    return lognormal_pdf(x, log_price.mean, log_price.stddev)
 
 
 def price_cdf(
-    x: float, S0: float, T: float, sigma: float, mu: float, q: float = 0.0
+    x: float,
+    spot0: float,
+    maturity: float,
+    sigma: float,
+    mu: float,
+    q: float = 0.0,
 ) -> float:
-    L = log_price_distribution(S0, T, sigma, mu, q)
-    return lognormal_cdf(x, L.mean, L.stddev)
+    log_price = log_price_distribution(spot0, maturity, sigma, mu, q)
+    return lognormal_cdf(x, log_price.mean, log_price.stddev)
 
 
 def price_quantile(
-    p: float, S0: float, T: float, sigma: float, mu: float, q: float = 0.0
+    p: float,
+    spot0: float,
+    maturity: float,
+    sigma: float,
+    mu: float,
+    q: float = 0.0,
 ) -> float:
     if not 0 < p < 1:
         raise ValueError("need 0 < p < 1")
-    return price_from_normal(norm_inv(p), S0, T, sigma, mu, q)
+    return price_from_normal(norm_inv(p), spot0, maturity, sigma, mu, q)
 
 
 @dataclass(frozen=True)
@@ -85,8 +101,8 @@ class PriceRange:
 
 def price_confidence_interval(
     confidence: float,
-    S0: float,
-    T: float,
+    spot0: float,
+    maturity: float,
     sigma: float,
     mu: float,
     q: float = 0.0,
@@ -98,8 +114,8 @@ def price_confidence_interval(
         raise ValueError("need 0 < confidence < 1")
     z = norm_inv(0.5 * (1 + confidence))
     return PriceRange(
-        price_from_normal(-z, S0, T, sigma, mu, q),
-        price_from_normal(z, S0, T, sigma, mu, q),
+        price_from_normal(-z, spot0, maturity, sigma, mu, q),
+        price_from_normal(z, spot0, maturity, sigma, mu, q),
     )
 
 

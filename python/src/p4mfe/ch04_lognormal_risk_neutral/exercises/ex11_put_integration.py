@@ -20,9 +20,9 @@ from p4mfe.ch04_lognormal_risk_neutral.asset_model import price_pdf
 
 @dataclass(frozen=True)
 class Ex11Market:
-    S0: float = 50.0
-    K: float = 50.0
-    T: float = 0.5
+    spot0: float = 50.0
+    strike: float = 50.0
+    maturity: float = 0.5
     sigma: float = 0.3
     r: float = 0.04
     q: float = 0.02
@@ -31,18 +31,18 @@ class Ex11Market:
 def ex11_integrand(x, m: Ex11Market = Ex11Market()):
     """e^(-rT) (K - x) f(x) on [0, K]; accepts arrays."""
     return (
-        math.exp(-m.r * m.T)
-        * (m.K - x)
-        * price_pdf(x, m.S0, m.T, m.sigma, m.r, m.q)
+        math.exp(-m.r * m.maturity)
+        * (m.strike - x)
+        * price_pdf(x, m.spot0, m.maturity, m.sigma, m.r, m.q)
     )
 
 
 def ex11_put_bs(m: Ex11Market = Ex11Market()) -> float:
-    return bs_put(m.S0, m.K, m.T, m.sigma, m.r, m.q)
+    return bs_put(m.spot0, m.strike, m.maturity, m.sigma, m.r, m.q)
 
 
 def ex11_put_numeric(n: int, rule: Rule, m: Ex11Market = Ex11Market()) -> float:
-    return integrate(lambda x: ex11_integrand(x, m), 0.0, m.K, n, rule)
+    return integrate(lambda x: ex11_integrand(x, m), 0.0, m.strike, n, rule)
 
 
 @dataclass(frozen=True)

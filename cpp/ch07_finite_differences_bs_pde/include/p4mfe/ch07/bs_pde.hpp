@@ -118,7 +118,7 @@ template <std::uniform_random_bit_generator G>
   std::vector<double> path(n + 1);
   path[0] = S0;
   for (std::size_t k = 0; k < n; ++k)
-    path[k + 1] = ch04::price_from_normal(z(rng), path[k], dt, sigma, mu, q);
+    path[k + 1] = ch04::PriceFromNormal(z(rng), path[k], dt, sigma, mu, q);
   return path;
 }
 

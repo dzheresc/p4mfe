@@ -16,16 +16,16 @@ import math
 from dataclasses import dataclass
 
 
-def ex03_moment(k: int, S: float, u: float, d: float, p: float) -> float:
-    return p * (S * u) ** k + (1.0 - p) * (S * d) ** k
+def ex03_moment(k: int, spot: float, u: float, d: float, p: float) -> float:
+    return p * (spot * u) ** k + (1.0 - p) * (spot * d) ** k
 
 
-def ex04_first_moment(S: float, r: float, dt: float) -> float:
-    return S * math.exp(r * dt)
+def ex04_first_moment(spot: float, r: float, dt: float) -> float:
+    return spot * math.exp(r * dt)
 
 
-def ex04_second_moment(S: float, r: float, sigma: float, dt: float) -> float:
-    return S * S * math.exp((2.0 * r + sigma * sigma) * dt)
+def ex04_second_moment(spot: float, r: float, sigma: float, dt: float) -> float:
+    return spot * spot * math.exp((2.0 * r + sigma * sigma) * dt)
 
 
 @dataclass(frozen=True)
@@ -36,9 +36,9 @@ class BinomialStep:
 
 
 def ex05_crr(r: float, sigma: float, dt: float) -> BinomialStep:
-    A = 0.5 * (math.exp(-r * dt) + math.exp((r + sigma * sigma) * dt))
-    root = math.sqrt(A * A - 1.0)
-    u, d = A + root, A - root
+    a = 0.5 * (math.exp(-r * dt) + math.exp((r + sigma * sigma) * dt))
+    root = math.sqrt(a * a - 1.0)
+    u, d = a + root, a - root
     return BinomialStep(u, d, (math.exp(r * dt) - d) / (u - d))
 
 
