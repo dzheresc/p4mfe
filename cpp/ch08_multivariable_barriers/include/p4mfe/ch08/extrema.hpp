@@ -83,7 +83,7 @@ template <class F>
 [[nodiscard]] CriticalPointType classify_critical_point(F&& f,
                                                         const ch01::Vector& x,
                                                         double tol = 1e-6) {
-  return classify_hessian(ch01::hessian(f, x), tol);
+  return classify_hessian(ch01::Hessian(f, x), tol);
 }
 
 // Solves grad f(x) = 0 by Newton's method from x0.
@@ -91,9 +91,9 @@ template <class F>
 [[nodiscard]] ch01::Vector find_critical_point(F&& f, ch01::Vector x0,
                                                const ch05::Tolerances& tol = {
                                                    1e-8, 1e-10, 100}) {
-  const auto grad = [&](const ch05::Vector& x) { return ch01::gradient(f, x); };
+  const auto grad = [&](const ch05::Vector& x) { return ch01::Gradient(f, x); };
   const auto hess = [&](const ch05::Vector& x) {
-    const auto H = ch01::hessian(f, x);
+    const auto H = ch01::Hessian(f, x);
     ch05::Matrix M(H.size(), H.size());
     for (std::size_t i = 0; i < H.size(); ++i)
       for (std::size_t j = 0; j < H.size(); ++j) M(i, j) = H[i][j];

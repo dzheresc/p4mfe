@@ -35,8 +35,8 @@ struct PriceDerivs {
 };
 
 // (i) continuously compounded yield.
-[[nodiscard]] inline PriceDerivs ex14_continuous(std::span<const CashFlow> cfs,
-                                                 double y) {
+[[nodiscard]] inline PriceDerivs Ex14Continuous(std::span<const CashFlow> cfs,
+                                                double y) {
   PriceDerivs d{0.0, 0.0, 0.0};
   for (const auto& [t, c] : cfs) {
     const double df = c * std::exp(-y * t);
@@ -48,8 +48,8 @@ struct PriceDerivs {
 }
 
 // (ii) yield compounded m times a year.
-[[nodiscard]] inline PriceDerivs ex14_discrete(std::span<const CashFlow> cfs,
-                                               double y, double m) {
+[[nodiscard]] inline PriceDerivs Ex14Discrete(std::span<const CashFlow> cfs,
+                                              double y, double m) {
   if (m <= 0.0)
     throw std::invalid_argument("ex14_discrete: m must be positive");
   const double base = 1.0 + y / m;

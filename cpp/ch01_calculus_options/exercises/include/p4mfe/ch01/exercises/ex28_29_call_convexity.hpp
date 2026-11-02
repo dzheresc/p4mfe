@@ -38,40 +38,43 @@ namespace p4mfe::ch01::ex {
 // counterexample.
 
 struct ThreeCalls {
-  std::array<double, 3> K;  // K1 < K2 < K3
-  std::array<double, 3> C;  // prices
+  std::array<double, 3> strikes;  // K1 < K2 < K3
+  std::array<double, 3> prices;   // call prices
 };
 
 // lambda C1 + (1 - lambda) C3 - C2: no arbitrage iff >= 0.
-[[nodiscard]] inline double ex29_convexity_gap(const ThreeCalls& x) {
-  const auto& [K1, K2, K3] = x.K;
-  if (!(K1 < K2 && K2 < K3))
+[[nodiscard]] inline double Ex29ConvexityGap(const ThreeCalls& x) {
+  const auto& [strike1, strike2, strike3] = x.strikes;
+  if (!(strike1 < strike2 && strike2 < strike3))
     throw std::invalid_argument("ex29: need K1 < K2 < K3");
-  const double lambda = (K3 - K2) / (K3 - K1);
-  return lambda * x.C[0] + (1.0 - lambda) * x.C[2] - x.C[1];
+  const double lambda = (strike3 - strike2) / (strike3 - strike1);
+  return lambda * x.prices[0] + (1.0 - lambda) * x.prices[2] - x.prices[1];
 }
 
-[[nodiscard]] inline bool ex29_no_arbitrage(const ThreeCalls& x) {
-  return x.C[2] >= 0.0 && x.C[1] >= x.C[2] && ex29_convexity_gap(x) >= 0.0;
+[[nodiscard]] inline bool Ex29NoArbitrage(const ThreeCalls& x) {
+  return x.prices[2] >= 0.0 && x.prices[1] >= x.prices[2] &&
+         Ex29ConvexityGap(x) >= 0.0;
 }
 
 // If some edge of the cone has negative cost, return that portfolio (with the
 // option prices filled in): its payoff is >= 0 and portfolio.cost() < 0, so
 // -cost() is collected up front.
-[[nodiscard]] inline std::optional<Portfolio> ex29_arbitrage(
+[[nodiscard]] inline std::optional<Portfolio> Ex29Arbitrage(
     const ThreeCalls& x) {
-  const auto& [K1, K2, K3] = x.K;
-  const auto& [C1, C2, C3] = x.C;
-  if (ex29_convexity_gap(x) < 0.0) {
-    const double w = K3 - K2;
+  const auto& [strike1, strike2, strike3] = x.strikes;
+  const auto& [call1, call2, call3] = x.prices;
+  if (Ex29ConvexityGap(x) < 0.0) {
+    const double w = strike3 - strike2;
     return Portfolio{0.0,
                      0.0,
-                     {call(K1, 1.0, C1), call(K2, -(K3 - K1) / w, C2),
-                      call(K3, (K2 - K1) / w, C3)}};
+                     {Call(strike1, 1.0, call1),
+                      Call(strike2, -(strike3 - strike1) / w, call2),
+                      Call(strike3, (strike2 - strike1) / w, call3)}};
   }
-  if (C2 < C3)
-    return Portfolio{0.0, 0.0, {call(K2, 1.0, C2), call(K3, -1.0, C3)}};
-  if (C3 < 0.0) return Portfolio{0.0, 0.0, {call(K3, 1.0, C3)}};
+  if (call2 < call3)
+    return Portfolio{
+        0.0, 0.0, {Call(strike2, 1.0, call2), Call(strike3, -1.0, call3)}};
+  if (call3 < 0.0) return Portfolio{0.0, 0.0, {Call(strike3, 1.0, call3)}};
   return std::nullopt;
 }
 
@@ -87,7 +90,7 @@ struct ThreeCalls {
 //   0 (S <= 100),  S - 100 (100..120),  20 - 2 (S - 120) = 260 - 2S (120..130),
 //   0 (S >= 130)  -- never negative.
 // Riskless profit: at least $1 (plus up to $20 if 100 < S(T) < 130).
-[[nodiscard]] inline ThreeCalls ex28_data() {
+[[nodiscard]] inline ThreeCalls Ex28Data() {
   return {{100.0, 120.0, 130.0}, {8.0, 5.0, 3.0}};
 }
 

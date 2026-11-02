@@ -14,9 +14,9 @@ TEST(Ch08Ex09, InitialConditions) {
   const double K = 50.0, sigma = 0.3, r = 0.05, q = 0.02;
   const auto c = ex09_coefficients(sigma, r, q);
   for (double x = -1.0; x <= 1.0; x += 0.1) {
-    EXPECT_NEAR(ex09_u(OptionType::Call, x, 0.0, K, sigma, r, q),
+    EXPECT_NEAR(ex09_u(OptionType::kCall, x, 0.0, K, sigma, r, q),
                 ex09_call_u0(x, K, c.a), 1e-12);
-    EXPECT_NEAR(ex09_u(OptionType::Put, x, 0.0, K, sigma, r, q),
+    EXPECT_NEAR(ex09_u(OptionType::kPut, x, 0.0, K, sigma, r, q),
                 ex09_put_u0(x, K, c.a), 1e-12);
   }
   // The library's transform: a' = -a, b' = -b.
@@ -28,7 +28,7 @@ TEST(Ch08Ex09, InitialConditions) {
 TEST(Ch08Ex09, HeatEquation) {
   const double K = 50.0;
   for (double q : {0.0, 0.03})
-    for (OptionType type : {OptionType::Call, OptionType::Put})
+    for (OptionType type : {OptionType::kCall, OptionType::kPut})
       for (double x : {-0.3, 0.0, 0.2})
         for (double tau : {0.01, 0.05}) {
           // u_xx is of order K / sqrt(tau) here; the residual is the

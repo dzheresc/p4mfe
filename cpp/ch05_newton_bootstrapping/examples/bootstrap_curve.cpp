@@ -25,9 +25,9 @@ int main() {
 
   // 5.4: a call worth 2.5 with S = 30, K = 30, T = 0.5, r = 3%, q = 1%.
   const auto vn =
-      implied_vol_newton(OptionType::Call, 2.5, 30, 30, 0.5, 0.03, 0.01);
+      implied_vol_newton(OptionType::kCall, 2.5, 30, 30, 0.5, 0.03, 0.01);
   const auto vs =
-      implied_vol_secant(OptionType::Call, 2.5, 30, 30, 0.5, 0.03, 0.01);
+      implied_vol_secant(OptionType::kCall, 2.5, 30, 30, 0.5, 0.03, 0.01);
   std::printf("Implied vol: Newton %.12f (%zu it)  secant %.12f (%zu it)\n",
               vn.x, vn.iterations, vs.x, vs.iterations);
 

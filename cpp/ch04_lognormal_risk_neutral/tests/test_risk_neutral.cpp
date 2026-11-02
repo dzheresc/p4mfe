@@ -65,7 +65,7 @@ TEST(Ch04AssetModel, ConfidenceInterval) {
 
 // ---------------------------------------------------------------- 4.5 ------
 TEST(Ch04RiskNeutral, ClosedFormDiscountedIsBlackScholes) {
-  for (auto type : {OptionType::Call, OptionType::Put})
+  for (auto type : {OptionType::kCall, OptionType::kPut})
     EXPECT_NEAR(
         std::exp(-r * T) * rn_expected_payoff(type, S0, K, T, sigma, r, q),
         ch03::bs_price(type, S0, K, T, sigma, r, q), 1e-13);
@@ -127,16 +127,16 @@ TEST(Ch04RiskNeutral, MonteCarloWithinStandardErrors) {
 // ------------------------------------------------------------ 4.6, 4.7 -----
 TEST(Ch04InTheMoney, ProbabilitiesUnderBothMeasures) {
   const auto [d1, d2] = ch03::bs_d1_d2(S0, K, T, sigma, r, q);
-  EXPECT_NEAR(prob_itm(OptionType::Call, S0, K, T, sigma, r, q), norm_cdf(d2),
+  EXPECT_NEAR(prob_itm(OptionType::kCall, S0, K, T, sigma, r, q), norm_cdf(d2),
               1e-15);
-  EXPECT_NEAR(prob_itm(OptionType::Put, S0, K, T, sigma, r, q), norm_cdf(-d2),
+  EXPECT_NEAR(prob_itm(OptionType::kPut, S0, K, T, sigma, r, q), norm_cdf(-d2),
               1e-15);
   // Real-world: replace r by mu in d2.
   const double d2_mu = d2 + (mu - r) * std::sqrt(T) / sigma;
-  EXPECT_NEAR(prob_itm(OptionType::Call, S0, K, T, sigma, mu, q),
+  EXPECT_NEAR(prob_itm(OptionType::kCall, S0, K, T, sigma, mu, q),
               norm_cdf(d2_mu), 1e-14);
-  EXPECT_GT(prob_itm(OptionType::Call, S0, K, T, sigma, mu, q),
-            prob_itm(OptionType::Call, S0, K, T, sigma, r, q));
+  EXPECT_GT(prob_itm(OptionType::kCall, S0, K, T, sigma, mu, q),
+            prob_itm(OptionType::kCall, S0, K, T, sigma, r, q));
   EXPECT_NEAR(
       prob_between(35, 45, S0, T, sigma, mu, q),
       price_cdf(45, S0, T, sigma, mu, q) - price_cdf(35, S0, T, sigma, mu, q),
@@ -144,20 +144,20 @@ TEST(Ch04InTheMoney, ProbabilitiesUnderBothMeasures) {
 }
 
 TEST(Ch04InTheMoney, CallIsAssetMinusCashDigital) {
-  for (auto type : {OptionType::Call, OptionType::Put}) {
+  for (auto type : {OptionType::kCall, OptionType::kPut}) {
     const double aon = asset_or_nothing(type, S0, K, T, sigma, r, q);
     const double con = cash_or_nothing(type, S0, K, T, sigma, r, q);
-    const double sign = type == OptionType::Call ? 1.0 : -1.0;
+    const double sign = type == OptionType::kCall ? 1.0 : -1.0;
     EXPECT_NEAR(sign * (aon - K * con),
                 ch03::bs_price(type, S0, K, T, sigma, r, q), 1e-13);
   }
   // Digital call + digital put = a zero coupon bond; AoN call + AoN put = the
   // asset.
-  EXPECT_NEAR(cash_or_nothing(OptionType::Call, S0, K, T, sigma, r, q) +
-                  cash_or_nothing(OptionType::Put, S0, K, T, sigma, r, q),
+  EXPECT_NEAR(cash_or_nothing(OptionType::kCall, S0, K, T, sigma, r, q) +
+                  cash_or_nothing(OptionType::kPut, S0, K, T, sigma, r, q),
               std::exp(-r * T), 1e-15);
-  EXPECT_NEAR(asset_or_nothing(OptionType::Call, S0, K, T, sigma, r, q) +
-                  asset_or_nothing(OptionType::Put, S0, K, T, sigma, r, q),
+  EXPECT_NEAR(asset_or_nothing(OptionType::kCall, S0, K, T, sigma, r, q) +
+                  asset_or_nothing(OptionType::kPut, S0, K, T, sigma, r, q),
               S0 * std::exp(-q * T), 1e-13);
 }
 
@@ -168,19 +168,19 @@ TEST(Ch04InTheMoney, FinancialMeaningOfNd1Nd2) {
   // r.
   EXPECT_NEAR(n_d2,
               std::exp(r * T) *
-                  cash_or_nothing(OptionType::Call, S0, K, T, sigma, r, q),
+                  cash_or_nothing(OptionType::kCall, S0, K, T, sigma, r, q),
               1e-15);
   // N(d1) = E_RN[S_T 1{S_T > K}] / E_RN[S_T].
   const double fwd = S0 * std::exp((r - q) * T);
   EXPECT_NEAR(n_d1,
               std::exp(r * T) *
-                  asset_or_nothing(OptionType::Call, S0, K, T, sigma, r, q) /
+                  asset_or_nothing(OptionType::kCall, S0, K, T, sigma, r, q) /
                   fwd,
               1e-14);
   // e^(-qT) N(d1) is Delta; -e^(-rT) N(d2) is dC/dK.
-  const auto g = ch03::bs_greeks(OptionType::Call, S0, K, T, sigma, r, q);
+  const auto g = ch03::bs_greeks(OptionType::kCall, S0, K, T, sigma, r, q);
   EXPECT_NEAR(g.delta, std::exp(-q * T) * n_d1, 1e-15);
-  const double dC_dK = p4mfe::ch01::derivative(
+  const double dC_dK = p4mfe::ch01::Derivative(
       [](double k) { return ch03::bs_call(S0, k, T, sigma, r, q); }, K);
   EXPECT_NEAR(dC_dK, -std::exp(-r * T) * n_d2, 1e-8);
 }

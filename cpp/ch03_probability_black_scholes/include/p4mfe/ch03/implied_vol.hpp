@@ -29,8 +29,8 @@ struct ImpliedVolResult {
 namespace detail {
 inline void check_price_in_bounds(OptionType type, double price, double S,
                                   double K, double T, double r, double q) {
-  const auto b = type == OptionType::Call ? ch01::call_bounds(S, K, T, r, q)
-                                          : ch01::put_bounds(S, K, T, r, q);
+  const auto b = type == OptionType::kCall ? ch01::CallBounds(S, K, T, r, q)
+                                           : ch01::PutBounds(S, K, T, r, q);
   if (!(price > b.lower && price < b.upper))
     throw std::domain_error(
         "implied volatility: price outside the no-arbitrage bounds");

@@ -28,13 +28,13 @@ from p4mfe.ch01_calculus_options.exercises.ex07_10_limits import (
 )
 
 
-def check_antiderivative(F, f, a, b):
-    exact = F(b) - F(a)
+def check_antiderivative(antiderivative, f, a, b):
+    exact = antiderivative(b) - antiderivative(a)
     assert exact == pytest.approx(
         riemann_sum(f, a, b, 20000), rel=1e-6, abs=1e-6
     )
     for x in (a, 0.5 * (a + b), b):
-        assert derivative(F, x) == pytest.approx(
+        assert derivative(antiderivative, x) == pytest.approx(
             float(f(x)), rel=1e-6, abs=1e-6
         )
 

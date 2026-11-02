@@ -57,8 +57,8 @@ def gradient(f: Func, x) -> np.ndarray:
 def hessian(f: Func, x) -> np.ndarray:
     x = np.asarray(x, dtype=float)
     n = x.size
-    H = np.empty((n, n))
+    hess = np.empty((n, n))
     for i in range(n):
         for j in range(i, n):
-            H[i, j] = H[j, i] = second_partial(f, x, i, j)
-    return H
+            hess[i, j] = hess[j, i] = second_partial(f, x, i, j)
+    return hess

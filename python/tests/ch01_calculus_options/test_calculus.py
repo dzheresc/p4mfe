@@ -56,10 +56,11 @@ def test_leibniz_rule():
 
 
 def test_discrete_compounding_converges():
-    r, T = 0.05, 2.0
-    limit = continuous_compounding_factor(r, T)
+    r, maturity = 0.05, 2.0
+    limit = continuous_compounding_factor(r, maturity)
     errors = [
-        abs(compounding_factor(r, T, n) - limit) for n in (1, 2, 12, 365, 1e6)
+        abs(compounding_factor(r, maturity, n) - limit)
+        for n in (1, 2, 12, 365, 1e6)
     ]
     assert errors == sorted(errors, reverse=True)
     assert errors[-1] < 1e-8

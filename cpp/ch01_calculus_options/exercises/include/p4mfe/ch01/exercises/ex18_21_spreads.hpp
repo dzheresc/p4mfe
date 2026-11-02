@@ -19,8 +19,8 @@ namespace p4mfe::ch01::ex {
 //          40 - S      for 35 <= S <= 40,
 //          0           for S >= 40;
 // a tent of height 5 peaked at S = 35, never negative.
-[[nodiscard]] inline Portfolio ex18_butterfly() {
-  return {0.0, 0.0, {call(30, 1), call(35, -2), call(40, 1)}};
+[[nodiscard]] inline Portfolio Ex18Butterfly() {
+  return {0.0, 0.0, {Call(30, 1), Call(35, -2), Call(40, 1)}};
 }
 
 // ----------------------------------------------------------- Exercise 19 ---
@@ -33,11 +33,11 @@ namespace p4mfe::ch01::ex {
 //   bear:  5 for S <= 15;  20 - S for 15 <= S <= 20;  0 for S >= 20.
 // Both payoffs lie in [0, 5]; the bull spread profits from a rise, the bear
 // spread from a fall.
-[[nodiscard]] inline Portfolio ex19_bull_spread() {
-  return {0.0, 0.0, {call(30, 1), call(35, -1)}};
+[[nodiscard]] inline Portfolio Ex19BullSpread() {
+  return {0.0, 0.0, {Call(30, 1), Call(35, -1)}};
 }
-[[nodiscard]] inline Portfolio ex19_bear_spread() {
-  return {0.0, 0.0, {put(20, 1), put(15, -1)}};
+[[nodiscard]] inline Portfolio Ex19BearSpread() {
+  return {0.0, 0.0, {Put(20, 1), Put(15, -1)}};
 }
 
 // ----------------------------------------------------------- Exercise 20 ---
@@ -50,11 +50,11 @@ namespace p4mfe::ch01::ex {
 //   payoff:  0 (S <= 45),  S - 45 (45..50),  55 - S (50..55),  0 (S >= 55);
 //   P&L = payoff - 1:  -1 outside (45, 55), up to +4 at S = 50.
 // Profitable for 46 < S(T) < 54 (P&L = 0 at S = 46 and S = 54).
-[[nodiscard]] inline Portfolio ex20_butterfly() {
-  return {0.0, 0.0, {call(45, 1, 4.0), call(50, -2, 6.0), call(55, 1, 9.0)}};
+[[nodiscard]] inline Portfolio Ex20Butterfly() {
+  return {0.0, 0.0, {Call(45, 1, 4.0), Call(50, -2, 6.0), Call(55, 1, 9.0)}};
 }
-inline constexpr double ex20_breakeven_low = 46.0;
-inline constexpr double ex20_breakeven_high = 54.0;
+inline constexpr double kEx20BreakevenLow = 46.0;
+inline constexpr double kEx20BreakevenHigh = 54.0;
 
 // ----------------------------------------------------------- Exercise 21 ---
 // Which portfolio would you rather hold (same asset, same maturity)?
@@ -68,11 +68,11 @@ inline constexpr double ex20_breakeven_high = 54.0;
 // more when |S(T) - X| < 5 (convexity of K -> (S - K)^+). By no-arbitrage it
 // must also cost more; if both were offered at the same price, holding
 // Portfolio 1 (or buying 1 and selling 2) would be an arbitrage.
-[[nodiscard]] inline Portfolio ex21_portfolio1(double X) {
-  return {0.0, 0.0, {call(X - 5, 1), call(X + 5, 1)}};
+[[nodiscard]] inline Portfolio Ex21Portfolio1(double x) {
+  return {0.0, 0.0, {Call(x - 5, 1), Call(x + 5, 1)}};
 }
-[[nodiscard]] inline Portfolio ex21_portfolio2(double X) {
-  return {0.0, 0.0, {call(X, 2)}};
+[[nodiscard]] inline Portfolio Ex21Portfolio2(double x) {
+  return {0.0, 0.0, {Call(x, 2)}};
 }
 
 }  // namespace p4mfe::ch01::ex

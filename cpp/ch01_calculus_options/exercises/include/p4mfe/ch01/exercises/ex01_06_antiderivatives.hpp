@@ -15,7 +15,7 @@ namespace p4mfe::ch01::ex {
 //
 // u = ln x, dv = dx:  integral ln x dx = x ln x - integral x (1/x) dx
 //                                      = x ln x - x + C,     x > 0.
-[[nodiscard]] inline double ex01_ln_antiderivative(double x) {
+[[nodiscard]] inline double Ex01LnAntiderivative(double x) {
   return x * std::log(x) - x;
 }
 
@@ -24,7 +24,7 @@ namespace p4mfe::ch01::ex {
 //
 // du = dx / x, so the integral is  integral du / u = ln|u| = ln|ln x| + C,
 // on (0, 1) and on (1, infinity) separately.
-[[nodiscard]] inline double ex02_inv_x_ln_x_antiderivative(double x) {
+[[nodiscard]] inline double Ex02InvXLnXAntiderivative(double x) {
   return std::log(std::abs(std::log(x)));
 }
 
@@ -35,14 +35,14 @@ namespace p4mfe::ch01::ex {
 // Quotient rule: (sin/cos)' = (cos^2 + sin^2)/cos^2 = 1/cos^2 = 1 + tan^2.
 // Let y = arctan x, so tan y = x. Differentiating, y' (1 + tan^2 y) = 1, hence
 // (arctan x)' = 1/(1 + tan^2 y) = 1/(1 + x^2), which is the claim.
-[[nodiscard]] inline double ex03_tan_derivative(double x) {
+[[nodiscard]] inline double Ex03TanDerivative(double x) {
   const double c = std::cos(x);
   return 1.0 / (c * c);
 }
-[[nodiscard]] inline double ex03_arctan_derivative(double x) {
+[[nodiscard]] inline double Ex03ArctanDerivative(double x) {
   return 1.0 / (1.0 + x * x);
 }
-[[nodiscard]] inline double ex03_inv_1_plus_x2_antiderivative(double x) {
+[[nodiscard]] inline double Ex03Inv1PlusX2Antiderivative(double x) {
   return std::atan(x);
 }
 
@@ -53,7 +53,7 @@ namespace p4mfe::ch01::ex {
 //   integral x^n ln x dx = x^(n+1) ln(x) / (n+1) - x^(n+1) / (n+1)^2 + C.
 // n == -1: substitution u = ln x gives (ln x)^2 / 2 + C.
 // Valid for any real n, x > 0.
-[[nodiscard]] inline double ex04_x_pow_n_ln_antiderivative(double n, double x) {
+[[nodiscard]] inline double Ex04XPowNLnAntiderivative(double n, double x) {
   const double lx = std::log(x);
   if (n == -1.0) return 0.5 * lx * lx;
   const double m = n + 1.0;
@@ -69,8 +69,7 @@ namespace p4mfe::ch01::ex {
 // which unrolls to
 //   I_n = e^x sum_{k=0}^{n} (-1)^(n-k) n!/k! x^k + C.
 // E.g. I_1 = (x - 1) e^x, I_2 = (x^2 - 2x + 2) e^x.
-[[nodiscard]] inline double ex05_x_pow_n_exp_antiderivative(unsigned n,
-                                                            double x) {
+[[nodiscard]] inline double Ex05XPowNExpAntiderivative(unsigned n, double x) {
   // Horner-like evaluation of the recursion: I_n / e^x = x^n - n (I_(n-1) /
   // e^x).
   double p = 1.0;  // I_0 / e^x
@@ -89,9 +88,9 @@ namespace p4mfe::ch01::ex {
 //   J_n = x (ln x)^n - n J_(n-1),   J_0 = x,
 // i.e.  J_n = x sum_{k=0}^{n} (-1)^(n-k) n!/k! (ln x)^k + C.
 // (Substituting x = e^t turns J_n into exercise 5: integral t^n e^t dt.)
-[[nodiscard]] inline double ex06_ln_pow_n_antiderivative(unsigned n, double x) {
+[[nodiscard]] inline double Ex06LnPowNAntiderivative(unsigned n, double x) {
   if (x <= 0.0) throw std::domain_error("ex06: x must be positive");
-  return ex05_x_pow_n_exp_antiderivative(n, std::log(x));
+  return Ex05XPowNExpAntiderivative(n, std::log(x));
 }
 
 }  // namespace p4mfe::ch01::ex

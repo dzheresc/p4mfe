@@ -84,7 +84,7 @@ namespace p4mfe::ch03::ex {
 [[nodiscard]] inline double ex18_theta_call(double S, double K, double T,
                                             double sigma, double r,
                                             double q = 0.0) {
-  return bs_greeks(OptionType::Call, S, K, T, sigma, r, q).theta;
+  return bs_greeks(OptionType::kCall, S, K, T, sigma, r, q).theta;
 }
 // The bracket in (ii): Theta(C) / (S e^(-rT)) for an ATM call with q = r.
 [[nodiscard]] inline double ex18_atm_q_eq_r_bracket(double T, double sigma,

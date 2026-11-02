@@ -34,9 +34,9 @@ EX20_BREAKEVEN_LOW = 46.0
 EX20_BREAKEVEN_HIGH = 54.0
 
 
-def ex21_portfolio1(X: float) -> Portfolio:
-    return Portfolio(options=[call(X - 5, 1), call(X + 5, 1)])
+def ex21_portfolio1(x: float) -> Portfolio:
+    return Portfolio(options=[call(x - 5, 1), call(x + 5, 1)])
 
 
-def ex21_portfolio2(X: float) -> Portfolio:
-    return Portfolio(options=[call(X, 2)])
+def ex21_portfolio2(x: float) -> Portfolio:
+    return Portfolio(options=[call(x, 2)])

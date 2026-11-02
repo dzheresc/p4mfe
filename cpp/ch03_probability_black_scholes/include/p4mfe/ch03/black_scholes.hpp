@@ -41,17 +41,17 @@ struct D1D2 {
   const auto [d1, d2] = bs_d1_d2(S, K, T, sigma, r, q);
   const double fwd_S = S * std::exp(-q * T);
   const double disc_K = K * std::exp(-r * T);
-  return type == OptionType::Call
+  return type == OptionType::kCall
              ? fwd_S * norm_cdf(d1) - disc_K * norm_cdf(d2)
              : disc_K * norm_cdf(-d2) - fwd_S * norm_cdf(-d1);
 }
 [[nodiscard]] inline double bs_call(double S, double K, double T, double sigma,
                                     double r, double q = 0.0) {
-  return bs_price(OptionType::Call, S, K, T, sigma, r, q);
+  return bs_price(OptionType::kCall, S, K, T, sigma, r, q);
 }
 [[nodiscard]] inline double bs_put(double S, double K, double T, double sigma,
                                    double r, double q = 0.0) {
-  return bs_price(OptionType::Put, S, K, T, sigma, r, q);
+  return bs_price(OptionType::kPut, S, K, T, sigma, r, q);
 }
 
 // ---------------------------------------------------------------- 3.6 ------
@@ -83,7 +83,7 @@ struct Greeks {
   g.gamma = eq * pdf1 / (S * sigma * sqrtT);
   g.vega = S * eq * pdf1 * sqrtT;
   const double decay = -S * sigma * eq * pdf1 / (2.0 * sqrtT);
-  if (type == OptionType::Call) {
+  if (type == OptionType::kCall) {
     g.delta = eq * norm_cdf(d1);
     g.theta = decay + q * S * eq * norm_cdf(d1) - r * K * er * norm_cdf(d2);
     g.rho = K * T * er * norm_cdf(d2);

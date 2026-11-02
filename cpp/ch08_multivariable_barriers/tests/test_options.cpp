@@ -19,7 +19,7 @@ using namespace p4mfe::ch08;
 // ---------------------------------------------------------------- 8.5 -----
 TEST(Ch08Theta, MatchesClosedForm) {
   const double S = 50, K = 52, T = 0.75, sigma = 0.3, r = 0.04, q = 0.01;
-  for (OptionType type : {OptionType::Call, OptionType::Put}) {
+  for (OptionType type : {OptionType::kCall, OptionType::kPut}) {
     const double exact = ch03::bs_greeks(type, S, K, T, sigma, r, q).theta;
     EXPECT_NEAR(theta_from_maturity(
                     [&](double tau) {
@@ -28,7 +28,7 @@ TEST(Ch08Theta, MatchesClosedForm) {
                     T),
                 exact, 1e-7);
     EXPECT_NEAR(
-        theta_by_integral([&](double s) { return ch01::payoff(type, s, K); }, S,
+        theta_by_integral([&](double s) { return ch01::Payoff(type, s, K); }, S,
                           T, sigma, r, q),
         exact, 1e-4);
   }
@@ -93,17 +93,17 @@ TEST(Ch08Heat, TransformSolvesHeatEquation) {
   };
   for (double x : {-0.2, 0.0, 0.3}) {
     const double tau = 0.01;
-    const double ut = ch01::derivative([&](double s) { return u(x, s); }, tau);
+    const double ut = ch01::Derivative([&](double s) { return u(x, s); }, tau);
     const double uxx =
-        ch01::second_derivative([&](double y) { return u(y, tau); }, x);
+        ch01::SecondDerivative([&](double y) { return u(y, tau); }, x);
     EXPECT_NEAR(ut, uxx, 1e-6 * std::max(1.0, std::abs(ut)));
   }
   // Round trip and the heat-kernel solution give Black-Scholes back.
   const auto [x, tau] = to_heat_variables(44, K, T, sigma);
   EXPECT_NEAR(bs_from_heat(heat_from_bs(3.0, x, tau, K, c), x, tau, K, c), 3.0,
               1e-14);
-  for (OptionType type : {OptionType::Call, OptionType::Put}) {
-    const auto h = [&](double s) { return ch01::payoff(type, s, K); };
+  for (OptionType type : {OptionType::kCall, OptionType::kPut}) {
+    const auto h = [&](double s) { return ch01::Payoff(type, s, K); };
     for (double S : {35.0, 40.0, 46.0})
       EXPECT_NEAR(bs_price_via_heat(h, S, K, T, sigma, r, q),
                   ch03::bs_price(type, S, K, T, sigma, r, q), 1e-7);
@@ -112,7 +112,7 @@ TEST(Ch08Heat, TransformSolvesHeatEquation) {
 
 TEST(Ch08Heat, ExplicitFiniteDifferences) {
   const double K = 40, T = 0.5, sigma = 0.25, r = 0.05, q = 0.02;
-  for (OptionType type : {OptionType::Call, OptionType::Put})
+  for (OptionType type : {OptionType::kCall, OptionType::kPut})
     for (double S : {35.0, 40.0, 46.0})
       EXPECT_NEAR(european_heat_fd(type, S, K, T, sigma, r, q),
                   ch03::bs_price(type, S, K, T, sigma, r, q), 2e-3);
@@ -120,9 +120,9 @@ TEST(Ch08Heat, ExplicitFiniteDifferences) {
   // makes individual errors irregular).
   const double exact = ch03::bs_call(46, K, T, sigma, r, q);
   const double e1 = std::abs(
-      european_heat_fd(OptionType::Call, 46, K, T, sigma, r, q, 100) - exact);
+      european_heat_fd(OptionType::kCall, 46, K, T, sigma, r, q, 100) - exact);
   const double e2 = std::abs(
-      european_heat_fd(OptionType::Call, 46, K, T, sigma, r, q, 800) - exact);
+      european_heat_fd(OptionType::kCall, 46, K, T, sigma, r, q, 800) - exact);
   EXPECT_GT(e1 / e2, 20.0);
   // alpha > 1/2 is unstable.
   const auto g = solve_heat_explicit(
@@ -205,9 +205,9 @@ TEST(Ch08EarlyExercise, CallWithoutDividends) {
   const double S = 100, K = 95, T = 1, sigma = 0.2, r = 0.05;
   // Same value American and European on the tree; the tree converges to
   // Black-Scholes.
-  EXPECT_NEAR(early_exercise_premium(OptionType::Call, S, K, T, sigma, r, 0.0),
+  EXPECT_NEAR(early_exercise_premium(OptionType::kCall, S, K, T, sigma, r, 0.0),
               0.0, 1e-12);
-  EXPECT_NEAR(binomial_price(OptionType::Call, S, K, T, sigma, r, 0, 1000,
+  EXPECT_NEAR(binomial_price(OptionType::kCall, S, K, T, sigma, r, 0, 1000,
                              ExerciseStyle::European),
               ch03::bs_call(S, K, T, sigma, r), 2e-2);
   // Exercising gives up at least K (1 - e^(-r tau)).
@@ -216,11 +216,12 @@ TEST(Ch08EarlyExercise, CallWithoutDividends) {
       EXPECT_GE(call_exercise_loss(s, K, tau, sigma, r),
                 call_exercise_loss_bound(K, tau, r) - 1e-12);
   // But with dividends, or for puts, early exercise has value.
-  EXPECT_GT(early_exercise_premium(OptionType::Call, 150, K, T, sigma, r, 0.08),
+  EXPECT_GT(
+      early_exercise_premium(OptionType::kCall, 150, K, T, sigma, r, 0.08),
+      0.1);
+  EXPECT_GT(early_exercise_premium(OptionType::kPut, 80, K, T, sigma, r, 0.0),
             0.1);
-  EXPECT_GT(early_exercise_premium(OptionType::Put, 80, K, T, sigma, r, 0.0),
-            0.1);
-  EXPECT_THROW((void)binomial_price(OptionType::Call, S, K, T, 0.01, 0.5, 0, 2,
+  EXPECT_THROW((void)binomial_price(OptionType::kCall, S, K, T, 0.01, 0.5, 0, 2,
                                     ExerciseStyle::European),
                std::invalid_argument);
 }

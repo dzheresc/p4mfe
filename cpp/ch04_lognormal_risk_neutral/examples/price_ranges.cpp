@@ -30,9 +30,9 @@ int main() {
               "put (mu)", "put (r)");
   for (double K : {40.0, 45.0, 50.0, 55.0, 60.0}) {
     std::printf("%6g %14.6f %14.6f %14.6f %14.6f\n", K,
-                prob_itm(OptionType::Call, S0, K, T, sigma, mu, q),
-                prob_itm(OptionType::Call, S0, K, T, sigma, r, q),
-                prob_itm(OptionType::Put, S0, K, T, sigma, mu, q),
-                prob_itm(OptionType::Put, S0, K, T, sigma, r, q));
+                prob_itm(OptionType::kCall, S0, K, T, sigma, mu, q),
+                prob_itm(OptionType::kCall, S0, K, T, sigma, r, q),
+                prob_itm(OptionType::kPut, S0, K, T, sigma, mu, q),
+                prob_itm(OptionType::kPut, S0, K, T, sigma, r, q));
   }
 }

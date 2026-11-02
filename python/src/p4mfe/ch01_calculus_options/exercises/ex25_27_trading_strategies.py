@@ -21,12 +21,12 @@ EX25_CALL_PRICE = 4.0
 EX25_CROSSOVER = EX25_SPOT**2 / (EX25_SPOT - EX25_CALL_PRICE)
 
 
-def ex25_stock_return(ST):
-    return ST / EX25_SPOT - 1.0
+def ex25_stock_return(spot_t):
+    return spot_t / EX25_SPOT - 1.0
 
 
-def ex25_call_return(ST):
-    return np.maximum(ST - EX25_SPOT, 0.0) / EX25_CALL_PRICE - 1.0
+def ex25_call_return(spot_t):
+    return np.maximum(spot_t - EX25_SPOT, 0.0) / EX25_CALL_PRICE - 1.0
 
 
 def replicate_piecewise_linear(
@@ -45,9 +45,11 @@ def replicate_piecewise_linear(
     return Portfolio(cash=v0, shares=slopes[0], options=legs)
 
 
-def ex26_target(ST):
-    ST = np.asarray(ST, dtype=float)
-    v = np.where(ST < 20, 2 * ST, np.where(ST < 40, 60 - ST, ST - 20))
+def ex26_target(spot_t):
+    spot_t = np.asarray(spot_t, dtype=float)
+    v = np.where(
+        spot_t < 20, 2 * spot_t, np.where(spot_t < 40, 60 - spot_t, spot_t - 20)
+    )
     return v if v.ndim else float(v)
 
 
@@ -55,23 +57,25 @@ def ex26_portfolio() -> Portfolio:
     return replicate_piecewise_linear(0.0, [2.0, -1.0, 1.0], [20.0, 40.0])
 
 
-def ex27_target(ST, c: float, K1: float, K2: float):
-    ST = np.asarray(ST, dtype=float)
-    v = np.where((K1 <= ST) & (ST <= K2), c, 0.0)
+def ex27_target(spot_t, c: float, strike1: float, strike2: float):
+    spot_t = np.asarray(spot_t, dtype=float)
+    v = np.where((strike1 <= spot_t) & (spot_t <= strike2), c, 0.0)
     return v if v.ndim else float(v)
 
 
-def ex27_range_digital(c: float, K1: float, K2: float, eps: float) -> Portfolio:
-    if not 0 < K1 < K2:
+def ex27_range_digital(
+    c: float, strike1: float, strike2: float, eps: float
+) -> Portfolio:
+    if not 0 < strike1 < strike2:
         raise ValueError("need 0 < K1 < K2")
-    if not (eps > 0 and 2 * eps <= K2 - K1):
+    if not (eps > 0 and 2 * eps <= strike2 - strike1):
         raise ValueError("need 0 < 2 eps <= K2 - K1")
     n = c / eps
     return Portfolio(
         options=[
-            call(K1, n),
-            call(K1 + eps, -n),
-            call(K2 - eps, -n),
-            call(K2, n),
+            call(strike1, n),
+            call(strike1 + eps, -n),
+            call(strike2 - eps, -n),
+            call(strike2, n),
         ]
     )

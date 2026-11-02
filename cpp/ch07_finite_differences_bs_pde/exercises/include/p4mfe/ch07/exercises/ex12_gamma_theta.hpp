@@ -44,7 +44,7 @@ struct Ex12Market {
 };
 
 [[nodiscard]] inline double ex12_lhs(
-    const Ex12Market& m, ch03::OptionType type = ch03::OptionType::Call) {
+    const Ex12Market& m, ch03::OptionType type = ch03::OptionType::kCall) {
   const auto g = ch03::bs_greeks(type, m.S, m.K, m.tau, m.sigma, m.r, 0.0);
   return 1.0 + 0.5 * m.sigma * m.sigma * m.S * m.S * g.gamma / g.theta;
 }

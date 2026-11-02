@@ -18,12 +18,12 @@ int main() {
   double sigma = implied_vol_initial_guess(S, K, T, r, q);
   for (int k = 1; k <= 5; ++k) {
     sigma -= (bs_call(S, K, T, sigma, r, q) - C) /
-             bs_greeks(OptionType::Call, S, K, T, sigma, r, q).vega;
+             bs_greeks(OptionType::kCall, S, K, T, sigma, r, q).vega;
     std::printf("  iteration %d: sigma = %.12f\n", k, sigma);
   }
 
-  const auto n = implied_vol_newton(OptionType::Call, C, S, K, T, r, q);
-  const auto b = implied_vol_bisection(OptionType::Call, C, S, K, T, r, q);
+  const auto n = implied_vol_newton(OptionType::kCall, C, S, K, T, r, q);
+  const auto b = implied_vol_bisection(OptionType::kCall, C, S, K, T, r, q);
   std::printf("\nNewton:    sigma = %.12f in %zu iterations\n", n.sigma,
               n.iterations);
   std::printf("Bisection: sigma = %.12f in %zu iterations\n", b.sigma,

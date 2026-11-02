@@ -29,7 +29,7 @@ template <std::invocable<double> G>
   const std::size_t n = g(t).size();
   Vector d(n);
   for (std::size_t i = 0; i < n; ++i)
-    d[i] = ch01::derivative([&](double s) { return g(s)[i]; }, t);
+    d[i] = ch01::Derivative([&](double s) { return g(s)[i]; }, t);
   return d;
 }
 
@@ -37,7 +37,7 @@ template <std::invocable<double> G>
 template <class F, std::invocable<double> G>
 [[nodiscard]] double chain_rule_derivative(F&& f, G&& g, double t) {
   const Vector x = g(t);
-  const Vector grad = ch01::gradient(f, x);
+  const Vector grad = ch01::Gradient(f, x);
   const Vector dg = curve_derivative(g, t);
   double s = 0.0;
   for (std::size_t i = 0; i < x.size(); ++i) s += grad[i] * dg[i];
@@ -49,7 +49,7 @@ template <class F, ch05::VectorFunction G>
 [[nodiscard]] Vector chain_rule_gradient(F&& f, G&& G_, const Vector& x) {
   const Matrix J =
       ch05::finite_difference_jacobian(G_, x, 1e-6, ch05::Difference::Central);
-  const Vector grad = ch01::gradient(f, G_(x));
+  const Vector grad = ch01::Gradient(f, G_(x));
   Vector out(x.size(), 0.0);
   for (std::size_t j = 0; j < J.cols(); ++j)
     for (std::size_t i = 0; i < J.rows(); ++i) out[j] += J(i, j) * grad[i];

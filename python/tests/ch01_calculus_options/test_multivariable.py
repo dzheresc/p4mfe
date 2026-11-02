@@ -21,15 +21,15 @@ def test_gradient_two_variables():
 def test_hessian_two_variables():
     x, y = 0.5, -1.2
     e = math.exp(x * y)
-    H = hessian(f, [x, y])
+    hess = hessian(f, [x, y])
     expected = np.array(
         [
             [2 * y + y * y * e, 2 * x + e + x * y * e],
             [2 * x + e + x * y * e, x * x * e],
         ]
     )
-    assert H == pytest.approx(expected, abs=1e-6)
-    assert H[0, 1] == H[1, 0]
+    assert hess == pytest.approx(expected, abs=1e-6)
+    assert hess[0, 1] == hess[1, 0]
 
 
 def test_three_variables():

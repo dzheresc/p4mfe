@@ -41,7 +41,7 @@ TEST(Ch05BondYield, RoundTripLongBond) {
 // ------------------------------------------------------------------ 5.4 ---
 TEST(Ch05ImpliedVol, RecoversSigmaAndAgreesWithChapter3) {
   const double S = 30, T = 0.5, r = 0.03, q = 0.01;
-  for (OptionType type : {OptionType::Call, OptionType::Put}) {
+  for (OptionType type : {OptionType::kCall, OptionType::kPut}) {
     for (double K : {25.0, 30.0, 36.0}) {
       for (double sigma : {0.15, 0.3, 0.8}) {
         const double price = ch03::bs_price(type, S, K, T, sigma, r, q);
@@ -63,7 +63,7 @@ TEST(Ch05ImpliedVol, NewtonFromInflectionPointIsMonotone) {
   // From sigma_0 the Newton iterates approach the root from one side.
   const double S = 40, K = 44, T = 0.75, r = 0.04, q = 0.0, sigma = 0.27;
   const double price = ch03::bs_call(S, K, T, sigma, r, q);
-  const auto res = implied_vol_newton(OptionType::Call, price, S, K, T, r, q,
+  const auto res = implied_vol_newton(OptionType::kCall, price, S, K, T, r, q,
                                       {1e-14, 1e-14, 100});
   const double side = res.iterates.front() - sigma;
   for (double x : res.iterates) {
@@ -75,10 +75,10 @@ TEST(Ch05ImpliedVol, NewtonFromInflectionPointIsMonotone) {
 
 TEST(Ch05ImpliedVol, RejectsArbitrageablePrices) {
   EXPECT_THROW(
-      (void)implied_vol_newton(OptionType::Call, 31.0, 30, 30, 0.5, 0.03),
+      (void)implied_vol_newton(OptionType::kCall, 31.0, 30, 30, 0.5, 0.03),
       std::domain_error);
   EXPECT_THROW(
-      (void)implied_vol_secant(OptionType::Put, 0.0, 30, 30, 0.5, 0.03),
+      (void)implied_vol_secant(OptionType::kPut, 0.0, 30, 30, 0.5, 0.03),
       std::domain_error);
 }
 

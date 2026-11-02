@@ -188,8 +188,8 @@ template <std::invocable<double> Payoff, std::invocable<double> VL,
                                              std::size_t nt = 0) {
   const double L = std::abs(std::log(S / K)) + 6.0 * sigma * std::sqrt(T);
   const double S_min = K * std::exp(-L), S_max = K * std::exp(L);
-  const auto h = [&](double s) { return ch01::payoff(type, s, K); };
-  if (type == OptionType::Call)
+  const auto h = [&](double s) { return ch01::Payoff(type, s, K); };
+  if (type == OptionType::kCall)
     return bs_heat_fd(
         h, [](double) { return 0.0; },
         [&](double th) {

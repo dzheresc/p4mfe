@@ -84,10 +84,10 @@ struct LagrangeResult {
 template <class F, ch05::VectorFunction G>
 [[nodiscard]] Vector lagrangian_gradient(F&& f, G&& g, const Vector& x,
                                          const Vector& lambda) {
-  Vector out = ch01::gradient(f, x);
+  Vector out = ch01::Gradient(f, x);
   const Vector gx = g(x);
   for (std::size_t j = 0; j < gx.size(); ++j) {
-    const Vector gj = ch01::gradient(detail::component(g, j), x);
+    const Vector gj = ch01::Gradient(detail::component(g, j), x);
     for (std::size_t i = 0; i < x.size(); ++i) out[i] += lambda[j] * gj[i];
   }
   out.insert(out.end(), gx.begin(), gx.end());
@@ -98,9 +98,9 @@ template <class F, ch05::VectorFunction G>
 template <class F, ch05::VectorFunction G>
 [[nodiscard]] ch01::Matrix lagrangian_hessian(F&& f, G&& g, const Vector& x,
                                               const Vector& lambda) {
-  auto H = ch01::hessian(f, x);
+  auto H = ch01::Hessian(f, x);
   for (std::size_t j = 0; j < lambda.size(); ++j) {
-    const auto Hj = ch01::hessian(detail::component(g, j), x);
+    const auto Hj = ch01::Hessian(detail::component(g, j), x);
     for (std::size_t r = 0; r < x.size(); ++r)
       for (std::size_t c = 0; c < x.size(); ++c)
         H[r][c] += lambda[j] * Hj[r][c];
@@ -115,10 +115,10 @@ template <class F, ch05::VectorFunction G>
 template <class F, ch05::VectorFunction G>
 [[nodiscard]] Vector least_squares_multipliers(F&& f, G&& g, const Vector& x) {
   const std::size_t m = g(x).size();
-  const Vector gf = ch01::gradient(f, x);
+  const Vector gf = ch01::Gradient(f, x);
   std::vector<Vector> Jg;
   for (std::size_t j = 0; j < m; ++j)
-    Jg.push_back(ch01::gradient(detail::component(g, j), x));
+    Jg.push_back(ch01::Gradient(detail::component(g, j), x));
   ch05::Matrix M(m, m);
   Vector rhs(m, 0.0);
   for (std::size_t a = 0; a < m; ++a) {
@@ -160,7 +160,7 @@ template <class F, ch05::VectorFunction G>
     for (std::size_t r = 0; r < n; ++r)
       for (std::size_t c = 0; c < n; ++c) M(r, c) = H[r][c];
     for (std::size_t j = 0; j < m; ++j) {
-      const Vector gj = ch01::gradient(detail::component(g, j), x);
+      const Vector gj = ch01::Gradient(detail::component(g, j), x);
       for (std::size_t i = 0; i < n; ++i) M(n + j, i) = M(i, n + j) = gj[i];
     }
     return M;
@@ -181,7 +181,7 @@ template <class F, ch05::VectorFunction G>
   const auto H = lagrangian_hessian(f, g, x, lambda);
   std::vector<Vector> rows;
   for (std::size_t j = 0; j < lambda.size(); ++j)
-    rows.push_back(ch01::gradient(detail::component(g, j), x));
+    rows.push_back(ch01::Gradient(detail::component(g, j), x));
   const auto Z = detail::null_space(rows, x.size());
   const std::size_t k = Z.size();
   ch01::Matrix R(k, ch01::Vector(k, 0.0));

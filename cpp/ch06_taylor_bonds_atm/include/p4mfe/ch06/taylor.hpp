@@ -55,13 +55,13 @@ using ch01::Vector;
 //   f(x) ~ f(a) + f'(a)(x-a),   f(x) ~ f(a) + f'(a)(x-a) + f''(a)(x-a)^2/2.
 template <std::invocable<double> F>
 [[nodiscard]] double taylor_linear(F&& f, double a, double x) {
-  return f(a) + ch01::derivative(f, a) * (x - a);
+  return f(a) + ch01::Derivative(f, a) * (x - a);
 }
 template <std::invocable<double> F>
 [[nodiscard]] double taylor_quadratic(F&& f, double a, double x) {
   const double h = x - a;
-  return f(a) + ch01::derivative(f, a) * h +
-         0.5 * ch01::second_derivative(f, a) * h * h;
+  return f(a) + ch01::Derivative(f, a) * h +
+         0.5 * ch01::SecondDerivative(f, a) * h * h;
 }
 
 // Lagrange bound: |R_n(x)| <= M |x-a|^(n+1) / (n+1)!.
@@ -112,7 +112,7 @@ template <typename F>
     throw std::invalid_argument("taylor_quadratic_nd: size mismatch");
   Vector h(a.size());
   for (std::size_t i = 0; i < a.size(); ++i) h[i] = x[i] - a[i];
-  return taylor_quadratic_nd(f(a), ch01::gradient(f, a), ch01::hessian(f, a),
+  return taylor_quadratic_nd(f(a), ch01::Gradient(f, a), ch01::Hessian(f, a),
                              h);
 }
 
@@ -122,7 +122,7 @@ template <typename F>
 [[nodiscard]] double taylor_linear_nd(F&& f, const Vector& a, const Vector& x) {
   if (a.size() != x.size())
     throw std::invalid_argument("taylor_linear_nd: size mismatch");
-  const Vector g = ch01::gradient(f, a);
+  const Vector g = ch01::Gradient(f, a);
   double v = f(a);
   for (std::size_t i = 0; i < a.size(); ++i) v += g[i] * (x[i] - a[i]);
   return v;
@@ -141,11 +141,11 @@ template <std::invocable<double, double> F>
   const auto g = [&](const Vector& v) { return f(v[0], v[1]); };
   const Vector p{a, b};
   return {f(a, b),
-          ch01::partial(g, p, 0),
-          ch01::partial(g, p, 1),
-          ch01::second_partial(g, p, 0, 0),
-          ch01::second_partial(g, p, 0, 1),
-          ch01::second_partial(g, p, 1, 1)};
+          ch01::Partial(g, p, 0),
+          ch01::Partial(g, p, 1),
+          ch01::SecondPartial(g, p, 0, 0),
+          ch01::SecondPartial(g, p, 0, 1),
+          ch01::SecondPartial(g, p, 1, 1)};
 }
 
 // Linear and quadratic two-variable Taylor approximations at (a + dx, b + dy).

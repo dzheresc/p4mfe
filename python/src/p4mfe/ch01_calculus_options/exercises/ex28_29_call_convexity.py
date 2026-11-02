@@ -15,37 +15,43 @@ from .portfolio import Portfolio, call
 
 
 class ThreeCalls(NamedTuple):
-    K: tuple[float, float, float]
-    C: tuple[float, float, float]
+    strikes: tuple[float, float, float]
+    prices: tuple[float, float, float]
 
 
 def ex29_convexity_gap(x: ThreeCalls) -> float:
-    K1, K2, K3 = x.K
-    if not K1 < K2 < K3:
+    strike1, strike2, strike3 = x.strikes
+    if not strike1 < strike2 < strike3:
         raise ValueError("need K1 < K2 < K3")
-    lam = (K3 - K2) / (K3 - K1)
-    return lam * x.C[0] + (1 - lam) * x.C[2] - x.C[1]
+    lam = (strike3 - strike2) / (strike3 - strike1)
+    return lam * x.prices[0] + (1 - lam) * x.prices[2] - x.prices[1]
 
 
 def ex29_no_arbitrage(x: ThreeCalls) -> bool:
-    return x.C[2] >= 0 and x.C[1] >= x.C[2] and ex29_convexity_gap(x) >= 0
+    return (
+        x.prices[2] >= 0
+        and x.prices[1] >= x.prices[2]
+        and ex29_convexity_gap(x) >= 0
+    )
 
 
 def ex29_arbitrage(x: ThreeCalls) -> Portfolio | None:
-    (K1, K2, K3), (C1, C2, C3) = x.K, x.C
+    (strike1, strike2, strike3), (call1, call2, call3) = x.strikes, x.prices
     if ex29_convexity_gap(x) < 0:
-        w = K3 - K2
+        w = strike3 - strike2
         return Portfolio(
             options=[
-                call(K1, 1.0, C1),
-                call(K2, -(K3 - K1) / w, C2),
-                call(K3, (K2 - K1) / w, C3),
+                call(strike1, 1.0, call1),
+                call(strike2, -(strike3 - strike1) / w, call2),
+                call(strike3, (strike2 - strike1) / w, call3),
             ]
         )
-    if C2 < C3:
-        return Portfolio(options=[call(K2, 1.0, C2), call(K3, -1.0, C3)])
-    if C3 < 0:
-        return Portfolio(options=[call(K3, 1.0, C3)])
+    if call2 < call3:
+        return Portfolio(
+            options=[call(strike2, 1.0, call2), call(strike3, -1.0, call3)]
+        )
+    if call3 < 0:
+        return Portfolio(options=[call(strike3, 1.0, call3)])
     return None
 
 

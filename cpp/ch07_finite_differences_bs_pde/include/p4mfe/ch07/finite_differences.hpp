@@ -43,7 +43,7 @@ template <std::invocable<double> F>
 template <std::invocable<double> F>
 [[nodiscard]] double central_difference(F&& f, double a, double h) {
   if (!(h > 0.0)) throw std::invalid_argument("central_difference: need h > 0");
-  return ch01::derivative(f, a, h);
+  return ch01::Derivative(f, a, h);
 }
 
 // Central approximation of f''(a).
@@ -51,7 +51,7 @@ template <std::invocable<double> F>
 [[nodiscard]] double second_central_difference(F&& f, double a, double h) {
   if (!(h > 0.0))
     throw std::invalid_argument("second_central_difference: need h > 0");
-  return ch01::second_derivative(f, a, h);
+  return ch01::SecondDerivative(f, a, h);
 }
 
 // f'(a) by the chosen scheme.

@@ -20,8 +20,8 @@ using namespace p4mfe::ch06::ex;
 TEST(Ch06Ex01, CubicTaylorOfSqrt) {
   // The derivatives at 0 match finite differences of sqrt(1 + x).
   const auto f = [](double x) { return std::sqrt(1.0 + x); };
-  EXPECT_NEAR(ch01::derivative(f, 0.0), ex01_derivatives_at_zero[1], 1e-8);
-  EXPECT_NEAR(ch01::second_derivative(f, 0.0), ex01_derivatives_at_zero[2],
+  EXPECT_NEAR(ch01::Derivative(f, 0.0), ex01_derivatives_at_zero[1], 1e-8);
+  EXPECT_NEAR(ch01::SecondDerivative(f, 0.0), ex01_derivatives_at_zero[2],
               1e-5);
   for (double x : {-0.5, -0.1, 0.0, 0.2, 0.7}) {
     EXPECT_NEAR(ex01_cubic(x), ex01_cubic_from_derivatives(x), 1e-15);
@@ -79,8 +79,8 @@ TEST(Ch06Ex04, QuadraticTaylorOfExpG) {
   // checked against finite-difference derivatives of e^g.
   const auto h = [](double x) { return std::exp(std::sin(x) + 0.5); };
   const auto q = ex04_quadratic(0.5, 1.0, 0.0);
-  EXPECT_NEAR(q[1], ch01::derivative(h, 0.0), 1e-8);
-  EXPECT_NEAR(2.0 * q[2], ch01::second_derivative(h, 0.0), 1e-5);
+  EXPECT_NEAR(q[1], ch01::Derivative(h, 0.0), 1e-8);
+  EXPECT_NEAR(2.0 * q[2], ch01::SecondDerivative(h, 0.0), 1e-5);
   const auto l = ex04_linear(0.5, 1.0);
   EXPECT_NEAR(l[0], q[0], 1e-15);
   EXPECT_NEAR(l[1], q[1], 1e-15);
@@ -122,8 +122,8 @@ TEST(Ch06Ex06, BoundsForE) {
   EXPECT_EQ(ex06_h(0.0), 0.0);
   EXPECT_EQ(ex06_k(0.0), 0.0);
   for (double t = 0.05; t <= 1.0; t += 0.05) {
-    EXPECT_NEAR(ch01::derivative(ex06_h, t), ex06_h_prime(t), 1e-8);
-    EXPECT_NEAR(ch01::derivative(ex06_k, t), ex06_k_prime(t), 1e-8);
+    EXPECT_NEAR(ch01::Derivative(ex06_h, t), ex06_h_prime(t), 1e-8);
+    EXPECT_NEAR(ch01::Derivative(ex06_k, t), ex06_k_prime(t), 1e-8);
     EXPECT_GT(ex06_h(t), 0.0);
     EXPECT_GT(ex06_k(t), 0.0);
   }

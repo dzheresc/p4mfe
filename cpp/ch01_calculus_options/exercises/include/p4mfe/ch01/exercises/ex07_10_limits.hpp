@@ -26,7 +26,7 @@ struct Ex07Bounds {
   double lower;  // (1 + 1/x)^x
   double upper;  // (1 + 1/x)^(x+1)
 };
-[[nodiscard]] inline Ex07Bounds ex07_e_bounds(double x) {
+[[nodiscard]] inline Ex07Bounds Ex07EBounds(double x) {
   const double l = std::log1p(1.0 / x);  // ln(1 + 1/x), accurate for large x
   return {std::exp(x * l), std::exp((x + 1.0) * l)};
 }
@@ -43,20 +43,20 @@ struct Ex07Bounds {
 //   (-1/4 (1+x)^(-3/2)) / 2  ->  -1/8.
 // Second limit: three applications give (e^x - 1 - x)/(3x^2), (e^x - 1)/(6x),
 // e^x / 6  ->  1/6.
-inline constexpr double ex08_sqrt_limit = -1.0 / 8.0;
-inline constexpr double ex08_exp_limit = 1.0 / 6.0;
+inline constexpr double kEx08SqrtLimit = -1.0 / 8.0;
+inline constexpr double kEx08ExpLimit = 1.0 / 6.0;
 
 // The quotients themselves, evaluated stably for small x:
 //   sqrt(1+x) - 1 - x/2 = -x^2 / (2 (sqrt(1+x) + 1)^2),
 // which follows from sqrt(1+x) - 1 = x / (sqrt(1+x) + 1) twice. So the first
 // quotient is exactly -1 / (2 (sqrt(1+x) + 1)^2), which -> -1/8.
-[[nodiscard]] inline double ex08_sqrt_quotient(double x) {
+[[nodiscard]] inline double Ex08SqrtQuotient(double x) {
   const double s = std::sqrt(1.0 + x) + 1.0;
   return -1.0 / (2.0 * s * s);
 }
 // e^x - 1 - x - x^2/2 = expm1(x) - x - x^2/2; for |x| < 1e-2 use the series
 // sum_{k>=3} x^k / k! directly to avoid cancellation.
-[[nodiscard]] inline double ex08_exp_quotient(double x) {
+[[nodiscard]] inline double Ex08ExpQuotient(double x) {
   if (std::abs(x) < 1e-2) {
     double term = 1.0 / 6.0, sum = 0.0;  // x^(k-3) * 3!/k! / 6
     for (int k = 3; k < 12; ++k) {
@@ -83,15 +83,14 @@ inline constexpr double ex08_exp_limit = 1.0 / 6.0;
 //                                from below,
 //   so 1/(...) = -(sqrt(x^2 - 4x + 1) + x - 2) / 3  ->  -infinity
 //   (it behaves like -2x/3).
-inline constexpr double ex09_limit_i = -0.5;
-inline constexpr double ex09_limit_ii =
-    -std::numeric_limits<double>::infinity();
+inline constexpr double kEx09LimitI = -0.5;
+inline constexpr double kEx09LimitIi = -std::numeric_limits<double>::infinity();
 
 // Stable forms of the two expressions (valid for x > 2 + sqrt(3)).
-[[nodiscard]] inline double ex09_expr_i(double x) {
+[[nodiscard]] inline double Ex09ExprI(double x) {
   return (std::sqrt(x * x - 4.0 * x + 1.0) + x) / (1.0 - 4.0 * x);
 }
-[[nodiscard]] inline double ex09_expr_ii(double x) {
+[[nodiscard]] inline double Ex09ExprIi(double x) {
   return -(std::sqrt(x * x - 4.0 * x + 1.0) + x - 2.0) / 3.0;
 }
 
@@ -103,7 +102,7 @@ inline constexpr double ex09_limit_ii =
 // With y = x - 1:  1 - 1/x = 1 - 1/(y+1) = 1/(1 + 1/y), so
 //   (1 - 1/x)^x = 1 / (1 + 1/y)^(y+1) = 1 / ((1 + 1/y)^y (1 + 1/y))
 //              -> 1 / (e * 1) = 1/e   as y -> infinity.
-[[nodiscard]] inline double ex10_expr(double x) {
+[[nodiscard]] inline double Ex10Expr(double x) {
   return std::exp(x * std::log1p(-1.0 / x));
 }
 

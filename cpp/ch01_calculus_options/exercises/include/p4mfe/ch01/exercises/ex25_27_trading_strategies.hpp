@@ -24,17 +24,17 @@ namespace p4mfe::ch01::ex {
 // expected 40-45 range the calls win: at 40, R_S = 14.3% vs R_C = 25%; at 45,
 // R_S = 28.6% vs R_C = 150%. The calls are the leveraged bet: much higher
 // return if the view is right, total loss if S(T) <= 35.
-inline constexpr double ex25_spot = 35.0;
-inline constexpr double ex25_call_price = 4.0;
-[[nodiscard]] inline double ex25_stock_return(double ST) {
-  return ST / ex25_spot - 1.0;
+inline constexpr double kEx25Spot = 35.0;
+inline constexpr double kEx25CallPrice = 4.0;
+[[nodiscard]] inline double Ex25StockReturn(double spot_t) {
+  return spot_t / kEx25Spot - 1.0;
 }
-[[nodiscard]] inline double ex25_call_return(double ST) {
-  return std::max(ST - ex25_spot, 0.0) / ex25_call_price - 1.0;
+[[nodiscard]] inline double Ex25CallReturn(double spot_t) {
+  return std::max(spot_t - kEx25Spot, 0.0) / kEx25CallPrice - 1.0;
 }
 // Crossover where both returns agree: S = S0^2 / (S0 - c) = 1225/31.
-inline constexpr double ex25_crossover =
-    ex25_spot * ex25_spot / (ex25_spot - ex25_call_price);
+inline constexpr double kEx25Crossover =
+    kEx25Spot * kEx25Spot / (kEx25Spot - kEx25CallPrice);
 
 // ----------------------------------------------------------- Exercise 26 ---
 // Build, from plain vanilla options with maturity T, cash, and the asset
@@ -54,7 +54,7 @@ inline constexpr double ex25_crossover =
 // replicate_piecewise_linear does this for any continuous piecewise-linear
 // payoff on [0, inf): v0 = V(0), slopes[i] on the i-th piece, kinks[i]
 // separating piece i from piece i + 1 (so slopes.size() == kinks.size() + 1).
-[[nodiscard]] inline Portfolio replicate_piecewise_linear(
+[[nodiscard]] inline Portfolio ReplicatePiecewiseLinear(
     double v0, std::span<const double> slopes, std::span<const double> kinks) {
   if (slopes.size() != kinks.size() + 1)
     throw std::invalid_argument(
@@ -65,20 +65,20 @@ inline constexpr double ex25_crossover =
   Portfolio p{v0, slopes[0], {}};
   for (std::size_t i = 0; i < kinks.size(); ++i)
     if (const double dq = slopes[i + 1] - slopes[i]; dq != 0.0)
-      p.options.push_back(call(kinks[i], dq));
+      p.options.push_back(Call(kinks[i], dq));
   return p;
 }
 
-[[nodiscard]] inline double ex26_target(double ST) {
-  if (ST < 20.0) return 2.0 * ST;
-  if (ST < 40.0) return 60.0 - ST;
-  return ST - 20.0;
+[[nodiscard]] inline double Ex26Target(double spot_t) {
+  if (spot_t < 20.0) return 2.0 * spot_t;
+  if (spot_t < 40.0) return 60.0 - spot_t;
+  return spot_t - 20.0;
 }
 
-[[nodiscard]] inline Portfolio ex26_portfolio() {
+[[nodiscard]] inline Portfolio Ex26Portfolio() {
   const double slopes[] = {2.0, -1.0, 1.0};
   const double kinks[] = {20.0, 40.0};
-  return replicate_piecewise_linear(0.0, slopes, kinks);
+  return ReplicatePiecewiseLinear(0.0, slopes, kinks);
 }
 
 // ----------------------------------------------------------- Exercise 27 ---
@@ -96,21 +96,22 @@ inline constexpr double ex25_crossover =
 // derivative and differs from it only on those ramps. (Shifting the ramps
 // outward to [K1 - eps, K1] and [K2, K2 + eps] gives a portfolio that never
 // pays less.) As eps -> 0 the replication becomes exact.
-[[nodiscard]] inline double ex27_target(double ST, double c, double K1,
-                                        double K2) {
-  return (K1 <= ST && ST <= K2) ? c : 0.0;
+[[nodiscard]] inline double Ex27Target(double spot_t, double c, double strike1,
+                                       double strike2) {
+  return (strike1 <= spot_t && spot_t <= strike2) ? c : 0.0;
 }
 
-[[nodiscard]] inline Portfolio ex27_range_digital(double c, double K1,
-                                                  double K2, double eps) {
-  if (!(0.0 < K1 && K1 < K2))
+[[nodiscard]] inline Portfolio Ex27RangeDigital(double c, double strike1,
+                                                double strike2, double eps) {
+  if (!(0.0 < strike1 && strike1 < strike2))
     throw std::invalid_argument("ex27: need 0 < K1 < K2");
-  if (!(eps > 0.0 && 2.0 * eps <= K2 - K1))
+  if (!(eps > 0.0 && 2.0 * eps <= strike2 - strike1))
     throw std::invalid_argument("ex27: need 0 < 2 eps <= K2 - K1");
   const double n = c / eps;
   return {0.0,
           0.0,
-          {call(K1, n), call(K1 + eps, -n), call(K2 - eps, -n), call(K2, n)}};
+          {Call(strike1, n), Call(strike1 + eps, -n), Call(strike2 - eps, -n),
+           Call(strike2, n)}};
 }
 
 }  // namespace p4mfe::ch01::ex

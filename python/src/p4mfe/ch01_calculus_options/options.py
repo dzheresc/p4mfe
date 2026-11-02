@@ -20,28 +20,28 @@ class OptionType(Enum):
     PUT = "put"
 
 
-def call_payoff(S, K):
+def call_payoff(spot, strike):
     """max(S - K, 0)."""
-    return np.maximum(S - K, 0.0)
+    return np.maximum(spot - strike, 0.0)
 
 
-def put_payoff(S, K):
+def put_payoff(spot, strike):
     """max(K - S, 0)."""
-    return np.maximum(K - S, 0.0)
+    return np.maximum(strike - spot, 0.0)
 
 
-def payoff(option_type: OptionType, S, K):
+def payoff(option_type: OptionType, spot, strike):
     return (
-        call_payoff(S, K)
+        call_payoff(spot, strike)
         if option_type is OptionType.CALL
-        else put_payoff(S, K)
+        else put_payoff(spot, strike)
     )
 
 
 # 1.8 -----------------------------------------------------------------------
-def discount_factor(r: float, T: float) -> float:
+def discount_factor(r: float, maturity: float) -> float:
     """e^(-r T): value today of one unit paid at T."""
-    return math.exp(-r * T)
+    return math.exp(-r * maturity)
 
 
 @dataclass(frozen=True)
@@ -51,41 +51,70 @@ class PriceBounds:
 
 
 def call_bounds(
-    S: float, K: float, T: float, r: float, q: float = 0.0
+    spot: float, strike: float, maturity: float, r: float, q: float = 0.0
 ) -> PriceBounds:
     """max(S e^(-qT) - K e^(-rT), 0) <= C <= S e^(-qT)."""
-    s, k = S * math.exp(-q * T), K * discount_factor(r, T)
+    s, k = spot * math.exp(-q * maturity), strike * discount_factor(r, maturity)
     return PriceBounds(max(s - k, 0.0), s)
 
 
 def put_bounds(
-    S: float, K: float, T: float, r: float, q: float = 0.0
+    spot: float, strike: float, maturity: float, r: float, q: float = 0.0
 ) -> PriceBounds:
     """max(K e^(-rT) - S e^(-qT), 0) <= P <= K e^(-rT)."""
-    s, k = S * math.exp(-q * T), K * discount_factor(r, T)
+    s, k = spot * math.exp(-q * maturity), strike * discount_factor(r, maturity)
     return PriceBounds(max(k - s, 0.0), k)
 
 
 # 1.9 -----------------------------------------------------------------------
 def put_from_call(
-    C: float, S: float, K: float, T: float, r: float, q: float = 0.0
+    call: float,
+    spot: float,
+    strike: float,
+    maturity: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
     """P = C - S e^(-qT) + K e^(-rT)."""
-    return C - S * math.exp(-q * T) + K * discount_factor(r, T)
+    return (
+        call
+        - spot * math.exp(-q * maturity)
+        + strike * discount_factor(r, maturity)
+    )
 
 
 def call_from_put(
-    P: float, S: float, K: float, T: float, r: float, q: float = 0.0
+    put: float,
+    spot: float,
+    strike: float,
+    maturity: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
     """C = P + S e^(-qT) - K e^(-rT)."""
-    return P + S * math.exp(-q * T) - K * discount_factor(r, T)
+    return (
+        put
+        + spot * math.exp(-q * maturity)
+        - strike * discount_factor(r, maturity)
+    )
 
 
 def parity_violation(
-    C: float, P: float, S: float, K: float, T: float, r: float, q: float = 0.0
+    call: float,
+    put: float,
+    spot: float,
+    strike: float,
+    maturity: float,
+    r: float,
+    q: float = 0.0,
 ) -> float:
     """C - P - S e^(-qT) + K e^(-rT); positive when the call is rich."""
-    return C - P - S * math.exp(-q * T) + K * discount_factor(r, T)
+    return (
+        call
+        - put
+        - spot * math.exp(-q * maturity)
+        + strike * discount_factor(r, maturity)
+    )
 
 
 # 1.9.1 ---------------------------------------------------------------------
@@ -103,11 +132,11 @@ class ParityArbitrage:
 
 
 def parity_arbitrage(
-    C: float,
-    P: float,
-    S: float,
-    K: float,
-    T: float,
+    call: float,
+    put: float,
+    spot: float,
+    strike: float,
+    maturity: float,
     r: float,
     q: float = 0.0,
     tol: float = 1e-12,
@@ -118,15 +147,15 @@ def parity_arbitrage(
     rest. At T that portfolio is worth K plus the cash, so the profit is
     violation * e^(rT). Cheap call: the reverse.
     """
-    v = parity_violation(C, P, S, K, T, r, q)
+    v = parity_violation(call, put, spot, strike, maturity, r, q)
     if abs(v) <= tol:
         return None
     sign = 1.0 if v > 0 else -1.0
-    shares = sign * math.exp(-q * T)
+    shares = sign * math.exp(-q * maturity)
     return ParityArbitrage(
         calls=-sign,
         puts=sign,
         shares=shares,
-        cash=sign * (C - P) - shares * S,
-        profit=abs(v) * math.exp(r * T),
+        cash=sign * (call - put) - shares * spot,
+        profit=abs(v) * math.exp(r * maturity),
     )

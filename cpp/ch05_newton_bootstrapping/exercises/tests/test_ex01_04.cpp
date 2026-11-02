@@ -87,7 +87,7 @@ TEST(Ch05Ex03, LimitsAndMonotonicity) {
     double prev = ex03_limit_zero(m);
     for (double x = 0.01; x < 5.0; x += 0.01) {
       const double fx = ex03_f(x, m);
-      EXPECT_GT(ch03::bs_greeks(ch01::OptionType::Call, S, K, T, x, r, q).vega,
+      EXPECT_GT(ch03::bs_greeks(ch01::OptionType::kCall, S, K, T, x, r, q).vega,
                 0.0);
       EXPECT_GE(fx, prev);
       EXPECT_LT(fx, ex03_limit_infinity(m));
@@ -95,13 +95,13 @@ TEST(Ch05Ex03, LimitsAndMonotonicity) {
     }
     EXPECT_GT(ex03_f(1.0, m), ex03_f(0.5, m));
     // (iv) the range is the no-arbitrage range (3.99)...
-    const auto nb = ch01::call_bounds(S, K, T, r, q);
+    const auto nb = ch01::CallBounds(S, K, T, r, q);
     EXPECT_NEAR(rg.lower, nb.lower, 1e-12);
     EXPECT_NEAR(rg.upper, nb.upper, 1e-12);
     // ...inside it there is a root, outside it none.
     EXPECT_TRUE(ex03_has_positive_root(m));
     const double sigma =
-        implied_vol_newton(ch01::OptionType::Call, C, S, K, T, r, q).x;
+        implied_vol_newton(ch01::OptionType::kCall, C, S, K, T, r, q).x;
     EXPECT_NEAR(ex03_f(sigma, m), 0.0, 1e-8);
     EXPECT_FALSE(ex03_has_positive_root({S, K, T, r, q, rg.upper}));
     EXPECT_FALSE(ex03_has_positive_root({S, K, T, r, q, rg.lower}));
@@ -120,7 +120,7 @@ TEST(Ch05Ex04, ImpliedVolThreeMethods) {
   // The implied vol reprices the call; matches chapter 3's solver.
   const Ex04Market m;
   EXPECT_NEAR(ch03::bs_call(m.S, m.K, m.T, n.x, m.r, m.q), m.C, 1e-9);
-  EXPECT_NEAR(ch03::implied_vol_newton(ch01::OptionType::Call, m.C, m.S, m.K,
+  EXPECT_NEAR(ch03::implied_vol_newton(ch01::OptionType::kCall, m.C, m.S, m.K,
                                        m.T, m.r, m.q)
                   .sigma,
               n.x, 1e-8);

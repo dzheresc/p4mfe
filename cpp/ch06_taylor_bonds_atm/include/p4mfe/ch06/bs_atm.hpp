@@ -82,7 +82,7 @@ inline constexpr double inv_sqrt_2pi =
   g.vega = S * std::sqrt(T) * detail::inv_sqrt_2pi;
   g.theta = -0.5 * S * sigma * detail::inv_sqrt_2pi / std::sqrt(T);
   g.rho = S * T * (0.5 - half_d);
-  if (type == ch03::OptionType::Put) {
+  if (type == ch03::OptionType::kPut) {
     g.delta -= 1.0;
     g.rho -= S * T;
   }

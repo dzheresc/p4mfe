@@ -79,7 +79,7 @@ void BM_chain_rule(benchmark::State& state) {
   const ch08::Vector x(n, 0.3);
   // d/dt f(g(t)) by the chain rule against a direct difference.
   const double direct =
-      p4mfe::ch01::derivative([&](double t) { return f(g(t)); }, 0.4);
+      p4mfe::ch01::Derivative([&](double t) { return f(g(t)); }, 0.4);
   if (!check(state,
              std::abs(ch08::chain_rule_derivative(f, g, 0.4) - direct) < 1e-5,
              "chain rule is off"))
@@ -160,8 +160,8 @@ void BM_exercise_and_heat(benchmark::State& state) {
   const auto chain = p4mfe::bench::make_option_chain(spec);
   const auto& o = chain[chain.size() / 2];
   const auto payoff = [K = o.K](double s) { return std::max(s - K, 0.0); };
-  const double bs = ch03::bs_price(p4mfe::ch01::OptionType::Call, o.S, o.K, o.T,
-                                   o.sigma, spec.r, spec.q);
+  const double bs = ch03::bs_price(p4mfe::ch01::OptionType::kCall, o.S, o.K,
+                                   o.T, o.sigma, spec.r, spec.q);
   if (!check(state,
              std::abs(ch08::bs_price_via_heat(payoff, o.S, o.K, o.T, o.sigma,
                                               spec.r, spec.q) -
@@ -181,7 +181,7 @@ void BM_exercise_and_heat(benchmark::State& state) {
                                0.05);
     sum += ch08::theta_from_maturity(
         [&](double tau) {
-          return ch03::bs_price(p4mfe::ch01::OptionType::Call, o.S, o.K, tau,
+          return ch03::bs_price(p4mfe::ch01::OptionType::kCall, o.S, o.K, tau,
                                 o.sigma, spec.r, spec.q);
         },
         o.T);

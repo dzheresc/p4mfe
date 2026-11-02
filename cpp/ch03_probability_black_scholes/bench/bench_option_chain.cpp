@@ -78,7 +78,7 @@ const Market& market() {
     for (std::size_t i = 0; i + 1 < x.chain.size(); ++i) {
       const auto& c = x.chain[i];
       const auto& p = x.chain[i + 1];
-      if (c.type == OptionType::Call && p.type == OptionType::Put &&
+      if (c.type == OptionType::kCall && p.type == OptionType::kPut &&
           c.K == p.K && c.T == p.T && c.S == p.S)
         x.pairs.push_back({&c, c.price, p.price});
     }
@@ -126,7 +126,7 @@ void BM_parity_violation(benchmark::State& state) {
   const auto& m = market();
   for (const auto& cp : m.pairs) {
     const auto& o = *cp.call;
-    const double v = p4mfe::ch01::parity_violation(
+    const double v = p4mfe::ch01::ParityViolation(
         cp.call_price, cp.put_price, o.S, o.K, o.T, m.spec.r, m.spec.q);
     if (std::abs(v) > 1e-8 * o.S) {
       state.SkipWithError("put-call parity does not hold on model prices");
@@ -137,8 +137,8 @@ void BM_parity_violation(benchmark::State& state) {
     double sum = 0.0;
     for (const auto& cp : m.pairs) {
       const auto& o = *cp.call;
-      sum += p4mfe::ch01::parity_violation(cp.call_price, cp.put_price, o.S,
-                                           o.K, o.T, m.spec.r, m.spec.q);
+      sum += p4mfe::ch01::ParityViolation(cp.call_price, cp.put_price, o.S, o.K,
+                                          o.T, m.spec.r, m.spec.q);
     }
     benchmark::DoNotOptimize(sum);
   }

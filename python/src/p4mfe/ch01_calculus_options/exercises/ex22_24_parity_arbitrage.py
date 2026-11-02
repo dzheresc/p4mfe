@@ -19,17 +19,19 @@ from ..options import ParityArbitrage, parity_arbitrage
 
 @dataclass(frozen=True)
 class Ex22Data:
-    S: float = 42.0
-    K: float = 40.0
-    T: float = 4.0 / 12.0
+    spot: float = 42.0
+    strike: float = 40.0
+    maturity: float = 4.0 / 12.0
     r: float = 0.05
     q: float = 0.03
-    C: float = 4.0
-    P: float = 2.0
+    call: float = 4.0
+    put: float = 2.0
 
 
 def ex22_arbitrage(d: Ex22Data = Ex22Data()) -> ParityArbitrage | None:
-    return parity_arbitrage(d.C, d.P, d.S, d.K, d.T, d.r, d.q)
+    return parity_arbitrage(
+        d.call, d.put, d.spot, d.strike, d.maturity, d.r, d.q
+    )
 
 
 class BidAsk(NamedTuple):
@@ -49,21 +51,21 @@ class BidAskParityArbitrage:
 
 
 def ex24_bid_ask_arbitrage(
-    C: BidAsk,
-    P: BidAsk,
-    S: float,
-    K: float,
-    T: float,
+    call: BidAsk,
+    put: BidAsk,
+    spot: float,
+    strike: float,
+    maturity: float,
     r: float,
     q: float = 0.0,
     tol: float = 1e-12,
 ) -> BidAskParityArbitrage | None:
-    fwd = S * math.exp(-q * T) - K * math.exp(-r * T)
-    growth = math.exp(r * T)
-    a = fwd - (C.ask - P.bid)
+    fwd = spot * math.exp(-q * maturity) - strike * math.exp(-r * maturity)
+    growth = math.exp(r * maturity)
+    a = fwd - (call.ask - put.bid)
     if a > tol:
         return BidAskParityArbitrage(Side.BUY_CALL_SELL_PUT, a * growth)
-    b = (C.bid - P.ask) - fwd
+    b = (call.bid - put.ask) - fwd
     if b > tol:
         return BidAskParityArbitrage(Side.SELL_CALL_BUY_PUT, b * growth)
     return None

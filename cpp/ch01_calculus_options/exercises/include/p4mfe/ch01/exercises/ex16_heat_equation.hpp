@@ -18,20 +18,20 @@
 
 namespace p4mfe::ch01::ex {
 
-[[nodiscard]] inline double ex16_u(double x, double t) {
+[[nodiscard]] inline double Ex16U(double x, double t) {
   return std::exp(-x * x / (4.0 * t)) / std::sqrt(4.0 * std::numbers::pi * t);
 }
 
-[[nodiscard]] inline double ex16_u_t(double x, double t) {
-  return ex16_u(x, t) * (x * x - 2.0 * t) / (4.0 * t * t);
+[[nodiscard]] inline double Ex16UT(double x, double t) {
+  return Ex16U(x, t) * (x * x - 2.0 * t) / (4.0 * t * t);
 }
 
-[[nodiscard]] inline double ex16_u_x(double x, double t) {
-  return ex16_u(x, t) * (-x / (2.0 * t));
+[[nodiscard]] inline double Ex16UX(double x, double t) {
+  return Ex16U(x, t) * (-x / (2.0 * t));
 }
 
-[[nodiscard]] inline double ex16_u_xx(double x, double t) {
-  return ex16_u(x, t) * (x * x - 2.0 * t) / (4.0 * t * t);
+[[nodiscard]] inline double Ex16UXx(double x, double t) {
+  return Ex16U(x, t) * (x * x - 2.0 * t) / (4.0 * t * t);
 }
 
 }  // namespace p4mfe::ch01::ex

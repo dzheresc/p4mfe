@@ -55,7 +55,7 @@ enum class ExerciseStyle { European, American };
   constexpr double kTiny = std::numeric_limits<double>::min();
   std::vector<double> V(n + 1);
   for (std::size_t j = 0; j <= n; ++j)
-    V[j] = ch01::payoff(
+    V[j] = ch01::Payoff(
         type,
         S * std::pow(u, 2.0 * static_cast<double>(j) - static_cast<double>(n)),
         K);
@@ -65,7 +65,7 @@ enum class ExerciseStyle { European, American };
       double s_ij = S * std::pow(u, -static_cast<double>(i));
       for (std::size_t j = 0; j <= i; ++j, s_ij *= u2) {
         const double v = pu * V[j + 1] + pd * V[j];
-        V[j] = std::max(v < kTiny ? 0.0 : v, ch01::payoff(type, s_ij, K));
+        V[j] = std::max(v < kTiny ? 0.0 : v, ch01::Payoff(type, s_ij, K));
       }
     }
     return V[0];

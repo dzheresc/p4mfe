@@ -22,7 +22,7 @@ int main() {
               p4mfe::ch03::bs_call(S, K, T, sigma, r, q));
   std::printf("e^(-rT) x closed-form expectation %.10f\n",
               std::exp(-r * T) *
-                  rn_expected_payoff(OptionType::Call, S, K, T, sigma, r, q));
+                  rn_expected_payoff(OptionType::kCall, S, K, T, sigma, r, q));
   std::printf("e^(-rT) x integral                %.10f\n",
               risk_neutral_price(call, S, T, sigma, r, q));
   std::printf("\nMonte Carlo (antithetic):\n%10s %14s %12s\n", "paths", "price",
@@ -33,8 +33,8 @@ int main() {
   }
 
   const auto [n_d1, n_d2] = exercise_probabilities(S, K, T, sigma, r, q);
-  const double aon = asset_or_nothing(OptionType::Call, S, K, T, sigma, r, q);
-  const double con = cash_or_nothing(OptionType::Call, S, K, T, sigma, r, q);
+  const double aon = asset_or_nothing(OptionType::kCall, S, K, T, sigma, r, q);
+  const double con = cash_or_nothing(OptionType::kCall, S, K, T, sigma, r, q);
   std::printf("\nasset-or-nothing call  S e^(-qT) N(d1) = %.6f\n", aon);
   std::printf("cash-or-nothing call   e^(-rT) N(d2)   = %.6f\n", con);
   std::printf("call = AoN - K CoN                     = %.6f\n", aon - K * con);

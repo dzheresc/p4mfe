@@ -48,8 +48,10 @@ struct DocGreeks {
   const double p = 2.0 * (r - q) / (sigma * sigma) - 1.0;
   const double g = std::pow(B / S, p);
   const double X = B * B / S;
-  const auto gs = ch03::bs_greeks(ch03::OptionType::Call, S, K, T, sigma, r, q);
-  const auto gx = ch03::bs_greeks(ch03::OptionType::Call, X, K, T, sigma, r, q);
+  const auto gs =
+      ch03::bs_greeks(ch03::OptionType::kCall, S, K, T, sigma, r, q);
+  const auto gx =
+      ch03::bs_greeks(ch03::OptionType::kCall, X, K, T, sigma, r, q);
   const double cx = ch03::bs_call(X, K, T, sigma, r, q);
   return {gs.delta + g / S * (p * cx + X * gx.delta),
           gs.gamma - g / (S * S) *

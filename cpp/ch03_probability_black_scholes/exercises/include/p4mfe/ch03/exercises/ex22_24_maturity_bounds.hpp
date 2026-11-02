@@ -34,7 +34,7 @@ inline constexpr std::array<double, 3> ex22_maturities{1.0 / 24.0, 0.25, 1.0};
 [[nodiscard]] inline double ex22_atm_gamma(double T, double S = 50.0,
                                            double sigma = 0.3,
                                            double r = 0.05) {
-  return bs_greeks(OptionType::Call, S, S, T, sigma, r).gamma;
+  return bs_greeks(OptionType::kCall, S, S, T, sigma, r).gamma;
 }
 
 // ----------------------------------------------------------- Exercise 23 ---
@@ -69,7 +69,7 @@ inline constexpr std::array<double, 3> ex22_maturities{1.0 / 24.0, 0.25, 1.0};
 // volatility.
 [[nodiscard]] inline double ex23_atm_vega(double T, double S = 50.0,
                                           double sigma = 0.3, double r = 0.0) {
-  return bs_greeks(OptionType::Call, S, S, T, sigma, r).vega;
+  return bs_greeks(OptionType::kCall, S, S, T, sigma, r).vega;
 }
 [[nodiscard]] inline double ex23_vega_maturity_slope(double tau,
                                                      double S = 50.0,

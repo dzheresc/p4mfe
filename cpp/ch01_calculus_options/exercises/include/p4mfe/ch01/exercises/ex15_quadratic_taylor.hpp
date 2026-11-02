@@ -27,32 +27,32 @@ namespace p4mfe::ch01::ex {
 using Vec3 = std::array<double, 3>;
 using Mat3 = std::array<Vec3, 3>;
 
-[[nodiscard]] constexpr double ex15_f(const Vec3& x) noexcept {
+[[nodiscard]] constexpr double Ex15F(const Vec3& x) noexcept {
   return 2.0 * x[0] * x[0] - x[0] * x[1] + 3.0 * x[1] * x[2] - x[2] * x[2];
 }
 
-[[nodiscard]] constexpr Vec3 ex15_gradient(const Vec3& x) noexcept {
+[[nodiscard]] constexpr Vec3 Ex15Gradient(const Vec3& x) noexcept {
   return {4.0 * x[0] - x[1], -x[0] + 3.0 * x[2], 3.0 * x[1] - 2.0 * x[2]};
 }
 
-[[nodiscard]] constexpr Mat3 ex15_hessian() noexcept {
+[[nodiscard]] constexpr Mat3 Ex15Hessian() noexcept {
   return {{{4.0, -1.0, 0.0}, {-1.0, 0.0, 3.0}, {0.0, 3.0, -2.0}}};
 }
 
-inline constexpr Vec3 ex15_a{1.0, -1.0, 0.0};
+inline constexpr Vec3 kEx15A{1.0, -1.0, 0.0};
 
 // Right-hand side of (1.66) around the point a.
-[[nodiscard]] constexpr double ex15_taylor2(const Vec3& x,
-                                            const Vec3& a = ex15_a) noexcept {
-  const Vec3 g = ex15_gradient(a);
-  const Mat3 H = ex15_hessian();
+[[nodiscard]] constexpr double Ex15Taylor2(const Vec3& x,
+                                           const Vec3& a = kEx15A) noexcept {
+  const Vec3 g = Ex15Gradient(a);
+  const Mat3 hessian = Ex15Hessian();
   const Vec3 d{x[0] - a[0], x[1] - a[1], x[2] - a[2]};
   double lin = 0.0, quad = 0.0;
   for (std::size_t i = 0; i < 3; ++i) {
     lin += g[i] * d[i];
-    for (std::size_t j = 0; j < 3; ++j) quad += d[i] * H[i][j] * d[j];
+    for (std::size_t j = 0; j < 3; ++j) quad += d[i] * hessian[i][j] * d[j];
   }
-  return ex15_f(a) + lin + 0.5 * quad;
+  return Ex15F(a) + lin + 0.5 * quad;
 }
 
 }  // namespace p4mfe::ch01::ex

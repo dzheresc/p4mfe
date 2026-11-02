@@ -32,7 +32,7 @@ TEST(Ch04Ex10, AtmCallDelta) {
         const double d = ex10_atm_call_delta(r, 0.0, sigma, T);
         EXPECT_GT(d, 0.5);
         EXPECT_NEAR(
-            d, ch03::bs_greeks(OptionType::Call, 100, 100, T, sigma, r).delta,
+            d, ch03::bs_greeks(OptionType::kCall, 100, 100, T, sigma, r).delta,
             1e-12);
         // (ii) threshold q*.
         const double qs = ex10_threshold_q(r, sigma, T);

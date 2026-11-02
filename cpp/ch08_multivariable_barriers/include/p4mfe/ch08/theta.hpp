@@ -24,7 +24,7 @@ namespace p4mfe::ch08 {
 // Theta = -dV/dtau for a value given as a function of tau.
 template <std::invocable<double> V>
 [[nodiscard]] double theta_from_maturity(V&& v_of_tau, double tau) {
-  return -ch01::derivative(v_of_tau, tau);
+  return -ch01::Derivative(v_of_tau, tau);
 }
 
 // Theta of the European derivative with payoff h, by differentiating the

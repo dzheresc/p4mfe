@@ -55,7 +55,7 @@ struct Ex09Coefficients {
   const double S = K * std::exp(x);
   const double ttm = 2.0 * tau / (sigma * sigma);  // T - t
   const double V = ttm > 0.0 ? ch03::bs_price(type, S, K, ttm, sigma, r, q)
-                             : ch01::payoff(type, S, K);
+                             : ch01::Payoff(type, S, K);
   return std::exp(c.a * x + c.b * tau) * V;
 }
 

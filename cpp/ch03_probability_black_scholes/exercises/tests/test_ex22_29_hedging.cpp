@@ -32,8 +32,8 @@ TEST(Ch03Ex23, AtmVegaRisesWithMaturity) {
   EXPECT_LT(ex23_vega_maturity_slope(45.0), 0.0);  // 4 / 0.3^2 = 44.4
   // vega(P) = vega(C) > 0.
   EXPECT_DOUBLE_EQ(
-      bs_greeks(OptionType::Put, 50, 55, 0.7, 0.3, 0.02, 0.01).vega,
-      bs_greeks(OptionType::Call, 50, 55, 0.7, 0.3, 0.02, 0.01).vega);
+      bs_greeks(OptionType::kPut, 50, 55, 0.7, 0.3, 0.02, 0.01).vega,
+      bs_greeks(OptionType::kCall, 50, 55, 0.7, 0.3, 0.02, 0.01).vega);
 }
 
 TEST(Ch03Ex24, BoundsHoldForBlackScholes) {
@@ -52,12 +52,12 @@ TEST(Ch03Ex24, BoundsHoldForBlackScholes) {
         EXPECT_LE(P, pb.upper + 1e-12);
         // Through Put-Call parity, C >= 0 gives P's lower bound, and C's
         // lower bound gives P >= 0.
-        EXPECT_NEAR(ch01::put_from_call(0.0, S, K, T, r, q), pb.lower, 1e-12);
-        EXPECT_NEAR(ch01::put_from_call(cb.lower, S, K, T, r, q), 0.0, 1e-12);
-        EXPECT_NEAR(ch01::put_from_call(cb.upper, S, K, T, r, q), pb.upper,
+        EXPECT_NEAR(ch01::PutFromCall(0.0, S, K, T, r, q), pb.lower, 1e-12);
+        EXPECT_NEAR(ch01::PutFromCall(cb.lower, S, K, T, r, q), 0.0, 1e-12);
+        EXPECT_NEAR(ch01::PutFromCall(cb.upper, S, K, T, r, q), pb.upper,
                     1e-12);
         EXPECT_NEAR(std::max(pb.lower, 0.0),
-                    ch01::put_bounds(S, K, T, r, q).lower, 1e-12);
+                    ch01::PutBounds(S, K, T, r, q).lower, 1e-12);
       }
 }
 
