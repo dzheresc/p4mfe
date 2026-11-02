@@ -56,8 +56,8 @@ def main() -> None:
 
     header("Ex 3: limits of f (market of Ex 4)")
     m4 = Ex04Market()
-    m3 = Ex03Market(m4.S, m4.K, m4.T, m4.r, m4.q, m4.C)
-    lo, hi = ex03_price_range(m3.S, m3.K, m3.T, m3.r, m3.q)
+    m3 = Ex03Market(m4.spot, m4.strike, m4.maturity, m4.r, m4.q, m4.call)
+    lo, hi = ex03_price_range(m3.spot, m3.strike, m3.maturity, m3.r, m3.q)
     print(
         f"  lim_0 f = {ex03_limit_zero(m3):.6f}  lim_inf f = {ex03_limit_infinity(m3):.6f}"
     )

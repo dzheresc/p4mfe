@@ -20,23 +20,25 @@ from ..solvers import RootResult, Tolerances, bisection, newton, secant
 
 @dataclass(frozen=True)
 class Ex04Market:
-    S: float = 30.0
-    K: float = 30.0
-    T: float = 0.25
+    spot: float = 30.0
+    strike: float = 30.0
+    maturity: float = 0.25
     r: float = 0.06
     q: float = 0.02
-    C: float = 2.5
+    call: float = 2.5
 
 
 EX04_TOLERANCES = Tolerances(1e-9, 1e-6, 200)
 
 
 def ex04_f(sigma: float, m: Ex04Market = Ex04Market()) -> float:
-    return bs_call(m.S, m.K, m.T, sigma, m.r, m.q) - m.C
+    return bs_call(m.spot, m.strike, m.maturity, sigma, m.r, m.q) - m.call
 
 
 def ex04_vega(sigma: float, m: Ex04Market = Ex04Market()) -> float:
-    return bs_greeks(OptionType.CALL, m.S, m.K, m.T, sigma, m.r, m.q).vega
+    return bs_greeks(
+        OptionType.CALL, m.spot, m.strike, m.maturity, sigma, m.r, m.q
+    ).vega
 
 
 def ex04_bisection(m: Ex04Market = Ex04Market()) -> RootResult:
@@ -57,9 +59,9 @@ def ex04_sigma_approx(m: Ex04Market = Ex04Market()) -> float:
     """(6.104)."""
     return (
         math.sqrt(2.0 * math.pi)
-        / (m.S * math.sqrt(m.T))
-        * (m.C - 0.5 * (m.r - m.q) * m.T * m.S)
-        / (1.0 - 0.5 * (m.r + m.q) * m.T)
+        / (m.spot * math.sqrt(m.maturity))
+        * (m.call - 0.5 * (m.r - m.q) * m.maturity * m.spot)
+        / (1.0 - 0.5 * (m.r + m.q) * m.maturity)
     )
 
 

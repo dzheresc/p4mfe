@@ -23,18 +23,19 @@ IMPLIED_VOL_TOLERANCES = Tolerances(1e-9, 1e-9, 100)
 def implied_vol_newton(
     option_type: OptionType,
     price: float,
-    S: float,
-    K: float,
-    T: float,
+    spot: float,
+    strike: float,
+    maturity: float,
     r: float,
     q: float = 0.0,
     tol: Tolerances = IMPLIED_VOL_TOLERANCES,
 ) -> RootResult:
-    _check_price_in_bounds(option_type, price, S, K, T, r, q)
+    _check_price_in_bounds(option_type, price, spot, strike, maturity, r, q)
     return newton(
-        lambda s: bs_price(option_type, S, K, T, s, r, q) - price,
-        lambda s: bs_greeks(option_type, S, K, T, s, r, q).vega,
-        implied_vol_initial_guess(S, K, T, r, q),
+        lambda s: bs_price(option_type, spot, strike, maturity, s, r, q)
+        - price,
+        lambda s: bs_greeks(option_type, spot, strike, maturity, s, r, q).vega,
+        implied_vol_initial_guess(spot, strike, maturity, r, q),
         tol,
     )
 
@@ -42,18 +43,19 @@ def implied_vol_newton(
 def implied_vol_secant(
     option_type: OptionType,
     price: float,
-    S: float,
-    K: float,
-    T: float,
+    spot: float,
+    strike: float,
+    maturity: float,
     r: float,
     q: float = 0.0,
     tol: Tolerances = IMPLIED_VOL_TOLERANCES,
 ) -> RootResult:
     """Started at sigma_0 and sigma_0 + 0.1; no vega needed."""
-    _check_price_in_bounds(option_type, price, S, K, T, r, q)
-    s0 = implied_vol_initial_guess(S, K, T, r, q)
+    _check_price_in_bounds(option_type, price, spot, strike, maturity, r, q)
+    s0 = implied_vol_initial_guess(spot, strike, maturity, r, q)
     return secant(
-        lambda s: bs_price(option_type, S, K, T, s, r, q) - price,
+        lambda s: bs_price(option_type, spot, strike, maturity, s, r, q)
+        - price,
         s0 + 0.1,
         s0,
         tol,
@@ -63,19 +65,19 @@ def implied_vol_secant(
 def implied_vol_bisection(
     option_type: OptionType,
     price: float,
-    S: float,
-    K: float,
-    T: float,
+    spot: float,
+    strike: float,
+    maturity: float,
     r: float,
     q: float = 0.0,
     tol: Tolerances = IMPLIED_VOL_TOLERANCES,
     lo: float = 1e-6,
     hi: float = 1.0,
 ) -> RootResult:
-    _check_price_in_bounds(option_type, price, S, K, T, r, q)
+    _check_price_in_bounds(option_type, price, spot, strike, maturity, r, q)
 
     def f(s):
-        return bs_price(option_type, S, K, T, s, r, q) - price
+        return bs_price(option_type, spot, strike, maturity, s, r, q) - price
 
     while f(hi) < 0:
         hi *= 2

@@ -18,28 +18,28 @@ namespace p4mfe::ch05 {
 
 using ch02::CashFlows;
 
-inline constexpr Tolerances bond_yield_tolerances{1e-10, 1e-12, 100};
+inline constexpr Tolerances kBondYieldTolerances{1e-10, 1e-12, 100};
 
-[[nodiscard]] inline RootResult bond_yield_newton(
+[[nodiscard]] inline RootResult BondYieldNewton(
     const CashFlows& cf, double price, double y0 = 0.1,
-    const Tolerances& tol = bond_yield_tolerances) {
-  return newton([&](double y) { return ch02::BondPrice(cf, y) - price; },
+    const Tolerances& tol = kBondYieldTolerances) {
+  return Newton([&](double y) { return ch02::BondPrice(cf, y) - price; },
                 [&](double y) { return -ch02::DollarDuration(cf, y); }, y0,
                 tol);
 }
 
-[[nodiscard]] inline RootResult bond_yield_secant(
+[[nodiscard]] inline RootResult BondYieldSecant(
     const CashFlows& cf, double price, double y_prev = 0.11, double y0 = 0.1,
-    const Tolerances& tol = bond_yield_tolerances) {
-  return secant([&](double y) { return ch02::BondPrice(cf, y) - price; },
+    const Tolerances& tol = kBondYieldTolerances) {
+  return Secant([&](double y) { return ch02::BondPrice(cf, y) - price; },
                 y_prev, y0, tol);
 }
 
 // Bisection on [lo, hi]; the default bracket covers yields from -50% to 100%.
-[[nodiscard]] inline RootResult bond_yield_bisection(
+[[nodiscard]] inline RootResult BondYieldBisection(
     const CashFlows& cf, double price, double lo = -0.5, double hi = 1.0,
-    const Tolerances& tol = bond_yield_tolerances) {
-  return bisection([&](double y) { return ch02::BondPrice(cf, y) - price; }, lo,
+    const Tolerances& tol = kBondYieldTolerances) {
+  return Bisection([&](double y) { return ch02::BondPrice(cf, y) - price; }, lo,
                    hi, tol);
 }
 

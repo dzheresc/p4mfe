@@ -33,28 +33,28 @@ namespace p4mfe::ch05::ex {
 // 3-year bond's own price implies higher rates there (its yield is ~1.9%).
 // The error measures how far "linear between 2 and 5 years" is from the
 // market in that part of the curve.
-[[nodiscard]] inline std::vector<ch02::BondQuote> ex09_quotes() {
+[[nodiscard]] inline std::vector<ch02::BondQuote> Ex09Quotes() {
   return {{0.5, 0.0, 99.4565},
           {1.0, 0.0, 98.6196},
           {2.0, 0.02, 101.0 + 17.5 / 32.0},
           {5.0, 0.03125, 102.0 + 8.0 / 32.0},
           {10.0, 0.04, 103.0 + 8.5 / 32.0}};
 }
-inline constexpr ch02::BondQuote ex09_three_year{3.0, 0.045,
-                                                 107.0 + 18.0 / 32.0};
+inline constexpr ch02::BondQuote kEx09ThreeYear{3.0, 0.045,
+                                                107.0 + 18.0 / 32.0};
 
-[[nodiscard]] inline ch02::ZeroCurve ex09_curve() {
-  return bootstrap_zero_curve(ex09_quotes(), 2);
+[[nodiscard]] inline ch02::ZeroCurve Ex09Curve() {
+  return BootstrapZeroCurve(Ex09Quotes(), 2);
 }
 
-[[nodiscard]] inline double ex09_model_price(const ch02::ZeroCurve& c) {
-  const auto cf = ch02::BondCashFlows(ex09_three_year.maturity,
-                                      ex09_three_year.coupon_rate, 2);
+[[nodiscard]] inline double Ex09ModelPrice(const ch02::ZeroCurve& c) {
+  const auto cf = ch02::BondCashFlows(kEx09ThreeYear.maturity,
+                                      kEx09ThreeYear.coupon_rate, 2);
   return ch02::BondPriceFromZeroRate(
-      cf, [&](double t) { return zero_rate_linear(c, t); });
+      cf, [&](double t) { return ZeroRateLinear(c, t); });
 }
-[[nodiscard]] inline double ex09_relative_error(const ch02::ZeroCurve& c) {
-  return (ex09_model_price(c) - ex09_three_year.price) / ex09_three_year.price;
+[[nodiscard]] inline double Ex09RelativeError(const ch02::ZeroCurve& c) {
+  return (Ex09ModelPrice(c) - kEx09ThreeYear.price) / kEx09ThreeYear.price;
 }
 
 }  // namespace p4mfe::ch05::ex

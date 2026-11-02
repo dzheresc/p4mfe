@@ -65,7 +65,7 @@ struct CallMarket {
     return ch03::BsCall(S, m.K, m.T, m.sigma, m.r, m.q) - (S - m.K);
   };
   const double S0 = ex20_threshold(m);
-  return ch05::bisection(f, m.K, S0, {1e-12, 1e-10 * S0, 400}).x;
+  return ch05::Bisection(f, m.K, S0, {1e-12, 1e-10 * S0, 400}).x;
 }
 
 }  // namespace p4mfe::ch08::ex

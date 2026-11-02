@@ -27,20 +27,20 @@ class NdRootResult:
     iterations: int
 
 
-def solve_linear(A, b) -> np.ndarray:
+def solve_linear(a, b) -> np.ndarray:
     """A x = b (LU with partial pivoting, via numpy)."""
-    A = np.asarray(A, dtype=float)
+    a = np.asarray(a, dtype=float)
     try:
-        return np.linalg.solve(A, np.asarray(b, dtype=float))
+        return np.linalg.solve(a, np.asarray(b, dtype=float))
     except np.linalg.LinAlgError as e:
         raise RuntimeError("singular matrix") from e
 
 
 def newton_nd(
-    F: VectorFn, jacobian: Callable, x0, tol: Tolerances = Tolerances()
+    func: VectorFn, jacobian: Callable, x0, tol: Tolerances = Tolerances()
 ) -> NdRootResult:
     x = np.array(x0, dtype=float)
-    fx = np.asarray(F(x), dtype=float)
+    fx = np.asarray(func(x), dtype=float)
     if fx.shape != x.shape:
         raise ValueError("F must map R^N to R^N")
     k = 0
@@ -48,7 +48,7 @@ def newton_nd(
         s = solve_linear(jacobian(x), -fx)
         x = x + s
         k += 1
-        fx = np.asarray(F(x), dtype=float)
+        fx = np.asarray(func(x), dtype=float)
         step = float(np.linalg.norm(s))
         if (
             np.linalg.norm(fx) <= tol.approx and step <= tol.consec
@@ -63,29 +63,31 @@ class Difference(Enum):
 
 
 def finite_difference_jacobian(
-    F: VectorFn, x, h: float = 1e-6, scheme: Difference = Difference.FORWARD
+    func: VectorFn, x, h: float = 1e-6, scheme: Difference = Difference.FORWARD
 ) -> np.ndarray:
     """Forward differences are O(h) accurate (the book's choice); central ones O(h^2)."""
     x = np.array(x, dtype=float)
-    f0 = np.asarray(F(x), dtype=float)
-    J = np.empty((f0.size, x.size))
+    f0 = np.asarray(func(x), dtype=float)
+    jacobian = np.empty((f0.size, x.size))
     for j in range(x.size):
         e = np.zeros_like(x)
         e[j] = h
         if scheme is Difference.FORWARD:
-            J[:, j] = (np.asarray(F(x + e)) - f0) / h
+            jacobian[:, j] = (np.asarray(func(x + e)) - f0) / h
         else:
-            J[:, j] = (np.asarray(F(x + e)) - np.asarray(F(x - e))) / (2 * h)
-    return J
+            jacobian[:, j] = (
+                np.asarray(func(x + e)) - np.asarray(func(x - e))
+            ) / (2 * h)
+    return jacobian
 
 
 def approximate_newton_nd(
-    F: VectorFn,
+    func: VectorFn,
     x0,
     tol: Tolerances = Tolerances(),
     h: float = 1e-6,
     scheme: Difference = Difference.FORWARD,
 ) -> NdRootResult:
     return newton_nd(
-        F, lambda x: finite_difference_jacobian(F, x, h, scheme), x0, tol
+        func, lambda x: finite_difference_jacobian(func, x, h, scheme), x0, tol
     )

@@ -39,7 +39,7 @@ using ch02::ZeroCurve;
 
 // r(0, t) by linear interpolation between the curve's points, flat outside
 // them. Times must be increasing.
-[[nodiscard]] inline double zero_rate_linear(const ZeroCurve& curve, double t) {
+[[nodiscard]] inline double ZeroRateLinear(const ZeroCurve& curve, double t) {
   const auto& ts = curve.times;
   const auto& rs = curve.rates;
   if (ts.empty() || ts.size() != rs.size())
@@ -55,15 +55,15 @@ using ch02::ZeroCurve;
 
 // One bootstrapping step: the zero rate r(0, T) at the maturity T of a bond
 // with cash flows `cf` and price `price`, given the curve up to T_last < T.
-[[nodiscard]] inline RootResult bootstrap_next_rate(
+[[nodiscard]] inline RootResult BootstrapNextRate(
     const ZeroCurve& curve, const CashFlows& cf, double price,
     const Tolerances& tol = {1e-12, 1e-12, 100}) {
   ch02::detail::Check(cf);
-  const double T = cf.times.back();
+  const double maturity = cf.times.back();
   const bool empty = curve.times.empty();
-  const double T_last = empty ? 0.0 : curve.times.back();
+  const double last_maturity = empty ? 0.0 : curve.times.back();
   const double r_last = empty ? 0.0 : curve.rates.back();
-  if (!empty && !(T > T_last))
+  if (!empty && !(maturity > last_maturity))
     throw std::invalid_argument(
         "bootstrap_next_rate: maturity must exceed the curve");
 
@@ -73,22 +73,23 @@ using ch02::ZeroCurve;
   std::vector<double> c, t, w;
   for (std::size_t i = 0; i < cf.times.size(); ++i) {
     const double ti = cf.times[i];
-    if (!empty && ti <= T_last) {
-      pv_known += cf.amounts[i] * std::exp(-zero_rate_linear(curve, ti) * ti);
+    if (!empty && ti <= last_maturity) {
+      pv_known += cf.amounts[i] * std::exp(-ZeroRateLinear(curve, ti) * ti);
     } else {
       c.push_back(cf.amounts[i]);
       t.push_back(ti);
-      w.push_back(empty ? 1.0 : (ti - T_last) / (T - T_last));
+      w.push_back(empty ? 1.0
+                        : (ti - last_maturity) / (maturity - last_maturity));
     }
   }
   const auto rate = [&](double x, std::size_t i) {
     return r_last + (x - r_last) * w[i];
   };
   const auto f = [&](double x) {
-    double B = pv_known;
+    double model_price = pv_known;
     for (std::size_t i = 0; i < c.size(); ++i)
-      B += c[i] * std::exp(-rate(x, i) * t[i]);
-    return B - price;
+      model_price += c[i] * std::exp(-rate(x, i) * t[i]);
+    return model_price - price;
   };
   const auto df = [&](double x) {
     double d = 0.0;
@@ -96,12 +97,12 @@ using ch02::ZeroCurve;
       d -= c[i] * t[i] * w[i] * std::exp(-rate(x, i) * t[i]);
     return d;
   };
-  return newton(f, df, empty ? 0.05 : r_last, tol);
+  return Newton(f, df, empty ? 0.05 : r_last, tol);
 }
 
 // Bootstraps the whole curve: starts from `curve` (possibly empty) and adds
 // one point (T, r(0, T)) per bond, in order of maturity.
-[[nodiscard]] inline ZeroCurve bootstrap_zero_curve(
+[[nodiscard]] inline ZeroCurve BootstrapZeroCurve(
     std::vector<BondQuote> quotes, int freq, ZeroCurve curve = {},
     double face = 100.0, const Tolerances& tol = {1e-12, 1e-12, 100}) {
   std::sort(quotes.begin(), quotes.end(),
@@ -110,7 +111,7 @@ using ch02::ZeroCurve;
             });
   for (const auto& q : quotes) {
     const auto cf = ch02::BondCashFlows(q.maturity, q.coupon_rate, freq, face);
-    const double r = bootstrap_next_rate(curve, cf, q.price, tol).x;
+    const double r = BootstrapNextRate(curve, cf, q.price, tol).x;
     curve.times.push_back(q.maturity);
     curve.rates.push_back(r);
   }

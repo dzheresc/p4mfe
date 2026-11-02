@@ -27,7 +27,7 @@ using Basis = std::vector<std::function<double(unsigned)>>;
   for (std::size_t i = 0; i < k; ++i)
     for (std::size_t j = 0; j < k; ++j)
       A(i, j) = basis[j](static_cast<unsigned>(i));
-  return ch05::solve_linear(std::move(A), init);
+  return ch05::SolveLinear(std::move(A), init);
 }
 
 [[nodiscard]] inline double ex_evaluate(const Basis& basis, const Vector& c,

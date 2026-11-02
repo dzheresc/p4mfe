@@ -15,7 +15,7 @@ from ..newton_nd import Difference, NdRootResult, approximate_newton_nd, newton_
 from ..solvers import Tolerances
 
 
-def ex05_F(x) -> np.ndarray:
+def ex05_f(x) -> np.ndarray:
     x1, x2, x3 = x
     return np.array(
         [
@@ -51,11 +51,11 @@ EX05_H = 1e-6
 
 def ex05_solve(x0, scheme: Difference = Difference.CENTRAL) -> NdRootResult:
     return approximate_newton_nd(
-        ex05_F, np.asarray(x0, dtype=float), EX05_TOLERANCES, EX05_H, scheme
+        ex05_f, np.asarray(x0, dtype=float), EX05_TOLERANCES, EX05_H, scheme
     )
 
 
 def ex05_solve_exact(x0) -> NdRootResult:
     return newton_nd(
-        ex05_F, ex05_jacobian, np.asarray(x0, dtype=float), EX05_TOLERANCES
+        ex05_f, ex05_jacobian, np.asarray(x0, dtype=float), EX05_TOLERANCES
     )

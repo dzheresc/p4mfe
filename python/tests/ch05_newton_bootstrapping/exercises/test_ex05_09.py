@@ -6,7 +6,7 @@ import pytest
 from p4mfe.ch02_integration_bonds.bonds import bond_cash_flows, bond_price_from_zero_rate
 from p4mfe.ch05_newton_bootstrapping.bootstrapping import zero_rate_linear
 from p4mfe.ch05_newton_bootstrapping.exercises.ex05_central_difference_newton import (
-    ex05_F,
+    ex05_f,
     ex05_jacobian,
     ex05_solve,
 )
@@ -47,7 +47,7 @@ def reprices(curve, quotes, tol=1e-9):
 
 @pytest.mark.parametrize("scheme", [Difference.CENTRAL, Difference.FORWARD])
 def test_ex05_roots(scheme):
-    assert np.linalg.norm(ex05_F([-1.0, 3.0, 1.0])) == 0.0
+    assert np.linalg.norm(ex05_f([-1.0, 3.0, 1.0])) == 0.0
     a = ex05_solve([1, 2, 3], scheme)
     b = ex05_solve([2, 2, 2], scheme)
     np.testing.assert_allclose(
@@ -62,15 +62,17 @@ def test_ex05_roots(scheme):
 
 def test_ex05_central_jacobian_second_order():
     x = np.array([1.0, 2.0, 3.0])
-    J = ex05_jacobian(x)
+    jacobian = ex05_jacobian(x)
     err_c = np.max(
         np.abs(
-            finite_difference_jacobian(ex05_F, x, 1e-4, Difference.CENTRAL) - J
+            finite_difference_jacobian(ex05_f, x, 1e-4, Difference.CENTRAL)
+            - jacobian
         )
     )
     err_f = np.max(
         np.abs(
-            finite_difference_jacobian(ex05_F, x, 1e-4, Difference.FORWARD) - J
+            finite_difference_jacobian(ex05_f, x, 1e-4, Difference.FORWARD)
+            - jacobian
         )
     )
     assert err_c < 1e-6
@@ -120,11 +122,11 @@ def test_ex07_semiannual_is_higher():
         assert rs == pytest.approx(ex07_to_compounded(rc, 2), abs=1e-7)
     for bq in EX07_QUOTES:
         cf = bond_cash_flows(bq.maturity, bq.coupon_rate, 2)
-        B = sum(
+        price = sum(
             a * ex07_discount(zero_rate_linear(s, t), t, 2)
             for t, a in zip(cf.times, cf.amounts)
         )
-        assert B == pytest.approx(bq.price, abs=1e-9)
+        assert price == pytest.approx(bq.price, abs=1e-9)
 
 
 def test_ex08():
@@ -151,9 +153,9 @@ def test_ex09():
     assert c.rates[0] == pytest.approx(-math.log(0.994565) / 0.5, abs=1e-14)
     assert ex09_model_price(c) == pytest.approx(108.193042, abs=5e-7)
     assert ex09_relative_error(c) == pytest.approx(0.00586210, abs=5e-9)
-    B = sum(
+    price = sum(
         (102.25 if k == 6 else 2.25)
         * math.exp(-zero_rate_linear(c, 0.5 * k) * 0.5 * k)
         for k in range(1, 7)
     )
-    assert ex09_model_price(c) == pytest.approx(B, abs=1e-12)
+    assert ex09_model_price(c) == pytest.approx(price, abs=1e-12)

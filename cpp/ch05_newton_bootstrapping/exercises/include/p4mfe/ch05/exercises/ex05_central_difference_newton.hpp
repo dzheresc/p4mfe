@@ -42,7 +42,7 @@ namespace p4mfe::ch05::ex {
 // Central differences cost 2N = 6 evaluations of F per Jacobian against N = 3
 // for forward ones, which buys nothing here. The Jacobian is non-singular at
 // both roots (det = 1918.8 and -2332).
-[[nodiscard]] inline Vector ex05_F(const Vector& x) {
+[[nodiscard]] inline Vector Ex05F(const Vector& x) {
   const double x1 = x[0], x2 = x[1], x3 = x[2];
   return {x1 * x1 * x1 + 2 * x1 * x2 + x3 * x3 - x2 * x3 + 9,
           2 * x1 * x1 + 2 * x1 * x2 * x2 + x2 * x2 * x2 * x3 * x3 -
@@ -50,7 +50,7 @@ namespace p4mfe::ch05::ex {
           x1 * x2 * x3 + x1 * x1 * x1 - x3 * x3 - x1 * x2 * x2 - 4};
 }
 // Exact Jacobian, for comparison.
-[[nodiscard]] inline Matrix ex05_jacobian(const Vector& x) {
+[[nodiscard]] inline Matrix Ex05Jacobian(const Vector& x) {
   const double x1 = x[0], x2 = x[1], x3 = x[2];
   return Matrix{
       {3 * x1 * x1 + 2 * x2, 2 * x1 - x3, 2 * x3 - x2},
@@ -60,15 +60,15 @@ namespace p4mfe::ch05::ex {
        x1 * x2 - 2 * x3}};
 }
 
-inline constexpr Tolerances ex05_tolerances{1e-9, 1e-6, 1000};
-inline constexpr double ex05_h = 1e-6;
+inline constexpr Tolerances kEx05Tolerances{1e-9, 1e-6, 1000};
+inline constexpr double kEx05H = 1e-6;
 
-[[nodiscard]] inline NdRootResult ex05_solve(
-    const Vector& x0, Difference scheme = Difference::Central) {
-  return approximate_newton_nd(ex05_F, x0, ex05_tolerances, ex05_h, scheme);
+[[nodiscard]] inline NdRootResult Ex05Solve(
+    const Vector& x0, Difference scheme = Difference::kCentral) {
+  return ApproximateNewtonNd(Ex05F, x0, kEx05Tolerances, kEx05H, scheme);
 }
-[[nodiscard]] inline NdRootResult ex05_solve_exact(const Vector& x0) {
-  return newton_nd(ex05_F, ex05_jacobian, x0, ex05_tolerances);
+[[nodiscard]] inline NdRootResult Ex05SolveExact(const Vector& x0) {
+  return NewtonNd(Ex05F, Ex05Jacobian, x0, kEx05Tolerances);
 }
 
 }  // namespace p4mfe::ch05::ex

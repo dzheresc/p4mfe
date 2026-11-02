@@ -38,22 +38,26 @@ def bootstrap_next_rate(
     tol: Tolerances = BOOTSTRAP_TOLERANCES,
 ) -> RootResult:
     """r(0, T) at the maturity T of a bond, given the curve up to T_last < T."""
-    T = float(cf.times[-1])
+    maturity = float(cf.times[-1])
     empty = curve is None or len(curve.times) == 0
-    T_last = 0.0 if empty else float(curve.times[-1])
+    last_maturity = 0.0 if empty else float(curve.times[-1])
     r_last = 0.0 if empty else float(curve.rates[-1])
-    if not empty and not T > T_last:
+    if not empty and not maturity > last_maturity:
         raise ValueError("maturity must exceed the curve")
 
     pv_known = 0.0
     c, t, w = [], [], []
     for ti, ci in zip(cf.times, cf.amounts):
-        if not empty and ti <= T_last:
+        if not empty and ti <= last_maturity:
             pv_known += ci * math.exp(-zero_rate_linear(curve, ti) * ti)
         else:
             c.append(ci)
             t.append(ti)
-            w.append(1.0 if empty else (ti - T_last) / (T - T_last))
+            w.append(
+                1.0
+                if empty
+                else (ti - last_maturity) / (maturity - last_maturity)
+            )
     c, t, w = np.array(c), np.array(t), np.array(w)
 
     def disc(x):

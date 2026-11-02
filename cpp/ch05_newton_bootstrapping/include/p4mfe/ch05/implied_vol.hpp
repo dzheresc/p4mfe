@@ -21,37 +21,43 @@ namespace p4mfe::ch05 {
 
 using ch01::OptionType;
 
-inline constexpr Tolerances implied_vol_tolerances{1e-9, 1e-9, 100};
+inline constexpr Tolerances kImpliedVolTolerances{1e-9, 1e-9, 100};
 
-[[nodiscard]] inline RootResult implied_vol_newton(
-    OptionType type, double price, double S, double K, double T, double r,
-    double q = 0.0, const Tolerances& tol = implied_vol_tolerances) {
-  ch03::detail::CheckPriceInBounds(type, price, S, K, T, r, q);
-  return newton(
-      [&](double s) { return ch03::BsPrice(type, S, K, T, s, r, q) - price; },
-      [&](double s) { return ch03::BsGreeks(type, S, K, T, s, r, q).vega; },
-      ch03::ImpliedVolInitialGuess(S, K, T, r, q), tol);
+[[nodiscard]] inline RootResult ImpliedVolNewton(
+    OptionType type, double price, double spot, double strike, double maturity,
+    double r, double q = 0.0, const Tolerances& tol = kImpliedVolTolerances) {
+  ch03::detail::CheckPriceInBounds(type, price, spot, strike, maturity, r, q);
+  return Newton(
+      [&](double s) {
+        return ch03::BsPrice(type, spot, strike, maturity, s, r, q) - price;
+      },
+      [&](double s) {
+        return ch03::BsGreeks(type, spot, strike, maturity, s, r, q).vega;
+      },
+      ch03::ImpliedVolInitialGuess(spot, strike, maturity, r, q), tol);
 }
 
 // Secant method started at sigma_0 and sigma_0 + 0.1; no vega needed.
-[[nodiscard]] inline RootResult implied_vol_secant(
-    OptionType type, double price, double S, double K, double T, double r,
-    double q = 0.0, const Tolerances& tol = implied_vol_tolerances) {
-  ch03::detail::CheckPriceInBounds(type, price, S, K, T, r, q);
-  const double s0 = ch03::ImpliedVolInitialGuess(S, K, T, r, q);
-  return secant(
-      [&](double s) { return ch03::BsPrice(type, S, K, T, s, r, q) - price; },
+[[nodiscard]] inline RootResult ImpliedVolSecant(
+    OptionType type, double price, double spot, double strike, double maturity,
+    double r, double q = 0.0, const Tolerances& tol = kImpliedVolTolerances) {
+  ch03::detail::CheckPriceInBounds(type, price, spot, strike, maturity, r, q);
+  const double s0 = ch03::ImpliedVolInitialGuess(spot, strike, maturity, r, q);
+  return Secant(
+      [&](double s) {
+        return ch03::BsPrice(type, spot, strike, maturity, s, r, q) - price;
+      },
       s0 + 0.1, s0, tol);
 }
 
 // Bisection on [lo, hi], doubling hi until it brackets the root.
-[[nodiscard]] inline RootResult implied_vol_bisection(
-    OptionType type, double price, double S, double K, double T, double r,
-    double q = 0.0, const Tolerances& tol = implied_vol_tolerances,
+[[nodiscard]] inline RootResult ImpliedVolBisection(
+    OptionType type, double price, double spot, double strike, double maturity,
+    double r, double q = 0.0, const Tolerances& tol = kImpliedVolTolerances,
     double lo = 1e-6, double hi = 1.0) {
-  ch03::detail::CheckPriceInBounds(type, price, S, K, T, r, q);
+  ch03::detail::CheckPriceInBounds(type, price, spot, strike, maturity, r, q);
   const auto f = [&](double s) {
-    return ch03::BsPrice(type, S, K, T, s, r, q) - price;
+    return ch03::BsPrice(type, spot, strike, maturity, s, r, q) - price;
   };
   while (f(hi) < 0.0) {
     hi *= 2.0;
@@ -59,7 +65,7 @@ inline constexpr Tolerances implied_vol_tolerances{1e-9, 1e-9, 100};
       throw std::runtime_error(
           "implied_vol_bisection: cannot bracket the root");
   }
-  return bisection(f, lo, hi, tol);
+  return Bisection(f, lo, hi, tol);
 }
 
 }  // namespace p4mfe::ch05

@@ -126,7 +126,7 @@ template <class F, ch05::VectorFunction G>
     for (std::size_t b = 0; b < m; ++b)
       for (std::size_t i = 0; i < x.size(); ++i) M(a, b) += Jg[a][i] * Jg[b][i];
   }
-  return ch05::solve_linear(M, rhs);
+  return ch05::SolveLinear(M, rhs);
 }
 
 // Solves the Lagrange system from (x0, lambda0) by Newton's method; an empty
@@ -167,7 +167,7 @@ template <class F, ch05::VectorFunction G>
   };
   Vector z = std::move(x0);
   z.insert(z.end(), lambda0.begin(), lambda0.end());
-  const auto res = ch05::newton_nd(F_, J, std::move(z), tol);
+  const auto res = ch05::NewtonNd(F_, J, std::move(z), tol);
   auto [x, l] = split(res.x);
   return {std::move(x), std::move(l), res.iterations};
 }

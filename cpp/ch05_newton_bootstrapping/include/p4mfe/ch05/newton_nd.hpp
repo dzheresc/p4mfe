@@ -44,8 +44,8 @@ class Matrix {
       data_.insert(data_.end(), r.begin(), r.end());
     }
   }
-  [[nodiscard]] std::size_t rows() const noexcept { return rows_; }
-  [[nodiscard]] std::size_t cols() const noexcept { return cols_; }
+  [[nodiscard]] std::size_t Rows() const noexcept { return rows_; }
+  [[nodiscard]] std::size_t Cols() const noexcept { return cols_; }
   [[nodiscard]] double& operator()(std::size_t i, std::size_t j) noexcept {
     return data_[i * cols_ + j];
   }
@@ -58,38 +58,38 @@ class Matrix {
   std::vector<double> data_;
 };
 
-[[nodiscard]] inline double norm2(const Vector& v) noexcept {
+[[nodiscard]] inline double Norm2(const Vector& v) noexcept {
   double s = 0.0;
   for (double x : v) s += x * x;
   return std::sqrt(s);
 }
 
 // Solves A x = b by Gaussian elimination with partial pivoting.
-[[nodiscard]] inline Vector solve_linear(Matrix A, Vector b) {
-  const std::size_t n = A.rows();
-  if (A.cols() != n || b.size() != n)
+[[nodiscard]] inline Vector SolveLinear(Matrix a, Vector b) {
+  const std::size_t n = a.Rows();
+  if (a.Cols() != n || b.size() != n)
     throw std::invalid_argument("solve_linear: need a square system");
   for (std::size_t k = 0; k < n; ++k) {
     std::size_t p = k;
     for (std::size_t i = k + 1; i < n; ++i)
-      if (std::abs(A(i, k)) > std::abs(A(p, k))) p = i;
-    if (A(p, k) == 0.0)
+      if (std::abs(a(i, k)) > std::abs(a(p, k))) p = i;
+    if (a(p, k) == 0.0)
       throw std::runtime_error("solve_linear: singular matrix");
     if (p != k) {
-      for (std::size_t j = k; j < n; ++j) std::swap(A(k, j), A(p, j));
+      for (std::size_t j = k; j < n; ++j) std::swap(a(k, j), a(p, j));
       std::swap(b[k], b[p]);
     }
     for (std::size_t i = k + 1; i < n; ++i) {
-      const double m = A(i, k) / A(k, k);
-      for (std::size_t j = k; j < n; ++j) A(i, j) -= m * A(k, j);
+      const double m = a(i, k) / a(k, k);
+      for (std::size_t j = k; j < n; ++j) a(i, j) -= m * a(k, j);
       b[i] -= m * b[k];
     }
   }
   Vector x(n);
   for (std::size_t i = n; i-- > 0;) {
     double s = b[i];
-    for (std::size_t j = i + 1; j < n; ++j) s -= A(i, j) * x[j];
-    x[i] = s / A(i, i);
+    for (std::size_t j = i + 1; j < n; ++j) s -= a(i, j) * x[j];
+    x[i] = s / a(i, i);
   }
   return x;
 }
@@ -111,63 +111,64 @@ struct NdRootResult {
 
 // --------------------------------------------------------------- 5.2.1 -----
 template <VectorFunction F, JacobianFunction J>
-[[nodiscard]] NdRootResult newton_nd(F&& F_, J&& jacobian, Vector x0,
-                                     const Tolerances& tol = {}) {
+[[nodiscard]] NdRootResult NewtonNd(F&& func, J&& jacobian, Vector x0,
+                                    const Tolerances& tol = {}) {
   NdRootResult res{std::move(x0), 0};
-  Vector fx = F_(res.x);
+  Vector fx = func(res.x);
   if (fx.size() != res.x.size())
     throw std::invalid_argument("newton_nd: F must map R^N to R^N");
   while (res.iterations < tol.max_iter) {
     Vector rhs(fx.size());
     std::transform(fx.begin(), fx.end(), rhs.begin(),
                    [](double v) { return -v; });
-    const Vector s = solve_linear(jacobian(res.x), std::move(rhs));
+    const Vector s = SolveLinear(jacobian(res.x), std::move(rhs));
     for (std::size_t i = 0; i < s.size(); ++i) res.x[i] += s[i];
     ++res.iterations;
-    fx = F_(res.x);
-    const double step = norm2(s);
-    if ((norm2(fx) <= tol.approx && step <= tol.consec) || step == 0.0)
+    fx = func(res.x);
+    const double step = Norm2(s);
+    if ((Norm2(fx) <= tol.approx && step <= tol.consec) || step == 0.0)
       return res;
   }
   throw std::runtime_error("newton_nd: no convergence within max_iter");
 }
 
 // --------------------------------------------------------------- 5.2.2 -----
-enum class Difference { Forward, Central };
+enum class Difference { kForward, kCentral };
 
 // Finite difference Jacobian of F at x with step h: forward differences are
 // O(h) accurate (the book's choice), central ones O(h^2) at twice the cost.
 template <VectorFunction F>
-[[nodiscard]] Matrix finite_difference_jacobian(
-    F&& F_, const Vector& x, double h = 1e-6,
-    Difference scheme = Difference::Forward) {
-  const Vector f0 = F_(x);
-  Matrix J(f0.size(), x.size());
+[[nodiscard]] Matrix FiniteDifferenceJacobian(
+    F&& func, const Vector& x, double h = 1e-6,
+    Difference scheme = Difference::kForward) {
+  const Vector f0 = func(x);
+  Matrix jacobian(f0.size(), x.size());
   Vector xp = x;
   for (std::size_t j = 0; j < x.size(); ++j) {
     xp[j] = x[j] + h;
-    const Vector fp = F_(xp);
-    if (scheme == Difference::Forward) {
-      for (std::size_t i = 0; i < f0.size(); ++i) J(i, j) = (fp[i] - f0[i]) / h;
+    const Vector fp = func(xp);
+    if (scheme == Difference::kForward) {
+      for (std::size_t i = 0; i < f0.size(); ++i)
+        jacobian(i, j) = (fp[i] - f0[i]) / h;
     } else {
       xp[j] = x[j] - h;
-      const Vector fm = F_(xp);
+      const Vector fm = func(xp);
       for (std::size_t i = 0; i < f0.size(); ++i)
-        J(i, j) = (fp[i] - fm[i]) / (2.0 * h);
+        jacobian(i, j) = (fp[i] - fm[i]) / (2.0 * h);
     }
     xp[j] = x[j];
   }
-  return J;
+  return jacobian;
 }
 
 template <VectorFunction F>
-[[nodiscard]] NdRootResult approximate_newton_nd(
-    F&& F_, Vector x0, const Tolerances& tol = {}, double h = 1e-6,
-    Difference scheme = Difference::Forward) {
-  return newton_nd(
-      F_,
+[[nodiscard]] NdRootResult ApproximateNewtonNd(
+    F&& func, Vector x0, const Tolerances& tol = {}, double h = 1e-6,
+    Difference scheme = Difference::kForward) {
+  return NewtonNd(
+      func,
       [&](const Vector& x) {
-        return finite_difference_jacobian(F_, x, h, scheme);
+        return FiniteDifferenceJacobian(func, x, h, scheme);
       },
       std::move(x0), tol);
 }
