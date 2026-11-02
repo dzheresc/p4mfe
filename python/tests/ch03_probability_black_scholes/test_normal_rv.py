@@ -32,20 +32,22 @@ def test_normal_shift_scale():
 
 
 def test_linear_combination():
-    Z = linear_combination(
+    combo = linear_combination(
         2.0, NormalParams(1.0, 4.0), 1.0, NormalParams(-2.0, 9.0), 0.5
     )
-    assert Z.mean == 0.0
-    assert Z.variance == pytest.approx(16 + 9 + 2 * 2 * 0.5 * 2 * 3)
+    assert combo.mean == 0.0
+    assert combo.variance == pytest.approx(16 + 9 + 2 * 2 * 0.5 * 2 * 3)
 
 
 def test_lognormal_moments_match_integration():
     mu, sigma = 0.1, 0.3
-    Y = ContinuousDistribution(
+    lognormal = ContinuousDistribution(
         lambda y: lognormal_pdf(y, mu, sigma), 0.0, math.inf
     )
-    assert Y.mean() == pytest.approx(lognormal_mean(mu, sigma), abs=1e-8)
-    assert Y.variance() == pytest.approx(
+    assert lognormal.mean() == pytest.approx(
+        lognormal_mean(mu, sigma), abs=1e-8
+    )
+    assert lognormal.variance() == pytest.approx(
         lognormal_variance(mu, sigma), abs=1e-8
     )
     assert lognormal_cdf(math.exp(mu), mu, sigma) == pytest.approx(

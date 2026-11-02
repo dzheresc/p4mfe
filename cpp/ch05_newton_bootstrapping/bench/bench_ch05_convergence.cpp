@@ -10,8 +10,8 @@
 namespace {
 
 namespace ch05 = p4mfe::ch05;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 
 double NewtonOrder(double c) {
   const auto res = ch05::Newton([c](double x) { return x * x - c; },
@@ -31,7 +31,7 @@ double NewtonOrder(double c) {
 
 void BmConvergenceOrder(benchmark::State& state) {
   const std::size_t n = 1000;
-  if (!check(state, std::abs(NewtonOrder(2.0) - 2.0) < 0.3,
+  if (!Check(state, std::abs(NewtonOrder(2.0) - 2.0) < 0.3,
              "Newton's order is not about 2"))
     return;
   for (auto _ : state) {
@@ -40,7 +40,7 @@ void BmConvergenceOrder(benchmark::State& state) {
       sum += NewtonOrder(static_cast<double>(i));
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, n, "solves");
+  SetItems(state, n, "solves");
 }
 
 const bool kRegistered = [] {

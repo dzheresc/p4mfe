@@ -23,27 +23,26 @@ namespace {
 
 namespace ch03 = p4mfe::ch03;
 namespace ch06 = p4mfe::ch06;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 
 void BmAtmLinearized(benchmark::State& state) {
   const auto chain =
-      p4mfe::bench::make_option_chain(p4mfe::bench::chain_spec_for_tier());
+      p4mfe::bench::MakeOptionChain(p4mfe::bench::ChainSpecForTier());
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& o : chain) {
-      sum += ch06::AtmCallLinearized(o.S, o.T, o.sigma, 0.045, 0.015);
-      sum += ch06::AtmRelativeErrorBound(o.T, o.sigma) +
+      sum += ch06::AtmCallLinearized(o.spot, o.maturity, o.sigma, 0.045, 0.015);
+      sum += ch06::AtmRelativeErrorBound(o.maturity, o.sigma) +
              ch06::NormCdfLinear(o.log_moneyness);
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, chain.size(), "options");
+  SetItems(state, chain.size(), "options");
 }
 
 void BmDollarRiskRest(benchmark::State& state) {
-  const auto u =
-      p4mfe::bench::bond_universe(p4mfe::bench::bond_universe_size());
+  const auto u = p4mfe::bench::BondUniverse(p4mfe::bench::BondUniverseSize());
   const auto hedge =
       ch06::BondDollarRisk(p4mfe::ch02::BondCashFlows(10.0, 0.045, 2), 0.05);
   std::vector<double> values(u.size()), convexities(u.size());
@@ -54,7 +53,7 @@ void BmDollarRiskRest(benchmark::State& state) {
   }
   {
     const auto r = ch06::BondDollarRisk(u[0].cf, 0.05);
-    if (!check(state,
+    if (!Check(state,
                std::abs(ch06::Dv01Reprice(u[0].cf, 0.05) - r.Dv01()) <
                    1e-3 * std::abs(r.Dv01()) + 1e-9,
                "DV01 by repricing disagrees with D$/10000"))
@@ -75,24 +74,25 @@ void BmDollarRiskRest(benchmark::State& state) {
     sum += ch06::PortfolioConvexity(values, convexities);
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, u.size(), "bonds");
+  SetItems(state, u.size(), "bonds");
 }
 
 void BmGreeksTaylor(benchmark::State& state) {
-  const auto spec = p4mfe::bench::chain_spec_for_tier();
-  const auto chain = p4mfe::bench::make_option_chain(spec);
+  const auto spec = p4mfe::bench::ChainSpecForTier();
+  const auto chain = p4mfe::bench::MakeOptionChain(spec);
   std::vector<ch03::Greeks> g;
   std::vector<double> values;
   for (const auto& o : chain) {
-    g.push_back(ch03::BsGreeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q));
-    values.push_back(
-        ch03::BsPrice(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q));
+    g.push_back(ch03::BsGreeks(o.type, o.spot, o.strike, o.maturity, o.sigma,
+                               spec.r, spec.q));
+    values.push_back(ch03::BsPrice(o.type, o.spot, o.strike, o.maturity,
+                                   o.sigma, spec.r, spec.q));
   }
   {
     const auto& o = chain.front();
-    const double th = ch06::ThetaFromPde(values[0], o.S, g[0].delta, g[0].gamma,
-                                         o.sigma, spec.r, spec.q);
-    if (!check(state,
+    const double th = ch06::ThetaFromPde(values[0], o.spot, g[0].delta,
+                                         g[0].gamma, o.sigma, spec.r, spec.q);
+    if (!Check(state,
                std::abs(th - g[0].theta) < 1e-6 * (1.0 + std::abs(g[0].theta)),
                "theta from the PDE is off"))
       return;
@@ -101,19 +101,19 @@ void BmGreeksTaylor(benchmark::State& state) {
     double sum = 0.0;
     for (std::size_t i = 0; i < chain.size(); ++i) {
       const auto& o = chain[i];
-      const double d_spot = 0.01 * o.S;
+      const double d_spot = 0.01 * o.spot;
       sum += ch06::OptionChangeDelta(g[i], d_spot) +
              ch06::OptionChangeDeltaGamma(g[i], d_spot);
       sum += ch06::OptionChangeTaylor(g[i], d_spot, 1.0 / 252.0, 0.01, 0.0005);
-      sum += ch06::ThetaFromPde(values[i], o.S, g[i].delta, g[i].gamma, o.sigma,
-                                spec.r, spec.q);
-      sum += ch06::DeltaNeutralChange(values[i] - g[i].delta * o.S, o.S,
+      sum += ch06::ThetaFromPde(values[i], o.spot, g[i].delta, g[i].gamma,
+                                o.sigma, spec.r, spec.q);
+      sum += ch06::DeltaNeutralChange(values[i] - g[i].delta * o.spot, o.spot,
                                       g[i].gamma, o.sigma, spec.r, d_spot,
                                       1.0 / 252.0);
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, chain.size(), "options");
+  SetItems(state, chain.size(), "options");
 }
 
 void BmReturnConversions(benchmark::State& state) {
@@ -126,7 +126,7 @@ void BmReturnConversions(benchmark::State& state) {
     units[i] = 100.0 + static_cast<double>(i);
     prices[i] = 10.0 + 0.5 * static_cast<double>(i);
   }
-  if (!check(state,
+  if (!Check(state,
              std::abs(ch06::PercentageFromLog(ch06::LogFromPercentage(0.05)) -
                       0.05) < 1e-15,
              "return conversions do not round-trip"))
@@ -140,7 +140,7 @@ void BmReturnConversions(benchmark::State& state) {
     const auto w = ch06::PortfolioWeights(units, prices);
     benchmark::DoNotOptimize(sum + w.back());
   }
-  set_items(state, n, "returns");
+  SetItems(state, n, "returns");
 }
 
 void BmTaylor(benchmark::State& state) {
@@ -155,7 +155,7 @@ void BmTaylor(benchmark::State& state) {
   };
   const ch06::Vector a(5, 0.0), x(5, 0.1);
   const auto f2 = [](double u, double v) { return std::exp(u) * std::cos(v); };
-  if (!check(state,
+  if (!Check(state,
              std::abs(ch06::TaylorPolynomial(derivs, 0.0, 0.5) -
                       std::exp(0.5)) < 1e-9,
              "taylor_polynomial is off"))
@@ -183,7 +183,7 @@ void BmTaylor(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, n, "points");
+  SetItems(state, n, "points");
 }
 
 const bool kRegistered = [] {

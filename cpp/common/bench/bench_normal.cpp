@@ -13,7 +13,7 @@
 
 namespace {
 
-using p4mfe::bench::set_items;
+using p4mfe::bench::SetItems;
 
 struct Points {
   std::vector<double> x;  // in [-8, 8]
@@ -23,7 +23,7 @@ struct Points {
 const Points& GetPoints() {
   static const Points kPts = [] {
     const std::size_t n =
-        p4mfe::bench::by_tier<std::size_t>(10'000, 1'000'000, 10'000'000);
+        p4mfe::bench::ByTier<std::size_t>(10'000, 1'000'000, 10'000'000);
     Points out{std::vector<double>(n), std::vector<double>(n)};
     for (std::size_t i = 0; i < n; ++i) {
       const double u = (static_cast<double>(i) + 0.5) / static_cast<double>(n);
@@ -43,7 +43,7 @@ void BmKernel(benchmark::State& state, bool probabilities) {
     for (const double x : v) sum += F(x);
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, v.size(), "points");
+  SetItems(state, v.size(), "points");
 }
 
 // Round trip x -> N(x) -> N^-1, to check NormInv in setup. Beyond |x| = 5
@@ -53,7 +53,7 @@ void BmNormInvCheck(benchmark::State& state) {
   for (const double x : GetPoints().x)
     if (std::abs(x) < 5.0)
       worst = std::max(worst, std::abs(p4mfe::NormInv(p4mfe::NormCdf(x)) - x));
-  if (!p4mfe::bench::check(state, worst < 1e-6,
+  if (!p4mfe::bench::Check(state, worst < 1e-6,
                            "NormInv(NormCdf(x)) does not round trip"))
     return;
   BmKernel<p4mfe::NormInv>(state, true);

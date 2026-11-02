@@ -19,8 +19,8 @@
 namespace {
 
 namespace ch10 = p4mfe::ch10;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 
 struct Nodes {
   std::vector<double> xs, ys, eval;
@@ -38,7 +38,7 @@ Nodes Chebyshev(std::size_t n) {
     s.ys.push_back(1.0 / (1.0 + 25.0 * x * x));
   }
   const std::size_t m =
-      p4mfe::bench::by_tier<std::size_t>(1'000, 10'000, 100'000);
+      p4mfe::bench::ByTier<std::size_t>(1'000, 10'000, 100'000);
   for (std::size_t i = 0; i < m; ++i)
     s.eval.push_back(-1.0 + 2.0 * (static_cast<double>(i) + 0.5) /
                                 static_cast<double>(m));
@@ -53,7 +53,7 @@ void BmLagrangeInterpolate(benchmark::State& state) {
       sum += ch10::LagrangeInterpolate(s.xs, s.ys, x);
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, s.eval.size(), "points");
+  SetItems(state, s.eval.size(), "points");
   state.SetComplexityN(state.range(0));
 }
 
@@ -67,14 +67,14 @@ void BmNewtonInterpolate(benchmark::State& state) {
   // Divided differences lose accuracy as n grows (Chebyshev nodes in their
   // natural order); the gap to the Lagrange form is reported, and only a
   // gross disagreement fails.
-  if (!check(state, worst < 1e-2, "Newton and Lagrange forms disagree")) return;
+  if (!Check(state, worst < 1e-2, "Newton and Lagrange forms disagree")) return;
   for (auto _ : state) {
     const auto cc = ch10::DividedDifferences(s.xs, s.ys);
     double sum = 0.0;
     for (const double x : s.eval) sum += ch10::NewtonInterpolate(s.xs, cc, x);
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, s.eval.size(), "points");
+  SetItems(state, s.eval.size(), "points");
   state.counters["max_gap_to_lagrange"] = worst;
 }
 
@@ -117,7 +117,7 @@ void BmAppendixHelpers(benchmark::State& state) {
 }
 
 const bool kRegistered = [] {
-  const auto ns = p4mfe::bench::by_tier<std::vector<std::int64_t>>(
+  const auto ns = p4mfe::bench::ByTier<std::vector<std::int64_t>>(
       {10, 50}, {10, 50, 200}, {50, 200, 1000});
   auto* l = benchmark::RegisterBenchmark("W8/ch10/lagrange_interpolate",
                                          BmLagrangeInterpolate);
@@ -138,7 +138,7 @@ const bool kRegistered = [] {
   p->Complexity(benchmark::oNSquared)->Unit(benchmark::kMicrosecond);
   auto* ps =
       benchmark::RegisterBenchmark("W8/ch10/power_series", BmPowerSeries);
-  for (const auto k : p4mfe::bench::by_tier<std::vector<std::int64_t>>(
+  for (const auto k : p4mfe::bench::ByTier<std::vector<std::int64_t>>(
            {100}, {100, 1'000, 10'000}, {1'000, 10'000, 30'000}))
     ps->Arg(k);
   ps->Complexity(benchmark::oNSquared)->Unit(benchmark::kMicrosecond);

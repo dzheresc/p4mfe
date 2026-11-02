@@ -17,8 +17,8 @@
 namespace {
 
 namespace ch04 = p4mfe::ch04;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 using p4mfe::ch01::OptionType;
 
 constexpr double kS0 = 5000.0, kK = 5100.0, kT = 0.5, kSigma = 0.2, kR = 0.045,
@@ -28,7 +28,7 @@ void BmQuadratureCall(benchmark::State& state) {
   const auto call = [](double s) { return std::max(s - kK, 0.0); };
   const double exact =
       p4mfe::ch03::BsPrice(OptionType::kCall, kS0, kK, kT, kSigma, kR, kQ);
-  if (!check(state,
+  if (!Check(state,
              std::abs(ch04::RiskNeutralPrice(call, kS0, kT, kSigma, kR, kQ) -
                       exact) < 1e-5 * kS0,
              "quadrature call price is off"))
@@ -42,7 +42,7 @@ void BmQuadratureDigital(benchmark::State& state) {
   const auto digital = [](double s) { return s > kK ? 1.0 : 0.0; };
   const double exact =
       ch04::CashOrNothing(OptionType::kCall, kS0, kK, kT, kSigma, kR, kQ);
-  if (!check(state,
+  if (!Check(state,
              std::abs(ch04::RiskNeutralPrice(digital, kS0, kT, kSigma, kR, kQ) -
                       exact) < 1e-4,
              "quadrature digital price is off"))
@@ -57,7 +57,7 @@ void BmQuadraturePower(benchmark::State& state) {
   // absolute tolerance of the quadrature is meaningful.
   const auto sq = [](double s) { return (s / kS0) * (s / kS0); };
   const double exact = std::exp((2.0 * (kR - kQ) + kSigma * kSigma) * kT);
-  if (!check(
+  if (!Check(
           state,
           std::abs(ch04::RiskNeutralExpectation(sq, kS0, kT, kSigma, kR, kQ) -
                    exact) < 1e-6 * exact,
@@ -87,7 +87,7 @@ void BmClosedForms(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, strikes.size(), "strikes");
+  SetItems(state, strikes.size(), "strikes");
 }
 
 void BmMonteCarlo(benchmark::State& state, bool antithetic) {
@@ -97,7 +97,7 @@ void BmMonteCarlo(benchmark::State& state, bool antithetic) {
       p4mfe::ch03::BsPrice(OptionType::kCall, kS0, kK, kT, kSigma, kR, kQ);
   const auto res =
       ch04::MonteCarloPrice(call, kS0, kT, kSigma, kR, kQ, n, 42, antithetic);
-  if (!check(state, std::abs(res.price - exact) < 5.0 * res.std_error + 1e-9,
+  if (!Check(state, std::abs(res.price - exact) < 5.0 * res.std_error + 1e-9,
              "Monte Carlo price off by > 5 SE"))
     return;
   for (auto _ : state)
@@ -105,7 +105,7 @@ void BmMonteCarlo(benchmark::State& state, bool antithetic) {
                                                    kQ, n, 42, antithetic));
   state.counters["std_error"] = res.std_error;
   state.SetComplexityN(static_cast<std::int64_t>(n));
-  set_items(state, n, "paths");
+  SetItems(state, n, "paths");
 }
 
 const bool kRegistered = [] {
@@ -116,7 +116,7 @@ const bool kRegistered = [] {
   benchmark::RegisterBenchmark("W4/ch04/risk_neutral_expectation/power",
                                BmQuadraturePower);
   benchmark::RegisterBenchmark("W1/ch04/closed_forms", BmClosedForms);
-  const auto ns = p4mfe::bench::by_tier<std::vector<std::int64_t>>(
+  const auto ns = p4mfe::bench::ByTier<std::vector<std::int64_t>>(
       {10'000}, {10'000, 1'000'000, 10'000'000},
       {1'000'000, 10'000'000, 100'000'000});
   for (const bool anti : {true, false}) {

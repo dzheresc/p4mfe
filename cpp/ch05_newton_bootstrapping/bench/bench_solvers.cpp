@@ -25,15 +25,15 @@
 namespace {
 
 namespace ch05 = p4mfe::ch05;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 using p4mfe::ch01::OptionType;
 
 // ----------------------------------------------------------------- W1 -----
 
 const std::vector<p4mfe::bench::OptionQuote>& Chain() {
   static const auto kC =
-      p4mfe::bench::make_option_chain(p4mfe::bench::chain_spec_for_tier());
+      p4mfe::bench::MakeOptionChain(p4mfe::bench::ChainSpecForTier());
   return kC;
 }
 
@@ -58,10 +58,11 @@ void BmImpliedVol(benchmark::State& state, IvSolver solve) {
   std::size_t iterations = 0, failures = 0;
   for (const auto& o : c) {
     try {
-      const auto res = solve(o.type, o.price, o.S, o.K, o.T, spec.r, spec.q);
+      const auto res =
+          solve(o.type, o.price, o.spot, o.strike, o.maturity, spec.r, spec.q);
       iterations += res.iterations;
-      const double repriced =
-          p4mfe::ch03::BsPrice(o.type, o.S, o.K, o.T, res.x, spec.r, spec.q);
+      const double repriced = p4mfe::ch03::BsPrice(
+          o.type, o.spot, o.strike, o.maturity, res.x, spec.r, spec.q);
       if (std::abs(res.x - o.sigma) > 1e-5 &&
           std::abs(repriced - o.price) > 1e-3)
         ++failures;
@@ -69,16 +70,18 @@ void BmImpliedVol(benchmark::State& state, IvSolver solve) {
       ++failures;
     }
   }
-  if (!check(state, failures == 0,
+  if (!Check(state, failures == 0,
              std::to_string(failures) + " quotes did not recover their vol"))
     return;
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& o : c)
-      sum += solve(o.type, o.price, o.S, o.K, o.T, spec.r, spec.q).x;
+      sum +=
+          solve(o.type, o.price, o.spot, o.strike, o.maturity, spec.r, spec.q)
+              .x;
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, c.size(), "options");
+  SetItems(state, c.size(), "options");
   state.counters["mean_iterations"] =
       static_cast<double>(iterations) / static_cast<double>(c.size());
 }
@@ -87,7 +90,7 @@ void BmImpliedVol(benchmark::State& state, IvSolver solve) {
 
 const std::vector<p4mfe::bench::Bond>& Universe() {
   static const auto kU =
-      p4mfe::bench::bond_universe(p4mfe::bench::bond_universe_size());
+      p4mfe::bench::BondUniverse(p4mfe::bench::BondUniverseSize());
   return kU;
 }
 
@@ -98,13 +101,13 @@ void BmBondYield(benchmark::State& state, Solve solve) {
   for (const auto& b : u)
     worst = std::max(
         worst, std::abs(p4mfe::ch02::BondPrice(b.cf, solve(b).x) - b.price));
-  if (!check(state, worst < 1e-6, "bond yield does not reprice")) return;
+  if (!Check(state, worst < 1e-6, "bond yield does not reprice")) return;
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& b : u) sum += solve(b).x;
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, u.size(), "bonds");
+  SetItems(state, u.size(), "bonds");
 }
 
 void BmBootstrap(benchmark::State& state,
@@ -113,20 +116,20 @@ void BmBootstrap(benchmark::State& state,
   const auto curve = ch05::BootstrapZeroCurve(quotes, freq);
   double worst = 0.0;
   for (std::size_t i = 0; i < curve.times.size(); ++i)
-    worst =
-        std::max(worst, std::abs(curve.rates[i] -
-                                 p4mfe::bench::true_zero_rate(curve.times[i])));
-  if (!check(state, worst < tol, "bootstrap is too far from the true curve"))
+    worst = std::max(
+        worst,
+        std::abs(curve.rates[i] - p4mfe::bench::TrueZeroRate(curve.times[i])));
+  if (!Check(state, worst < tol, "bootstrap is too far from the true curve"))
     return;
   for (auto _ : state)
     benchmark::DoNotOptimize(ch05::BootstrapZeroCurve(quotes, freq));
-  set_items(state, quotes.size(), "bonds");
+  SetItems(state, quotes.size(), "bonds");
   state.counters["max_rate_error"] = worst;
 }
 
 void BmZeroRateLinear(benchmark::State& state) {
   const auto curve =
-      ch05::BootstrapZeroCurve(p4mfe::bench::par_bond_strip(30.0, 2), 2);
+      ch05::BootstrapZeroCurve(p4mfe::bench::ParBondStrip(30.0, 2), 2);
   std::vector<double> ts(10'000);
   for (std::size_t i = 0; i < ts.size(); ++i)
     ts[i] = 30.0 * static_cast<double>(i) / static_cast<double>(ts.size());
@@ -135,7 +138,7 @@ void BmZeroRateLinear(benchmark::State& state) {
     for (const double t : ts) sum += ch05::ZeroRateLinear(curve, t);
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, ts.size(), "lookups");
+  SetItems(state, ts.size(), "lookups");
 }
 
 // ----------------------------------------------------------------- W7 -----
@@ -167,7 +170,7 @@ void BmSolveLinear(benchmark::State& state) {
     for (std::size_t j = 0; j < n; ++j) s += sys.a(i, j) * x[j];
     res = std::max(res, std::abs(s));
   }
-  if (!check(state, res < 1e-10, "solve_linear residual too large")) return;
+  if (!Check(state, res < 1e-10, "solve_linear residual too large")) return;
   for (auto _ : state)
     benchmark::DoNotOptimize(ch05::SolveLinear(sys.a, sys.b));
   state.SetComplexityN(static_cast<std::int64_t>(n));
@@ -217,7 +220,7 @@ void BmNewtonNd(benchmark::State& state, bool approximate) {
   const auto res = solve();
   double err = 0.0;
   for (const double v : res.x) err = std::max(err, std::abs(v - 0.5));
-  if (!check(state, err < 1e-6, "Newton did not find the root")) return;
+  if (!Check(state, err < 1e-6, "Newton did not find the root")) return;
   const std::size_t evals_per_solve = evals;
   for (auto _ : state) benchmark::DoNotOptimize(solve());
   state.counters["iterations"] = static_cast<double>(res.iterations);
@@ -251,20 +254,20 @@ const bool kRegistered = [] {
   // Interpolation error between sparse benchmark maturities is real, so the
   // check there is loose; the dense strip should match closely.
   benchmark::RegisterBenchmark("W3/ch05/bootstrap_zero_curve/benchmark_bonds",
-                               BmBootstrap, p4mfe::bench::benchmark_bonds(2), 2,
+                               BmBootstrap, p4mfe::bench::BenchmarkBonds(2), 2,
                                2e-3);
   benchmark::RegisterBenchmark("W3/ch05/bootstrap_zero_curve/strip_30y",
-                               BmBootstrap,
-                               p4mfe::bench::par_bond_strip(30.0, 2), 2, 1e-9);
+                               BmBootstrap, p4mfe::bench::ParBondStrip(30.0, 2),
+                               2, 1e-9);
   benchmark::RegisterBenchmark("W3/ch05/zero_rate_linear", BmZeroRateLinear);
 
   auto* lin =
       benchmark::RegisterBenchmark("W7/ch05/solve_linear", BmSolveLinear);
-  for (const auto n : p4mfe::bench::by_tier<std::vector<std::int64_t>>(
+  for (const auto n : p4mfe::bench::ByTier<std::vector<std::int64_t>>(
            {10, 50}, {10, 50, 100, 250, 500}, {100, 250, 500, 1000}))
     lin->Arg(n);
   lin->Complexity(benchmark::oNCubed)->Unit(benchmark::kMicrosecond);
-  const auto nl = p4mfe::bench::by_tier<std::vector<std::int64_t>>(
+  const auto nl = p4mfe::bench::ByTier<std::vector<std::int64_t>>(
       {2, 10}, {2, 10, 50, 100}, {10, 50, 100, 200});
   for (const bool approx : {false, true}) {
     auto* b = benchmark::RegisterBenchmark(

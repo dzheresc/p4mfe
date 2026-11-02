@@ -19,13 +19,13 @@
 namespace {
 
 namespace ch03 = p4mfe::ch03;
-using p4mfe::bench::check;
-using p4mfe::bench::set_items;
+using p4mfe::bench::Check;
+using p4mfe::bench::SetItems;
 
 void BmSampleStatistics(benchmark::State& state) {
   // Two correlated daily return series (rho = 0.6).
   const std::size_t n =
-      p4mfe::bench::by_tier<std::size_t>(10'000, 1'000'000, 10'000'000);
+      p4mfe::bench::ByTier<std::size_t>(10'000, 1'000'000, 10'000'000);
   std::mt19937_64 rng(42);
   std::normal_distribution<double> z;
   std::vector<double> x(n), y(n);
@@ -34,7 +34,7 @@ void BmSampleStatistics(benchmark::State& state) {
     x[i] = 0.01 * a;
     y[i] = 0.01 * (0.6 * a + 0.8 * b);
   }
-  if (!check(state, std::abs(ch03::SampleCorrelation(x, y) - 0.6) < 0.05,
+  if (!Check(state, std::abs(ch03::SampleCorrelation(x, y) - 0.6) < 0.05,
              "sample correlation is off"))
     return;
   for (auto _ : state) {
@@ -43,7 +43,7 @@ void BmSampleStatistics(benchmark::State& state) {
     benchmark::DoNotOptimize(ch03::SampleCovariance(x, y));
     benchmark::DoNotOptimize(ch03::SampleCorrelation(x, y));
   }
-  set_items(state, n, "observations");
+  SetItems(state, n, "observations");
 }
 
 void BmDistributions(benchmark::State& state) {
@@ -57,7 +57,7 @@ void BmDistributions(benchmark::State& state) {
   for (int i = 0; i < 100; ++i)
     joint.push_back(
         {static_cast<double>(i), static_cast<double>(i * i % 17), 0.01});
-  if (!check(state, std::abs(ch03::Mean(e) - 0.5) < 1e-6,
+  if (!Check(state, std::abs(ch03::Mean(e) - 0.5) < 1e-6,
              "exponential mean is off"))
     return;
   for (auto _ : state) {
@@ -72,7 +72,7 @@ void BmDistributions(benchmark::State& state) {
 
 void BmNormalClosedForms(benchmark::State& state) {
   const std::size_t n =
-      p4mfe::bench::by_tier<std::size_t>(1'000, 100'000, 1'000'000);
+      p4mfe::bench::ByTier<std::size_t>(1'000, 100'000, 1'000'000);
   for (auto _ : state) {
     double sum = 0.0;
     for (std::size_t i = 0; i < n; ++i) {
@@ -89,33 +89,34 @@ void BmNormalClosedForms(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, n, "points");
+  SetItems(state, n, "points");
 }
 
 void BmHedgingAndIdentities(benchmark::State& state) {
   const auto chain =
-      p4mfe::bench::make_option_chain(p4mfe::bench::chain_spec_for_tier());
+      p4mfe::bench::MakeOptionChain(p4mfe::bench::ChainSpecForTier());
   const p4mfe::bench::ChainSpec spec;
   for (auto _ : state) {
     double sum = 0.0;
     for (const auto& o : chain) {
-      const auto g =
-          ch03::BsGreeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
-      const double value =
-          ch03::BsPrice(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
-      const auto h = ch03::DeltaHedge(-1000.0, value, g.delta, o.S);
+      const auto g = ch03::BsGreeks(o.type, o.spot, o.strike, o.maturity,
+                                    o.sigma, spec.r, spec.q);
+      const double value = ch03::BsPrice(o.type, o.spot, o.strike, o.maturity,
+                                         o.sigma, spec.r, spec.q);
+      const auto h = ch03::DeltaHedge(-1000.0, value, g.delta, o.spot);
       const auto dg = ch03::ComputeDeltaGammaHedge(
           -1000.0 * g.delta, -1000.0 * g.gamma, 0.5, 0.001);
       sum += h.cash + dg.shares + ch03::DeltaHedgeShares(g.delta);
       sum += ch03::PortfolioChangeApprox(g.delta, g.gamma, 1.0, g.theta,
                                          1.0 / 252.0);
-      sum +=
-          ch03::BsPdeResidual(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q);
-      sum += ch03::BsPhiIdentityGap(o.S, o.K, o.T, o.sigma, spec.r, spec.q);
+      sum += ch03::BsPdeResidual(o.type, o.spot, o.strike, o.maturity, o.sigma,
+                                 spec.r, spec.q);
+      sum += ch03::BsPhiIdentityGap(o.spot, o.strike, o.maturity, o.sigma,
+                                    spec.r, spec.q);
     }
     benchmark::DoNotOptimize(sum);
   }
-  set_items(state, chain.size(), "options");
+  SetItems(state, chain.size(), "options");
 }
 
 const bool kRegistered = [] {

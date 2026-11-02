@@ -42,24 +42,26 @@ def test_discrete_rejects_bad_probabilities(values, probs):
 
 def test_exponential():
     lam = 2.0
-    X = exponential_distribution(lam)
-    assert X.expected_value(lambda x: np.ones_like(x)) == pytest.approx(
+    exp_dist = exponential_distribution(lam)
+    assert exp_dist.expected_value(lambda x: np.ones_like(x)) == pytest.approx(
         1.0, abs=1e-8
     )
-    assert X.mean() == pytest.approx(1 / lam, abs=1e-8)
-    assert X.variance() == pytest.approx(1 / lam**2, abs=1e-8)
-    assert X.cdf(1.0) == pytest.approx(1 - math.exp(-lam), abs=1e-8)
-    assert X.cdf(-1.0) == 0.0
+    assert exp_dist.mean() == pytest.approx(1 / lam, abs=1e-8)
+    assert exp_dist.variance() == pytest.approx(1 / lam**2, abs=1e-8)
+    assert exp_dist.cdf(1.0) == pytest.approx(1 - math.exp(-lam), abs=1e-8)
+    assert exp_dist.cdf(-1.0) == 0.0
 
 
 def test_standard_normal_moments():
-    Z = ContinuousDistribution(lambda x: np.exp(-0.5 * x * x) * _INV_SQRT_2PI)
-    assert Z.mean() == pytest.approx(0.0, abs=1e-9)
-    assert Z.variance() == pytest.approx(1.0, abs=1e-8)
-    assert Z.cdf(1.0) == pytest.approx(norm_cdf(1.0), abs=1e-8)
-    assert Z.expected_value(lambda x: np.exp(0.5 * x)) == pytest.approx(
-        std_normal_mgf(0.5), abs=1e-8
+    std_normal = ContinuousDistribution(
+        lambda x: np.exp(-0.5 * x * x) * _INV_SQRT_2PI
     )
+    assert std_normal.mean() == pytest.approx(0.0, abs=1e-9)
+    assert std_normal.variance() == pytest.approx(1.0, abs=1e-8)
+    assert std_normal.cdf(1.0) == pytest.approx(norm_cdf(1.0), abs=1e-8)
+    assert std_normal.expected_value(
+        lambda x: np.exp(0.5 * x)
+    ) == pytest.approx(std_normal_mgf(0.5), abs=1e-8)
 
 
 def test_joint_covariance_correlation():
