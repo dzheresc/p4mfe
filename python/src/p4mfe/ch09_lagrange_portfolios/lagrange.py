@@ -57,17 +57,17 @@ def lagrangian_gradient(f: Callable, g: Callable, x, lam) -> np.ndarray:
 
 def lagrangian_hessian(f: Callable, g: Callable, x, lam) -> np.ndarray:
     x = np.asarray(x, float)
-    H = hessian(f, x)
+    hess = hessian(f, x)
     for j, lj in enumerate(np.atleast_1d(lam)):
-        H = H + lj * hessian(lambda y, j=j: g(y)[j], x)
-    return H
+        hess = hess + lj * hessian(lambda y, j=j: g(y)[j], x)
+    return hess
 
 
 def least_squares_multipliers(f: Callable, g: Callable, x) -> np.ndarray:
     """(Jg Jg^T) lambda = -Jg grad f: the default starting multipliers."""
     x = np.asarray(x, float)
-    J = _constraint_jacobian(g, x)
-    return np.linalg.solve(J @ J.T, -J @ gradient(f, x))
+    jac = _constraint_jacobian(g, x)
+    return np.linalg.solve(jac @ jac.T, -jac @ gradient(f, x))
 
 
 def lagrange_stationary_point(
@@ -87,17 +87,20 @@ def lagrange_stationary_point(
         else np.asarray(lam0, float)
     )
 
-    def F(z):
+    def lagrange_system(z):
         return lagrangian_gradient(f, g, z[:n], z[n:])
 
-    def J(z):
+    def jac(z):
         x, lam = z[:n], z[n:]
-        Jg = _constraint_jacobian(g, x)
+        jac_g = _constraint_jacobian(g, x)
         return np.block(
-            [[lagrangian_hessian(f, g, x, lam), Jg.T], [Jg, np.zeros((m, m))]]
+            [
+                [lagrangian_hessian(f, g, x, lam), jac_g.T],
+                [jac_g, np.zeros((m, m))],
+            ]
         )
 
-    res = newton_nd(F, J, np.concatenate((x0, lam0)), tol)
+    res = newton_nd(lagrange_system, jac, np.concatenate((x0, lam0)), tol)
     return LagrangeResult(res.x[:n], res.x[n:], res.iterations)
 
 
@@ -105,11 +108,13 @@ def classify_constrained(
     f: Callable, g: Callable, x, lam, tol: float = 1e-6
 ) -> CriticalPointType:
     x = np.asarray(x, float)
-    Jg = _constraint_jacobian(g, x)
+    jac_g = _constraint_jacobian(g, x)
     # Orthonormal basis of the null space of Jg from the SVD.
-    _, s, Vt = np.linalg.svd(Jg)
+    _, s, v_t = np.linalg.svd(jac_g)
     rank = int(np.sum(s > 1e-10))
-    if rank < Jg.shape[0]:
+    if rank < jac_g.shape[0]:
         raise ValueError("constraint gradients are linearly dependent")
-    Z = Vt[rank:].T
-    return classify_hessian(Z.T @ lagrangian_hessian(f, g, x, lam) @ Z, tol)
+    null_basis = v_t[rank:].T
+    return classify_hessian(
+        null_basis.T @ lagrangian_hessian(f, g, x, lam) @ null_basis, tol
+    )

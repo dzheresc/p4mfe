@@ -14,7 +14,7 @@ using namespace p4mfe::ch09::ex;
 
 // ------------------------------------------------------------ Exercise 1 ---
 TEST(Ch09Ex01, FourStationaryPointsInSymmetricPairs) {
-  const auto pts = ex01_stationary_points();
+  const auto pts = Ex01StationaryPoints();
   ASSERT_EQ(pts.size(), 4u);
   EXPECT_NEAR(pts[0].value, 12.761255, 1e-5);
   EXPECT_NEAR(pts[1].value, 3.434511, 1e-5);
@@ -32,22 +32,22 @@ TEST(Ch09Ex01, FourStationaryPointsInSymmetricPairs) {
 }
 
 TEST(Ch09Ex01, MaximumPointAndMultipliers) {
-  const auto mx = ex01_stationary_points().front();
+  const auto mx = Ex01StationaryPoints().front();
   const Vector expected{2.137669, -0.683412, 0.406720, -2.009150};
   for (std::size_t i = 0; i < 4; ++i) EXPECT_NEAR(mx.x[i], expected[i], 1e-5);
   EXPECT_NEAR(mx.lambda[0], 0.995446, 1e-5);
   EXPECT_NEAR(mx.lambda[1], -1.229346, 1e-5);
   // Feasible, and x agrees with the formulas in terms of lambda.
-  for (double v : ex01_g(mx.x)) EXPECT_NEAR(v, 0.0, 1e-9);
-  const Vector xl = ex01_x_from_lambda(mx.lambda);
+  for (double v : Ex01G(mx.x)) EXPECT_NEAR(v, 0.0, 1e-9);
+  const Vector xl = Ex01XFromLambda(mx.lambda);
   for (std::size_t i = 0; i < 4; ++i) EXPECT_NEAR(xl[i], mx.x[i], 1e-6);
-  for (double v : lagrangian_gradient(ex01_f, ex01_g, mx.x, mx.lambda))
+  for (double v : LagrangianGradient(Ex01F, Ex01G, mx.x, mx.lambda))
     EXPECT_NEAR(v, 0.0, 1e-6);
 }
 
 TEST(Ch09Ex01, SweepOfTheFeasibleSetAgrees) {
-  const auto pts = ex01_stationary_points();
-  const auto s = ex01_sweep(600, 1200);
+  const auto pts = Ex01StationaryPoints();
+  const auto s = Ex01ComputeSweep(600, 1200);
   // No sampled feasible point beats the Lagrange extrema, and the grid gets
   // close to them.
   EXPECT_LE(s.max, pts.front().value + 1e-9);
@@ -59,7 +59,7 @@ TEST(Ch09Ex01, SweepOfTheFeasibleSetAgrees) {
 // ------------------------------------------------------------ Exercise 2 ---
 namespace {
 // Deterministic positive test vectors (no RNG, so identical on every platform).
-std::vector<std::vector<double>> ex02_vectors() {
+std::vector<std::vector<double>> Ex02Vectors() {
   std::vector<std::vector<double>> out;
   for (std::size_t n = 1; n <= 12; ++n)
     for (int k = 0; k < 5; ++k) {
@@ -74,52 +74,52 @@ std::vector<std::vector<double>> ex02_vectors() {
 }  // namespace
 
 TEST(Ch09Ex02, MeansAreOrdered) {
-  for (const auto& x : ex02_vectors()) {
-    const double A = arithmetic_mean(x), G = geometric_mean(x),
-                 H = harmonic_mean(x);
-    EXPECT_GE(A, G * (1.0 - 1e-14));
-    EXPECT_GE(G, H * (1.0 - 1e-14));
+  for (const auto& x : Ex02Vectors()) {
+    const double arithmetic = ArithmeticMean(x), geometric = GeometricMean(x),
+                 harmonic = HarmonicMean(x);
+    EXPECT_GE(arithmetic, geometric * (1.0 - 1e-14));
+    EXPECT_GE(geometric, harmonic * (1.0 - 1e-14));
     if (x.size() > 1) {  // the entries differ, so both inequalities are strict
-      EXPECT_GT(A - G, 1e-6 * A);
-      EXPECT_GT(G - H, 1e-6 * G);
+      EXPECT_GT(arithmetic - geometric, 1e-6 * arithmetic);
+      EXPECT_GT(geometric - harmonic, 1e-6 * geometric);
     }
   }
 }
 
 TEST(Ch09Ex02, EqualityForEqualEntries) {
   const std::vector<double> x(7, 2.5);
-  EXPECT_NEAR(arithmetic_mean(x), 2.5, 1e-14);
-  EXPECT_NEAR(geometric_mean(x), 2.5, 1e-14);
-  EXPECT_NEAR(harmonic_mean(x), 2.5, 1e-14);
+  EXPECT_NEAR(ArithmeticMean(x), 2.5, 1e-14);
+  EXPECT_NEAR(GeometricMean(x), 2.5, 1e-14);
+  EXPECT_NEAR(HarmonicMean(x), 2.5, 1e-14);
   // Known small case: 1, 2, 4 has A = 7/3, G = 2, H = 12/7.
-  EXPECT_NEAR(arithmetic_mean({1, 2, 4}), 7.0 / 3.0, 1e-14);
-  EXPECT_NEAR(geometric_mean({1, 2, 4}), 2.0, 1e-14);
-  EXPECT_NEAR(harmonic_mean({1, 2, 4}), 12.0 / 7.0, 1e-14);
-  EXPECT_THROW((void)geometric_mean({1.0, 0.0}), std::invalid_argument);
-  EXPECT_THROW((void)harmonic_mean({}), std::invalid_argument);
+  EXPECT_NEAR(ArithmeticMean({1, 2, 4}), 7.0 / 3.0, 1e-14);
+  EXPECT_NEAR(GeometricMean({1, 2, 4}), 2.0, 1e-14);
+  EXPECT_NEAR(HarmonicMean({1, 2, 4}), 12.0 / 7.0, 1e-14);
+  EXPECT_THROW((void)GeometricMean({1.0, 0.0}), std::invalid_argument);
+  EXPECT_THROW((void)HarmonicMean({}), std::invalid_argument);
 }
 
 TEST(Ch09Ex02, LagrangeMaximizerIsTheEqualVector) {
   const double a = 1.5;
-  const auto r = ex02_lagrange_max({1.0, 1.8, 2.2, 1.2, 1.3}, a);
+  const auto r = Ex02LagrangeMax({1.0, 1.8, 2.2, 1.2, 1.3}, a);
   for (double v : r.x) EXPECT_NEAR(v, a, 1e-8);
   EXPECT_NEAR(r.lambda[0], -1.0 / a, 1e-8);
-  EXPECT_EQ(ex02_classify(r, a), CriticalPointType::kMaximum);
+  EXPECT_EQ(Ex02Classify(r, a), CriticalPointType::kMaximum);
 }
 
 // ------------------------------------------------------------ Exercise 3 ---
 TEST(Ch09Ex03, CorrelationIsPositiveDefinite) {
   const Ex03Data d;
   for (std::size_t k = 1; k <= 5; ++k) {
-    ch01::Matrix M(k, ch01::Vector(k));
+    ch01::Matrix block(k, ch01::Vector(k));
     for (std::size_t i = 0; i < k; ++i)
-      for (std::size_t j = 0; j < k; ++j) M[i][j] = d.corr(i, j);
-    EXPECT_GT(ch08::Determinant(M), 0.0) << k;
+      for (std::size_t j = 0; j < k; ++j) block[i][j] = d.corr(i, j);
+    EXPECT_GT(ch08::Determinant(block), 0.0) << k;
   }
 }
 
 TEST(Ch09Ex03, MinimumVarianceFor15Percent) {
-  const auto p = ex03_min_variance();
+  const auto p = Ex03MinVariance();
   const Vector expected{0.067354, 0.217299, -0.002244, 0.406893, 0.310697};
   double sum = 0.0;
   for (std::size_t i = 0; i < 5; ++i) {
@@ -131,11 +131,11 @@ TEST(Ch09Ex03, MinimumVarianceFor15Percent) {
   EXPECT_NEAR(p.std_dev, 0.141214, 1e-6);
   const Ex03Data d;
   EXPECT_NEAR(p.std_dev * p.std_dev,
-              frontier_variance(d.mu, d.covariance(), 0.15), 1e-12);
+              FrontierVariance(d.mu, d.Covariance(), 0.15), 1e-12);
 }
 
 TEST(Ch09Ex03, MaximumReturnFor25PercentRisk) {
-  const auto p = ex03_max_return();
+  const auto p = Ex03MaxReturn();
   const Vector expected{-0.395503, 0.096062, 0.045839, 0.709880, 0.543722};
   double sum = 0.0;
   for (std::size_t i = 0; i < 5; ++i) {
@@ -149,7 +149,7 @@ TEST(Ch09Ex03, MaximumReturnFor25PercentRisk) {
 
 TEST(Ch09Ex03, GeneralLagrangeSolverAgrees) {
   const Ex03Data d;
-  const Matrix S = d.covariance();
+  const Matrix covariance = d.Covariance();
   const auto sum_minus_1 = [](const Vector& w) {
     double s = -1.0;
     for (double v : w) s += v;
@@ -157,26 +157,28 @@ TEST(Ch09Ex03, GeneralLagrangeSolverAgrees) {
   };
   // (i) min w'Sw s.t. mu.w = 0.15, sum w = 1, from equal weights.
   {
-    const auto f = [&](const Vector& w) { return portfolio_variance(w, S); };
-    const auto g = [&](const Vector& w) {
-      return Vector{dot(d.mu, w) - 0.15, sum_minus_1(w)};
+    const auto f = [&](const Vector& w) {
+      return PortfolioVariance(w, covariance);
     };
-    const auto r = lagrange_stationary_point(f, g, Vector(5, 0.2));
-    const auto p = ex03_min_variance();
+    const auto g = [&](const Vector& w) {
+      return Vector{Dot(d.mu, w) - 0.15, sum_minus_1(w)};
+    };
+    const auto r = LagrangeStationaryPoint(f, g, Vector(5, 0.2));
+    const auto p = Ex03MinVariance();
     for (std::size_t i = 0; i < 5; ++i) EXPECT_NEAR(r.x[i], p.w[i], 1e-6);
-    EXPECT_EQ(classify_constrained(f, g, r.x, r.lambda),
+    EXPECT_EQ(ClassifyConstrained(f, g, r.x, r.lambda),
               CriticalPointType::kMinimum);
   }
   // (ii) max mu.w s.t. w'Sw = 0.25^2, sum w = 1, from the answer to (i).
   {
-    const auto f = [&](const Vector& w) { return dot(d.mu, w); };
+    const auto f = [&](const Vector& w) { return Dot(d.mu, w); };
     const auto g = [&](const Vector& w) {
-      return Vector{portfolio_variance(w, S) - 0.0625, sum_minus_1(w)};
+      return Vector{PortfolioVariance(w, covariance) - 0.0625, sum_minus_1(w)};
     };
-    const auto r = lagrange_stationary_point(f, g, ex03_min_variance().w);
-    const auto p = ex03_max_return();
+    const auto r = LagrangeStationaryPoint(f, g, Ex03MinVariance().w);
+    const auto p = Ex03MaxReturn();
     for (std::size_t i = 0; i < 5; ++i) EXPECT_NEAR(r.x[i], p.w[i], 1e-6);
-    EXPECT_EQ(classify_constrained(f, g, r.x, r.lambda),
+    EXPECT_EQ(ClassifyConstrained(f, g, r.x, r.lambda),
               CriticalPointType::kMaximum);
   }
 }

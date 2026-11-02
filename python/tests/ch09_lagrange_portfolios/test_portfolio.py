@@ -48,14 +48,14 @@ def test_global_min_variance():
     c = frontier_constants(MU, SIGMA)
     gmv = global_min_variance_portfolio(SIGMA)
     assert gmv.sum() == pytest.approx(1)
-    assert portfolio_variance(gmv, SIGMA) == pytest.approx(1 / c.A)
-    assert portfolio_mean(gmv, MU) == pytest.approx(c.B / c.A)
+    assert portfolio_variance(gmv, SIGMA) == pytest.approx(1 / c.a)
+    assert portfolio_mean(gmv, MU) == pytest.approx(c.b / c.a)
     rng = np.random.default_rng(5)
     for _ in range(20):
         d = rng.standard_normal(3)
         d -= d.mean()
-        assert portfolio_variance(gmv + 0.05 * d, SIGMA) > 1 / c.A
-    assert frontier_variance(MU, SIGMA, c.B / c.A) == pytest.approx(1 / c.A)
+        assert portfolio_variance(gmv + 0.05 * d, SIGMA) > 1 / c.a
+    assert frontier_variance(MU, SIGMA, c.b / c.a) == pytest.approx(1 / c.a)
 
 
 @pytest.mark.parametrize("target", [0.06, 0.10, 0.14, 0.20])
@@ -123,7 +123,7 @@ def test_max_return(s):
     w = max_return_portfolio(MU, SIGMA, s)
     assert portfolio_std_dev(w, SIGMA) == pytest.approx(s)
     assert portfolio_mean(w, MU) == pytest.approx(m)
-    assert m >= c.B / c.A
+    assert m >= c.b / c.a
 
     def ret(x):
         return portfolio_mean(x, MU)
@@ -141,7 +141,7 @@ def test_max_return(s):
 def test_max_return_errors_and_cash():
     c = frontier_constants(MU, SIGMA)
     with pytest.raises(ValueError):
-        max_return_for_std_dev(MU, SIGMA, 0.5 / math.sqrt(c.A))
+        max_return_for_std_dev(MU, SIGMA, 0.5 / math.sqrt(c.a))
     rf = 0.03
     t = tangency_portfolio(MU, SIGMA, rf)
     for s in (0.05, 0.15, 0.3):
@@ -150,5 +150,5 @@ def test_max_return_errors_and_cash():
         m = rf * (1 - w.sum()) + portfolio_mean(w, MU)
         assert m == pytest.approx(max_return_with_cash(MU, SIGMA, rf, s))
         assert (m - rf) / s == pytest.approx(sharpe_ratio(t, MU, SIGMA, rf))
-        if s * s >= 1 / c.A:
+        if s * s >= 1 / c.a:
             assert m >= max_return_for_std_dev(MU, SIGMA, s) - 1e-12

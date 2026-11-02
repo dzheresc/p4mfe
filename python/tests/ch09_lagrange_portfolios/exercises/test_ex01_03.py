@@ -90,12 +90,16 @@ def ex02_vectors():
 
 def test_ex02_means_are_ordered():
     for x in ex02_vectors():
-        A, G, H = arithmetic_mean(x), geometric_mean(x), harmonic_mean(x)
-        assert A >= G * (1 - 1e-14)
-        assert G >= H * (1 - 1e-14)
+        arithmetic, geometric, harmonic = (
+            arithmetic_mean(x),
+            geometric_mean(x),
+            harmonic_mean(x),
+        )
+        assert arithmetic >= geometric * (1 - 1e-14)
+        assert geometric >= harmonic * (1 - 1e-14)
         if len(x) > 1:
-            assert A - G > 1e-6 * A
-            assert G - H > 1e-6 * G
+            assert arithmetic - geometric > 1e-6 * arithmetic
+            assert geometric - harmonic > 1e-6 * geometric
 
 
 def test_ex02_equality_and_known_case():
@@ -152,10 +156,10 @@ def test_ex03_max_return_25_percent_risk():
 
 def test_ex03_general_lagrange_solver_agrees():
     d = Ex03Data()
-    S = d.covariance()
+    covariance = d.covariance()
 
     def f1(w):
-        return portfolio_variance(w, S)
+        return portfolio_variance(w, covariance)
 
     def g1(w):
         return np.array([d.mu @ w - 0.15, np.sum(w) - 1])
@@ -168,7 +172,9 @@ def test_ex03_general_lagrange_solver_agrees():
         return float(d.mu @ w)
 
     def g2(w):
-        return np.array([portfolio_variance(w, S) - 0.0625, np.sum(w) - 1])
+        return np.array(
+            [portfolio_variance(w, covariance) - 0.0625, np.sum(w) - 1]
+        )
 
     r = lagrange_stationary_point(f2, g2, ex03_min_variance().w)
     np.testing.assert_allclose(r.x, ex03_max_return().w, atol=1e-6)

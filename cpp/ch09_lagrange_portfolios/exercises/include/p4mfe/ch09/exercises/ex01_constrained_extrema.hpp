@@ -68,17 +68,17 @@ namespace p4mfe::ch09::ex {
 // feasible set (x1, x2, x3 on the ellipsoid, x4 = -/+ sqrt(x1^2 + x2^2 - 1)
 // with the sign that increases/decreases f) never beats the Lagrange values.
 
-[[nodiscard]] inline double ex01_f(const Vector& x) {
+[[nodiscard]] inline double Ex01F(const Vector& x) {
   return x[0] - 2.0 * x[1] + 3.0 * x[2] - 4.0 * x[3];
 }
 
-[[nodiscard]] inline Vector ex01_g(const Vector& x) {
+[[nodiscard]] inline Vector Ex01G(const Vector& x) {
   return {x[0] * x[0] + x[1] * x[1] - x[3] * x[3] - 1.0,
           x[0] * x[0] + 2.0 * x[1] * x[1] + 3.0 * x[2] * x[2] - 6.0};
 }
 
 // x from the multipliers (the first four Lagrange equations).
-[[nodiscard]] inline Vector ex01_x_from_lambda(const Vector& lambda) {
+[[nodiscard]] inline Vector Ex01XFromLambda(const Vector& lambda) {
   const double l1 = lambda[0], l2 = lambda[1];
   return {-1.0 / (2.0 * (l1 + l2)), 1.0 / (l1 + 2.0 * l2), -1.0 / (2.0 * l2),
           -2.0 / l1};
@@ -93,7 +93,7 @@ struct Ex01Point {
 
 // All stationary points found by Newton's method from the grid {-2,-1,1,2}^4,
 // without duplicates, sorted by decreasing f.
-[[nodiscard]] inline std::vector<Ex01Point> ex01_stationary_points() {
+[[nodiscard]] inline std::vector<Ex01Point> Ex01StationaryPoints() {
   const double grid[] = {-2.0, -1.0, 1.0, 2.0};
   std::vector<Ex01Point> pts;
   for (double a : grid)
@@ -102,11 +102,11 @@ struct Ex01Point {
         for (double d : grid) {
           LagrangeResult r;
           try {
-            r = lagrange_stationary_point(ex01_f, ex01_g, {a, b, c, d});
+            r = LagrangeStationaryPoint(Ex01F, Ex01G, {a, b, c, d});
           } catch (const std::exception&) {
             continue;  // Newton did not converge from this start
           }
-          const Vector gx = ex01_g(r.x);
+          const Vector gx = Ex01G(r.x);
           if (std::abs(gx[0]) > 1e-8 || std::abs(gx[1]) > 1e-8) continue;
           const bool seen =
               std::any_of(pts.begin(), pts.end(), [&](const Ex01Point& p) {
@@ -116,8 +116,8 @@ struct Ex01Point {
                 return d2 < 1e-10;
               });
           if (seen) continue;
-          const auto type = classify_constrained(ex01_f, ex01_g, r.x, r.lambda);
-          pts.push_back({r.x, r.lambda, ex01_f(r.x), type});
+          const auto type = ClassifyConstrained(Ex01F, Ex01G, r.x, r.lambda);
+          pts.push_back({r.x, r.lambda, Ex01F(r.x), type});
         }
   std::sort(pts.begin(), pts.end(), [](const Ex01Point& p, const Ex01Point& q) {
     return p.value > q.value;
@@ -131,7 +131,8 @@ struct Ex01Point {
 struct Ex01Sweep {
   double max, min;
 };
-[[nodiscard]] inline Ex01Sweep ex01_sweep(std::size_t n_t, std::size_t n_p) {
+[[nodiscard]] inline Ex01Sweep Ex01ComputeSweep(std::size_t n_t,
+                                                std::size_t n_p) {
   const double pi = std::numbers::pi;
   Ex01Sweep s{-1e300, 1e300};
   for (std::size_t i = 0; i <= n_t; ++i) {
