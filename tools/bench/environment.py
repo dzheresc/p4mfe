@@ -49,7 +49,7 @@ def main() -> None:
     governor = read("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")
     mem = re.search(r"MemTotal:\s*(\d+) kB", read("/proc/meminfo"))
     commit = run("git", "rev-parse", "HEAD")
-    dirty = run("git", "status", "--porcelain")
+    dirty = run("git", "status", "--porcelain", "--untracked-files=no")  # results dir is untracked
     print("# Baseline environment\n")
     rows = [
         ("Date (UTC)", run("date", "-u", "+%Y-%m-%d %H:%M")),
