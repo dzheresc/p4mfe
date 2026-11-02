@@ -32,14 +32,14 @@ namespace p4mfe::ch10::ex {
 // Check: S(1,4) = 1·2·3·5/30 = 1, S(2,4) = 2·3·5·17/30 = 17 = 1 + 16.
 
 // The closed form, exact in 64 bits for n up to 4000 (6 n^5 < 2^64).
-[[nodiscard]] constexpr std::uint64_t ex03_sum_k4(std::uint64_t n) noexcept {
+[[nodiscard]] constexpr std::uint64_t Ex03SumK4(std::uint64_t n) noexcept {
   return n * (n + 1) * (2 * n + 1) * (3 * n * n + 3 * n - 1) / 30;
 }
 
 // S(n, 4) from the recursion (10.26), using chapter 10's
 // sums_of_powers_recursive.
-[[nodiscard]] inline std::uint64_t ex03_sum_k4_recursive(std::uint64_t n) {
-  return sums_of_powers_recursive(n, 4)[4];
+[[nodiscard]] inline std::uint64_t Ex03SumK4Recursive(std::uint64_t n) {
+  return SumsOfPowersRecursive(n, 4)[4];
 }
 
 }  // namespace p4mfe::ch10::ex

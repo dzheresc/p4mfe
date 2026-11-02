@@ -27,7 +27,7 @@ namespace p4mfe::ch10 {
 
 // x_0, ..., x_{count-1} for x_{n+k} = sum_{i<k} a[i] x_{n+i}, from init =
 // x_0..x_{k-1}.
-[[nodiscard]] inline std::vector<double> recursion_terms(
+[[nodiscard]] inline std::vector<double> RecursionTerms(
     std::span<const double> a, std::span<const double> init,
     std::size_t count) {
   const std::size_t k = a.size();
@@ -52,13 +52,13 @@ struct SecondOrderRecursion {
 
   // x_n (real part; the imaginary part is round-off).
   [[nodiscard]] double operator()(unsigned n) const {
-    const auto p1 = power(lambda1, n);
+    const auto p1 = Power(lambda1, n);
     if (double_root) return ((c1 + c2 * static_cast<double>(n)) * p1).real();
-    return (c1 * p1 + c2 * power(lambda2, n)).real();
+    return (c1 * p1 + c2 * Power(lambda2, n)).real();
   }
 
  private:
-  static std::complex<double> power(std::complex<double> z, unsigned n) {
+  static std::complex<double> Power(std::complex<double> z, unsigned n) {
     std::complex<double> r{1.0, 0.0};  // z^0 = 1, also for z = 0
     for (; n; n >>= 1, z *= z)
       if (n & 1u) r *= z;
@@ -68,7 +68,7 @@ struct SecondOrderRecursion {
 
 // Roots of lambda^2 - a lambda - b and the constants matching x_0, x_1.
 // `rel_tol` decides when the two roots count as one.
-[[nodiscard]] inline SecondOrderRecursion solve_second_order(
+[[nodiscard]] inline SecondOrderRecursion SolveSecondOrder(
     double a, double b, double x0, double x1, double rel_tol = 1e-12) {
   const std::complex<double> disc =
       std::sqrt(std::complex<double>(a * a + 4.0 * b));
@@ -91,18 +91,21 @@ struct SecondOrderRecursion {
 }
 
 // x_n for x_{n+1} = a x_n + b.
-[[nodiscard]] inline double first_order_affine(double a, double b, double x0,
-                                               unsigned n) noexcept {
+[[nodiscard]] inline double FirstOrderAffine(double a, double b, double x0,
+                                             unsigned n) noexcept {
   if (a == 1.0) return x0 + n * b;
   const double fixed = b / (1.0 - a);
   return std::pow(a, n) * (x0 - fixed) + fixed;
 }
 
 // Level payment that amortizes a loan B_0 over N periods at rate r per period.
-[[nodiscard]] inline double loan_payment(double B0, double r, unsigned N) {
-  if (N == 0) throw std::invalid_argument("loan_payment: need N >= 1");
-  if (r == 0.0) return B0 / N;
-  return r * B0 / (1.0 - std::pow(1.0 + r, -static_cast<double>(N)));
+[[nodiscard]] inline double LoanPayment(double principal, double r,
+                                        unsigned num_periods) {
+  if (num_periods == 0)
+    throw std::invalid_argument("loan_payment: need N >= 1");
+  if (r == 0.0) return principal / num_periods;
+  return r * principal /
+         (1.0 - std::pow(1.0 + r, -static_cast<double>(num_periods)));
 }
 
 }  // namespace p4mfe::ch10

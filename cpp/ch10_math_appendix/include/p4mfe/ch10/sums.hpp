@@ -29,14 +29,14 @@
 namespace p4mfe::ch10 {
 
 // ------------------------------------------------------------- 10.3.1 ------
-[[nodiscard]] constexpr std::uint64_t ipow(std::uint64_t b,
+[[nodiscard]] constexpr std::uint64_t Ipow(std::uint64_t b,
                                            unsigned e) noexcept {
   std::uint64_t r = 1;
   while (e--) r *= b;
   return r;
 }
 
-[[nodiscard]] constexpr std::uint64_t binomial(unsigned n,
+[[nodiscard]] constexpr std::uint64_t Binomial(unsigned n,
                                                unsigned k) noexcept {
   if (k > n) return 0;
   std::uint64_t r = 1;
@@ -46,53 +46,52 @@ namespace p4mfe::ch10 {
 }
 
 // sum_{k=1}^{n} k^i by direct summation (exact while it fits in 64 bits).
-[[nodiscard]] constexpr std::uint64_t sum_of_powers(std::uint64_t n,
-                                                    unsigned i) noexcept {
+[[nodiscard]] constexpr std::uint64_t SumOfPowers(std::uint64_t n,
+                                                  unsigned i) noexcept {
   std::uint64_t s = 0;
-  for (std::uint64_t k = 1; k <= n; ++k) s += ipow(k, i);
+  for (std::uint64_t k = 1; k <= n; ++k) s += Ipow(k, i);
   return s;
 }
 
-[[nodiscard]] constexpr std::uint64_t sum_k(std::uint64_t n) noexcept {
+[[nodiscard]] constexpr std::uint64_t SumK(std::uint64_t n) noexcept {
   return n * (n + 1) / 2;
 }
-[[nodiscard]] constexpr std::uint64_t sum_k2(std::uint64_t n) noexcept {
+[[nodiscard]] constexpr std::uint64_t SumK2(std::uint64_t n) noexcept {
   return n * (n + 1) * (2 * n + 1) / 6;
 }
-[[nodiscard]] constexpr std::uint64_t sum_k3(std::uint64_t n) noexcept {
-  return sum_k(n) * sum_k(n);
+[[nodiscard]] constexpr std::uint64_t SumK3(std::uint64_t n) noexcept {
+  return SumK(n) * SumK(n);
 }
 
 // S_0(n), ..., S_i(n) from the telescoping recursion, without summing over k.
 // Exact while (n+1)^(i+1) fits in 64 bits.
-[[nodiscard]] inline std::vector<std::uint64_t> sums_of_powers_recursive(
+[[nodiscard]] inline std::vector<std::uint64_t> SumsOfPowersRecursive(
     std::uint64_t n, unsigned i) {
-  std::vector<std::uint64_t> S(i + 1);
-  S[0] = n;
+  std::vector<std::uint64_t> sums(i + 1);
+  sums[0] = n;
   for (unsigned p = 1; p <= i; ++p) {
-    std::uint64_t rhs = ipow(n + 1, p + 1) - 1;
-    for (unsigned j = 0; j < p; ++j) rhs -= binomial(p + 1, j) * S[j];
-    S[p] = rhs / (p + 1);
+    std::uint64_t rhs = Ipow(n + 1, p + 1) - 1;
+    for (unsigned j = 0; j < p; ++j) rhs -= Binomial(p + 1, j) * sums[j];
+    sums[p] = rhs / (p + 1);
   }
-  return S;
+  return sums;
 }
 
 // Coefficients c_0..c_{i+1} of S_i(n) = sum_m c_m n^m, as the interpolating
 // polynomial (10.2) through the points (m, S_i(m)), m = 0..i+1.
 // E.g. i = 2 gives {0, 1/6, 1/2, 1/3}. Double precision: fine for i <~ 10.
-[[nodiscard]] inline Vector sum_of_powers_polynomial(unsigned i) {
+[[nodiscard]] inline Vector SumOfPowersPolynomial(unsigned i) {
   Vector xs(i + 2), ys(i + 2);
   for (unsigned m = 0; m <= i + 1; ++m) {
     xs[m] = m;
-    ys[m] = static_cast<double>(sum_of_powers(m, i));
+    ys[m] = static_cast<double>(SumOfPowers(m, i));
   }
-  return interpolating_polynomial(xs, ys);
+  return InterpolatingPolynomial(xs, ys);
 }
 
 // ------------------------------------------------------------- 10.3.2 ------
 // sum_{k=1}^{n} k^j x^k by direct summation.
-[[nodiscard]] inline double sum_kj_xk(unsigned n, unsigned j,
-                                      double x) noexcept {
+[[nodiscard]] inline double SumKjXk(unsigned n, unsigned j, double x) noexcept {
   double s = 0.0, xk = 1.0;
   for (unsigned k = 1; k <= n; ++k) {
     xk *= x;
@@ -102,52 +101,53 @@ namespace p4mfe::ch10 {
 }
 
 // Closed forms for j = 0, 1, 2 (x != 1; at x = 1 they reduce to S_j(n)).
-[[nodiscard]] inline double geometric_sum(unsigned n, double x) noexcept {
+[[nodiscard]] inline double GeometricSum(unsigned n, double x) noexcept {
   if (x == 1.0) return n;
   return x * (1.0 - std::pow(x, n)) / (1.0 - x);
 }
-[[nodiscard]] inline double sum_k_xk(unsigned n, double x) noexcept {
-  if (x == 1.0) return static_cast<double>(sum_k(n));
-  const double N = n, xn = std::pow(x, n);
-  return x * (1.0 - (N + 1.0) * xn + N * xn * x) / ((1.0 - x) * (1.0 - x));
+[[nodiscard]] inline double SumKXk(unsigned n, double x) noexcept {
+  if (x == 1.0) return static_cast<double>(SumK(n));
+  const double nd = n, xn = std::pow(x, n);
+  return x * (1.0 - (nd + 1.0) * xn + nd * xn * x) / ((1.0 - x) * (1.0 - x));
 }
-[[nodiscard]] inline double sum_k2_xk(unsigned n, double x) noexcept {
-  if (x == 1.0) return static_cast<double>(sum_k2(n));
-  const double N = n, xn = std::pow(x, n), d = 1.0 - x;
+[[nodiscard]] inline double SumK2Xk(unsigned n, double x) noexcept {
+  if (x == 1.0) return static_cast<double>(SumK2(n));
+  const double nd = n, xn = std::pow(x, n), d = 1.0 - x;
   return x *
-         (1.0 + x - (N + 1.0) * (N + 1.0) * xn +
-          (2.0 * N * N + 2.0 * N - 1.0) * xn * x - N * N * xn * x * x) /
+         (1.0 + x - (nd + 1.0) * (nd + 1.0) * xn +
+          (2.0 * nd * nd + 2.0 * nd - 1.0) * xn * x - nd * nd * xn * x * x) /
          (d * d * d);
 }
 
 // Coefficients of P_j, the numerator of sum_{k>=1} k^j x^k = P_j(x) /
 // (1-x)^(j+1). P_0 = x, P_1 = x, P_2 = x + x^2, P_3 = x + 4x^2 + x^3 (Eulerian
 // numbers).
-[[nodiscard]] inline Vector kj_xk_numerator(unsigned j) {
-  Vector P{0.0, 1.0};
+[[nodiscard]] inline Vector KjXkNumerator(unsigned j) {
+  Vector poly{0.0, 1.0};
   for (unsigned m = 0; m < j; ++m) {
     // Q = x (P'(1-x) + (m+1) P), degree grows by one.
-    Vector Q(P.size() + 1, 0.0);
-    for (std::size_t k = 0; k < P.size(); ++k) {
-      const double K = static_cast<double>(k);
+    Vector next_poly(poly.size() + 1, 0.0);
+    for (std::size_t k = 0; k < poly.size(); ++k) {
+      const double kd = static_cast<double>(k);
       // x * (m+1) P: coefficient k -> k+1.
-      Q[k + 1] += (m + 1.0) * P[k];
+      next_poly[k + 1] += (m + 1.0) * poly[k];
       if (k == 0) continue;
       // x * P' = sum k p_k x^k ; -x^2 P' = -sum k p_k x^(k+1).
-      Q[k] += K * P[k];
-      Q[k + 1] -= K * P[k];
+      next_poly[k] += kd * poly[k];
+      next_poly[k + 1] -= kd * poly[k];
     }
-    while (Q.size() > 1 && Q.back() == 0.0) Q.pop_back();
-    P = std::move(Q);
+    while (next_poly.size() > 1 && next_poly.back() == 0.0)
+      next_poly.pop_back();
+    poly = std::move(next_poly);
   }
-  return P;
+  return poly;
 }
 
 // sum_{k>=1} k^j x^k for |x| < 1.
-[[nodiscard]] inline double sum_kj_xk_infinite(unsigned j, double x) {
+[[nodiscard]] inline double SumKjXkInfinite(unsigned j, double x) {
   if (!(std::abs(x) < 1.0))
     throw std::domain_error("sum_kj_xk_infinite: need |x| < 1");
-  return polynomial_value(kj_xk_numerator(j), x) / std::pow(1.0 - x, j + 1);
+  return PolynomialValue(KjXkNumerator(j), x) / std::pow(1.0 - x, j + 1);
 }
 
 }  // namespace p4mfe::ch10

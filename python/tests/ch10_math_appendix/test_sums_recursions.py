@@ -35,10 +35,10 @@ def test_closed_forms(n):
 
 @pytest.mark.parametrize("n", [1, 5, 20, 100, 10**6])
 def test_telescoping_recursion(n):
-    S = sums_of_powers_recursive(n, 6)
+    sums = sums_of_powers_recursive(n, 6)
     if n <= 100:
-        assert S == [sum_of_powers(n, i) for i in range(7)]
-    assert S[2] == sum_k2(n) and S[3] == sum_k3(n)  # exact for huge n too
+        assert sums == [sum_of_powers(n, i) for i in range(7)]
+    assert sums[2] == sum_k2(n) and sums[3] == sum_k3(n)  # exact for huge n too
 
 
 def test_sum_of_powers_polynomial():
@@ -126,8 +126,8 @@ def test_affine_and_loan():
         )
         x = 0.7 * x + 3.0
     assert first_order_affine(1.0, 2.0, 1.0, 5) == 11.0
-    P = loan_payment(300000.0, 0.005, 360)
-    assert P == pytest.approx(1798.65, abs=0.01)
-    assert first_order_affine(1.005, -P, 300000.0, 360) == pytest.approx(
+    payment = loan_payment(300000.0, 0.005, 360)
+    assert payment == pytest.approx(1798.65, abs=0.01)
+    assert first_order_affine(1.005, -payment, 300000.0, 360) == pytest.approx(
         0.0, abs=1e-6
     )

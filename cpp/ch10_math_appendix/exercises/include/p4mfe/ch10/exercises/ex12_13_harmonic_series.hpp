@@ -38,33 +38,34 @@ namespace p4mfe::ch10::ex {
 // diverges.
 
 // sum_{k=1}^{n} 1/k^2, summed from the smallest term up for accuracy.
-[[nodiscard]] inline double ex12_sum_inv_squares(unsigned n) {
+[[nodiscard]] inline double Ex12SumInvSquares(unsigned n) {
   double s = 0.0;
   for (unsigned k = n; k >= 1; --k) s += 1.0 / (static_cast<double>(k) * k);
   return s;
 }
 // H_n = sum_{k=1}^{n} 1/k.
-[[nodiscard]] inline double ex12_harmonic(unsigned n) {
+[[nodiscard]] inline double Ex12Harmonic(unsigned n) {
   double s = 0.0;
   for (unsigned k = n; k >= 1; --k) s += 1.0 / k;
   return s;
 }
 // sum_{k=2}^{n} 1/(k ln k).
-[[nodiscard]] inline double ex12_sum_inv_k_log_k(unsigned n) {
+[[nodiscard]] inline double Ex12SumInvKLogK(unsigned n) {
   double s = 0.0;
   for (unsigned k = n; k >= 2; --k)
     s += 1.0 / (k * std::log(static_cast<double>(k)));
   return s;
 }
 // The bounds (lower, upper) derived above.
-[[nodiscard]] inline std::pair<double, double> ex12_harmonic_bounds(
-    unsigned n) {
+[[nodiscard]] inline std::pair<double, double> Ex12HarmonicBounds(unsigned n) {
   const double l = std::log(static_cast<double>(n));
   return {l + 1.0 / n, l + 1.0};
 }
-[[nodiscard]] inline std::pair<double, double> ex12_k_log_k_bounds(unsigned n) {
-  const double N = n, I = std::log(std::log(N)) - std::log(std::numbers::ln2);
-  return {I + 1.0 / (N * std::log(N)), I + 1.0 / (2.0 * std::numbers::ln2)};
+[[nodiscard]] inline std::pair<double, double> Ex12KLogKBounds(unsigned n) {
+  const double nd = n,
+               integral = std::log(std::log(nd)) - std::log(std::numbers::ln2);
+  return {integral + 1.0 / (nd * std::log(nd)),
+          integral + 1.0 / (2.0 * std::numbers::ln2)};
 }
 
 // ----------------------------------------------------------- Exercise 13 ---
@@ -80,13 +81,13 @@ namespace p4mfe::ch10::ex {
 // 0.3069 > 0. So 0.3069 <= gamma <= 0.8069; in fact gamma = 0.5772156649...
 // Numerically, x_n - gamma = 1/(2n) - 1/(12 n^2) + O(1/n^4).
 
-inline constexpr double ex13_euler_gamma = std::numbers::egamma;
+inline constexpr double kEx13EulerGamma = std::numbers::egamma;
 
-[[nodiscard]] inline double ex13_x(unsigned n) {
-  return ex12_harmonic(n) - std::log(static_cast<double>(n));
+[[nodiscard]] inline double Ex13X(unsigned n) {
+  return Ex12Harmonic(n) - std::log(static_cast<double>(n));
 }
-[[nodiscard]] inline double ex13_y(unsigned n) {
-  return ex12_harmonic(n) - std::log(static_cast<double>(n) + 1.0);
+[[nodiscard]] inline double Ex13Y(unsigned n) {
+  return Ex12Harmonic(n) - std::log(static_cast<double>(n) + 1.0);
 }
 
 }  // namespace p4mfe::ch10::ex

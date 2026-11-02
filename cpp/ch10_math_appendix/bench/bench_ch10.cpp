@@ -28,7 +28,7 @@ struct Nodes {
 
 // Chebyshev nodes on [-1, 1] for f(x) = 1 / (1 + 25 x^2) (Runge's function),
 // evaluated at 10,000 points.
-Nodes chebyshev(std::size_t n) {
+Nodes Chebyshev(std::size_t n) {
   Nodes s;
   for (std::size_t i = 0; i < n; ++i) {
     const double x =
@@ -45,87 +45,86 @@ Nodes chebyshev(std::size_t n) {
   return s;
 }
 
-void BM_lagrange_interpolate(benchmark::State& state) {
-  const auto s = chebyshev(static_cast<std::size_t>(state.range(0)));
+void BmLagrangeInterpolate(benchmark::State& state) {
+  const auto s = Chebyshev(static_cast<std::size_t>(state.range(0)));
   for (auto _ : state) {
     double sum = 0.0;
     for (const double x : s.eval)
-      sum += ch10::lagrange_interpolate(s.xs, s.ys, x);
+      sum += ch10::LagrangeInterpolate(s.xs, s.ys, x);
     benchmark::DoNotOptimize(sum);
   }
   set_items(state, s.eval.size(), "points");
   state.SetComplexityN(state.range(0));
 }
 
-void BM_newton_interpolate(benchmark::State& state) {
-  const auto s = chebyshev(static_cast<std::size_t>(state.range(0)));
-  const auto c = ch10::divided_differences(s.xs, s.ys);
+void BmNewtonInterpolate(benchmark::State& state) {
+  const auto s = Chebyshev(static_cast<std::size_t>(state.range(0)));
+  const auto c = ch10::DividedDifferences(s.xs, s.ys);
   double worst = 0.0;
   for (const double x : s.eval)
-    worst =
-        std::max(worst, std::abs(ch10::newton_interpolate(s.xs, c, x) -
-                                 ch10::lagrange_interpolate(s.xs, s.ys, x)));
+    worst = std::max(worst, std::abs(ch10::NewtonInterpolate(s.xs, c, x) -
+                                     ch10::LagrangeInterpolate(s.xs, s.ys, x)));
   // Divided differences lose accuracy as n grows (Chebyshev nodes in their
   // natural order); the gap to the Lagrange form is reported, and only a
   // gross disagreement fails.
   if (!check(state, worst < 1e-2, "Newton and Lagrange forms disagree")) return;
   for (auto _ : state) {
-    const auto cc = ch10::divided_differences(s.xs, s.ys);
+    const auto cc = ch10::DividedDifferences(s.xs, s.ys);
     double sum = 0.0;
-    for (const double x : s.eval) sum += ch10::newton_interpolate(s.xs, cc, x);
+    for (const double x : s.eval) sum += ch10::NewtonInterpolate(s.xs, cc, x);
     benchmark::DoNotOptimize(sum);
   }
   set_items(state, s.eval.size(), "points");
   state.counters["max_gap_to_lagrange"] = worst;
 }
 
-void BM_interpolating_polynomial(benchmark::State& state) {
-  const auto s = chebyshev(static_cast<std::size_t>(state.range(0)));
+void BmInterpolatingPolynomial(benchmark::State& state) {
+  const auto s = Chebyshev(static_cast<std::size_t>(state.range(0)));
   for (auto _ : state) {
-    const auto a = ch10::interpolating_polynomial(s.xs, s.ys);
-    benchmark::DoNotOptimize(ch10::polynomial_value(a, 0.3));
+    const auto a = ch10::InterpolatingPolynomial(s.xs, s.ys);
+    benchmark::DoNotOptimize(ch10::PolynomialValue(a, 0.3));
   }
   state.SetComplexityN(state.range(0));
 }
 
-void BM_power_series(benchmark::State& state) {
+void BmPowerSeries(benchmark::State& state) {
   const auto n = static_cast<unsigned>(state.range(0));
   for (auto _ : state) {
-    const auto e = ch10::exp_power_series(n);
-    const auto l = ch10::log1p_power_series(n);
-    const auto p = ch10::cauchy_product(e, l);
-    const auto d = ch10::derivative(p);
-    auto a = ch10::antiderivative(d);
+    const auto e = ch10::ExpPowerSeries(n);
+    const auto l = ch10::Log1pPowerSeries(n);
+    const auto p = ch10::CauchyProduct(e, l);
+    const auto d = ch10::Derivative(p);
+    auto a = ch10::Antiderivative(d);
     benchmark::DoNotOptimize(a);
-    benchmark::DoNotOptimize(ch10::radius_ratio_estimate(l.a));
-    benchmark::DoNotOptimize(ch10::radius_root_estimate(l.a));
+    benchmark::DoNotOptimize(ch10::RadiusRatioEstimate(l.a));
+    benchmark::DoNotOptimize(ch10::RadiusRootEstimate(l.a));
   }
   state.SetComplexityN(state.range(0));
 }
 
-void BM_appendix_helpers(benchmark::State& state) {
+void BmAppendixHelpers(benchmark::State& state) {
   const std::vector<double> a{1.0, 1.0}, init{0.0, 1.0};
   for (auto _ : state) {
-    benchmark::DoNotOptimize(ch10::recursion_terms(a, init, 90));
-    benchmark::DoNotOptimize(ch10::solve_second_order(1.0, 1.0, 0.0, 1.0));
-    benchmark::DoNotOptimize(ch10::loan_payment(300'000.0, 0.06 / 12.0, 360));
-    benchmark::DoNotOptimize(ch10::sums_of_powers_recursive(1000, 6));
-    benchmark::DoNotOptimize(ch10::sum_of_powers_polynomial(8));
-    benchmark::DoNotOptimize(ch10::sum_kj_xk_infinite(4, 0.5));
-    benchmark::DoNotOptimize(ch10::log_stirling(1000.0, 4));
-    benchmark::DoNotOptimize(ch10::central_binomial_stirling(500.0));
+    benchmark::DoNotOptimize(ch10::RecursionTerms(a, init, 90));
+    benchmark::DoNotOptimize(ch10::SolveSecondOrder(1.0, 1.0, 0.0, 1.0));
+    benchmark::DoNotOptimize(ch10::LoanPayment(300'000.0, 0.06 / 12.0, 360));
+    benchmark::DoNotOptimize(ch10::SumsOfPowersRecursive(1000, 6));
+    benchmark::DoNotOptimize(ch10::SumOfPowersPolynomial(8));
+    benchmark::DoNotOptimize(ch10::SumKjXkInfinite(4, 0.5));
+    benchmark::DoNotOptimize(ch10::LogStirling(1000.0, 4));
+    benchmark::DoNotOptimize(ch10::CentralBinomialStirling(500.0));
   }
 }
 
-const bool registered = [] {
+const bool kRegistered = [] {
   const auto ns = p4mfe::bench::by_tier<std::vector<std::int64_t>>(
       {10, 50}, {10, 50, 200}, {50, 200, 1000});
   auto* l = benchmark::RegisterBenchmark("W8/ch10/lagrange_interpolate",
-                                         BM_lagrange_interpolate);
+                                         BmLagrangeInterpolate);
   auto* n = benchmark::RegisterBenchmark(
-      "W8/ch10/divided_differences+newton_interpolate", BM_newton_interpolate);
+      "W8/ch10/divided_differences+newton_interpolate", BmNewtonInterpolate);
   auto* p = benchmark::RegisterBenchmark("W8/ch10/interpolating_polynomial",
-                                         BM_interpolating_polynomial);
+                                         BmInterpolatingPolynomial);
   for (const auto k : ns) {
     l->Arg(k);
     p->Arg(k);
@@ -138,12 +137,12 @@ const bool registered = [] {
   n->Unit(benchmark::kMillisecond);
   p->Complexity(benchmark::oNSquared)->Unit(benchmark::kMicrosecond);
   auto* ps =
-      benchmark::RegisterBenchmark("W8/ch10/power_series", BM_power_series);
+      benchmark::RegisterBenchmark("W8/ch10/power_series", BmPowerSeries);
   for (const auto k : p4mfe::bench::by_tier<std::vector<std::int64_t>>(
            {100}, {100, 1'000, 10'000}, {1'000, 10'000, 30'000}))
     ps->Arg(k);
   ps->Complexity(benchmark::oNSquared)->Unit(benchmark::kMicrosecond);
-  benchmark::RegisterBenchmark("W8/ch10/appendix_helpers", BM_appendix_helpers)
+  benchmark::RegisterBenchmark("W8/ch10/appendix_helpers", BmAppendixHelpers)
       ->Unit(benchmark::kMicrosecond);
   return true;
 }();

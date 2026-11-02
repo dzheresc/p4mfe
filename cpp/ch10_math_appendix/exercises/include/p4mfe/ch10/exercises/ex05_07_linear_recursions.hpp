@@ -17,21 +17,21 @@ namespace p4mfe::ch10::ex {
 // solve_linear.
 using Basis = std::vector<std::function<double(unsigned)>>;
 
-[[nodiscard]] inline Vector ex_fit_constants(const Basis& basis,
-                                             const Vector& init) {
+[[nodiscard]] inline Vector ExFitConstants(const Basis& basis,
+                                           const Vector& init) {
   const std::size_t k = basis.size();
   if (init.size() != k)
     throw std::invalid_argument(
         "ex_fit_constants: need one initial term per basis function");
-  ch05::Matrix A(k, k);
+  ch05::Matrix matrix(k, k);
   for (std::size_t i = 0; i < k; ++i)
     for (std::size_t j = 0; j < k; ++j)
-      A(i, j) = basis[j](static_cast<unsigned>(i));
-  return ch05::SolveLinear(std::move(A), init);
+      matrix(i, j) = basis[j](static_cast<unsigned>(i));
+  return ch05::SolveLinear(std::move(matrix), init);
 }
 
-[[nodiscard]] inline double ex_evaluate(const Basis& basis, const Vector& c,
-                                        unsigned n) {
+[[nodiscard]] inline double ExEvaluate(const Basis& basis, const Vector& c,
+                                       unsigned n) {
   double s = 0.0;
   for (std::size_t j = 0; j < basis.size(); ++j) s += c[j] * basis[j](n);
   return s;
@@ -53,20 +53,20 @@ using Basis = std::vector<std::function<double(unsigned)>>;
 // with c_2 (phi - psi) = 0 gives c_2 = c_3 = 0. So
 //   x_n = (-1)^n  for all n >= 0.
 // Check: x_3 = 2 x_1 + x_0 = -1, x_4 = 2 x_2 + x_1 = 1.
-[[nodiscard]] inline Basis ex05_basis() {
+[[nodiscard]] inline Basis Ex05Basis() {
   const double phi = 0.5 * (1.0 + std::sqrt(5.0)),
                psi = 0.5 * (1.0 - std::sqrt(5.0));
   return {[](unsigned n) { return n % 2 == 0 ? 1.0 : -1.0; },
           [phi](unsigned n) { return std::pow(phi, static_cast<double>(n)); },
           [psi](unsigned n) { return std::pow(psi, static_cast<double>(n)); }};
 }
-inline constexpr std::array<double, 3> ex05_recursion{
+inline constexpr std::array<double, 3> kEx05Recursion{
     1.0, 2.0, 0.0};  // x_{n+3} = 1 x_n + 2 x_{n+1} + 0 x_{n+2}
-inline constexpr std::array<double, 3> ex05_init{1.0, -1.0, 1.0};
-[[nodiscard]] inline Vector ex05_constants() {
-  return ex_fit_constants(ex05_basis(), {1.0, -1.0, 1.0});
+inline constexpr std::array<double, 3> kEx05Init{1.0, -1.0, 1.0};
+[[nodiscard]] inline Vector Ex05Constants() {
+  return ExFitConstants(Ex05Basis(), {1.0, -1.0, 1.0});
 }
-[[nodiscard]] inline double ex05_closed_form(unsigned n) noexcept {
+[[nodiscard]] inline double Ex05ClosedForm(unsigned n) noexcept {
   return n % 2 == 0 ? 1.0 : -1.0;
 }
 
@@ -81,15 +81,15 @@ inline constexpr std::array<double, 3> ex05_init{1.0, -1.0, 1.0};
 // c_1 + c_2 = 1 and c_1 + 3 c_2 = 5: c_2 = 2, c_1 = -1, and
 //   x_n = 2 * 3^n - 1.
 // (Equivalently, x_n + 1 = 3 (x_{n-1} + 1) = ... = 3^n (x_0 + 1).)
-[[nodiscard]] inline double ex06_closed_form(unsigned n) {
+[[nodiscard]] inline double Ex06ClosedForm(unsigned n) {
   return 2.0 * std::pow(3.0, static_cast<double>(n)) - 1.0;
 }
 // The same from chapter 10's second order solver and first order formula.
-[[nodiscard]] inline SecondOrderRecursion ex06_second_order() {
-  return solve_second_order(4.0, -3.0, 1.0, 5.0);
+[[nodiscard]] inline SecondOrderRecursion Ex06SecondOrder() {
+  return SolveSecondOrder(4.0, -3.0, 1.0, 5.0);
 }
-[[nodiscard]] inline double ex06_first_order(unsigned n) noexcept {
-  return first_order_affine(3.0, 2.0, 1.0, n);
+[[nodiscard]] inline double Ex06FirstOrder(unsigned n) noexcept {
+  return FirstOrderAffine(3.0, 2.0, 1.0, n);
 }
 
 // ------------------------------------------------------------ Exercise 7 ---
@@ -111,22 +111,22 @@ inline constexpr std::array<double, 3> ex05_init{1.0, -1.0, 1.0};
 // (Check against the original recursion: the particular solution -n/2 - 5/4
 // satisfies p(n+1) = 3 p(n) + n + 2, and 9/4 * 3^n solves the homogeneous
 // part.)
-[[nodiscard]] inline Basis ex07_basis() {
+[[nodiscard]] inline Basis Ex07Basis() {
   return {[](unsigned) { return 1.0; },
           [](unsigned n) { return static_cast<double>(n); },
           [](unsigned n) { return std::pow(3.0, static_cast<double>(n)); }};
 }
-inline constexpr std::array<double, 3> ex07_recursion{
+inline constexpr std::array<double, 3> kEx07Recursion{
     3.0, -7.0, 5.0};  // x_{n+3} = 3 x_n - 7 x_{n+1} + 5 x_{n+2}
-inline constexpr std::array<double, 3> ex07_init{1.0, 5.0, 18.0};
-[[nodiscard]] inline Vector ex07_constants() {
-  return ex_fit_constants(ex07_basis(), {1.0, 5.0, 18.0});
+inline constexpr std::array<double, 3> kEx07Init{1.0, 5.0, 18.0};
+[[nodiscard]] inline Vector Ex07Constants() {
+  return ExFitConstants(Ex07Basis(), {1.0, 5.0, 18.0});
 }
-[[nodiscard]] inline double ex07_closed_form(unsigned n) {
+[[nodiscard]] inline double Ex07ClosedForm(unsigned n) {
   return (std::pow(3.0, static_cast<double>(n) + 2.0) - 2.0 * n - 5.0) / 4.0;
 }
 // x_0..x_{count-1} from the original first order recursion.
-[[nodiscard]] inline std::vector<double> ex07_direct(std::size_t count) {
+[[nodiscard]] inline std::vector<double> Ex07Direct(std::size_t count) {
   std::vector<double> x{1.0};
   for (std::size_t n = 0; x.size() < count; ++n)
     x.push_back(3.0 * x[n] + static_cast<double>(n) + 2.0);

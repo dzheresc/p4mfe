@@ -53,59 +53,59 @@ namespace p4mfe::ch10::ex {
 using IntPoly = std::map<unsigned, std::int64_t>;
 
 // x d/dx [N / (1-x)^p] = Q / (1-x)^(p+1); returns Q = x (N'(1-x) + p N).
-[[nodiscard]] inline IntPoly ex02_x_ddx_numerator(const IntPoly& N,
-                                                  unsigned p) {
-  IntPoly Q;
-  for (const auto& [m, c] : N) {
-    const auto M = static_cast<std::int64_t>(m);
-    Q[m] += M * c;
-    Q[m + 1] += (static_cast<std::int64_t>(p) - M) * c;
+[[nodiscard]] inline IntPoly Ex02XDdxNumerator(const IntPoly& numer,
+                                               unsigned p) {
+  IntPoly next_poly;
+  for (const auto& [m, c] : numer) {
+    const auto m_int = static_cast<std::int64_t>(m);
+    next_poly[m] += m_int * c;
+    next_poly[m + 1] += (static_cast<std::int64_t>(p) - m_int) * c;
   }
-  std::erase_if(Q, [](const auto& t) { return t.second == 0; });
-  return Q;
+  std::erase_if(next_poly, [](const auto& t) { return t.second == 0; });
+  return next_poly;
 }
 
 // N_j with T(n, j, x) = N_j(x) / (1 - x)^(j+1).
-[[nodiscard]] inline IntPoly ex02_numerator(unsigned n, unsigned j) {
+[[nodiscard]] inline IntPoly Ex02Numerator(unsigned n, unsigned j) {
   if (n == 0) throw std::invalid_argument("ex02_numerator: need n >= 1");
-  IntPoly N{{1u, 1}};
-  N[n + 1] -= 1;
-  for (unsigned p = 1; p <= j; ++p) N = ex02_x_ddx_numerator(N, p);
-  return N;
+  IntPoly numer{{1u, 1}};
+  numer[n + 1] -= 1;
+  for (unsigned p = 1; p <= j; ++p) numer = Ex02XDdxNumerator(numer, p);
+  return numer;
 }
 
 // The book's N_2 and N_3 written out (to compare with ex02_numerator).
-[[nodiscard]] inline IntPoly ex02_book_n2(unsigned n) {
-  const std::int64_t N = n;
-  IntPoly P;
-  P[1] += 1;
-  P[2] += 1;
-  P[n + 1] -= (N + 1) * (N + 1);
-  P[n + 2] += 2 * N * N + 2 * N - 1;
-  P[n + 3] -= N * N;
-  std::erase_if(P, [](const auto& t) { return t.second == 0; });
-  return P;
+[[nodiscard]] inline IntPoly Ex02BookN2(unsigned n) {
+  const std::int64_t nd = n;
+  IntPoly poly;
+  poly[1] += 1;
+  poly[2] += 1;
+  poly[n + 1] -= (nd + 1) * (nd + 1);
+  poly[n + 2] += 2 * nd * nd + 2 * nd - 1;
+  poly[n + 3] -= nd * nd;
+  std::erase_if(poly, [](const auto& t) { return t.second == 0; });
+  return poly;
 }
-[[nodiscard]] inline IntPoly ex02_book_n3(unsigned n) {
-  const std::int64_t N = n;
-  IntPoly P;
-  P[1] += 1;
-  P[2] += 4;
-  P[3] += 1;
-  P[n + 1] -= (N + 1) * (N + 1) * (N + 1);
-  P[n + 2] += 3 * N * N * N + 6 * N * N - 4;
-  P[n + 3] -= 3 * N * N * N + 3 * N * N - 3 * N + 1;
-  P[n + 4] += N * N * N;
-  std::erase_if(P, [](const auto& t) { return t.second == 0; });
-  return P;
+[[nodiscard]] inline IntPoly Ex02BookN3(unsigned n) {
+  const std::int64_t nd = n;
+  IntPoly poly;
+  poly[1] += 1;
+  poly[2] += 4;
+  poly[3] += 1;
+  poly[n + 1] -= (nd + 1) * (nd + 1) * (nd + 1);
+  poly[n + 2] += 3 * nd * nd * nd + 6 * nd * nd - 4;
+  poly[n + 3] -= 3 * nd * nd * nd + 3 * nd * nd - 3 * nd + 1;
+  poly[n + 4] += nd * nd * nd;
+  std::erase_if(poly, [](const auto& t) { return t.second == 0; });
+  return poly;
 }
 
 // d^r/dx^r P at x = 1: sum c_m m(m-1)...(m-r+1). Exact while it fits in 64 bits
 // (n up to a few hundred for j <= 3).
-[[nodiscard]] inline std::int64_t ex02_derivative_at_one(const IntPoly& P,
-                                                         unsigned r) {
+[[nodiscard]] inline std::int64_t Ex02DerivativeAtOne(const IntPoly& poly,
+                                                      unsigned r) {
   std::int64_t s = 0;
-  for (const auto& [m, c] : P) {
+  for (const auto& [m, c] : poly) {
     std::int64_t f = c;
     for (unsigned t = 0; t < r; ++t)
       f *= static_cast<std::int64_t>(m) - static_cast<std::int64_t>(t);
@@ -116,19 +116,18 @@ using IntPoly = std::map<unsigned, std::int64_t>;
 
 // S(n, j) = lim_{x->1} N_j(x) / (1-x)^(j+1) by l'Hopital's rule applied j+1
 // times.
-[[nodiscard]] inline std::int64_t ex02_sum_by_lhopital(unsigned n, unsigned j) {
-  const IntPoly N = ex02_numerator(n, j);
+[[nodiscard]] inline std::int64_t Ex02SumByLhopital(unsigned n, unsigned j) {
+  const IntPoly numer = Ex02Numerator(n, j);
   std::int64_t denom = 1;  // ((1-x)^(j+1))^(j+1) = (-1)^(j+1) (j+1)!
   for (unsigned t = 2; t <= j + 1; ++t) denom *= t;
   if ((j + 1) % 2 == 1) denom = -denom;
-  return ex02_derivative_at_one(N, j + 1) / denom;
+  return Ex02DerivativeAtOne(numer, j + 1) / denom;
 }
 
 // T(n, j, x) evaluated from the closed form N_j(x) / (1 - x)^(j+1), x != 1.
-[[nodiscard]] inline double ex02_t_closed_form(unsigned n, unsigned j,
-                                               double x) {
+[[nodiscard]] inline double Ex02TClosedForm(unsigned n, unsigned j, double x) {
   double num = 0.0;
-  for (const auto& [m, c] : ex02_numerator(n, j))
+  for (const auto& [m, c] : Ex02Numerator(n, j))
     num += static_cast<double>(c) * std::pow(x, static_cast<double>(m));
   return num / std::pow(1.0 - x, static_cast<double>(j + 1));
 }

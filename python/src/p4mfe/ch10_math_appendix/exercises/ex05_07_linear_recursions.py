@@ -25,8 +25,8 @@ def ex_fit_constants(basis: Basis, init: Sequence[float]) -> np.ndarray:
     k = len(basis)
     if len(init) != k:
         raise ValueError("need one initial term per basis function")
-    A = [[basis[j](i) for j in range(k)] for i in range(k)]
-    return solve_linear(A, list(init))
+    matrix = [[basis[j](i) for j in range(k)] for i in range(k)]
+    return solve_linear(matrix, list(init))
 
 
 def ex_evaluate(basis: Basis, c: Sequence[float], n: int) -> float:

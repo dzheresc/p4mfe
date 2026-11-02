@@ -31,12 +31,12 @@ namespace p4mfe::ch10::ex {
 // Numerical illustration (x > 0, n = 2): f = x^2 sin(1/x) and g = 3x^2 are
 // O(x^2) but not o(x^2), and |(f + g)/x^2| = |sin(1/x) + 3| <= 4; f = x^3 and
 // g = x^2 sqrt(x) are o(x^2), and (f + g)/x^2 = x + sqrt(x) -> 0.
-[[nodiscard]] inline double ex09_f_big(double x) {
+[[nodiscard]] inline double Ex09FBig(double x) {
   return x * x * std::sin(1.0 / x);
 }
-[[nodiscard]] inline double ex09_g_big(double x) { return 3.0 * x * x; }
-[[nodiscard]] inline double ex09_f_small(double x) { return x * x * x; }
-[[nodiscard]] inline double ex09_g_small(double x) {
+[[nodiscard]] inline double Ex09GBig(double x) { return 3.0 * x * x; }
+[[nodiscard]] inline double Ex09FSmall(double x) { return x * x * x; }
+[[nodiscard]] inline double Ex09GSmall(double x) {
   return x * x * std::sqrt(x);
 }
 
@@ -58,22 +58,23 @@ namespace p4mfe::ch10::ex {
 
 // (sum k^2)/n^3, (sum k^2 - n^3/3)/n^2, (sum k^3)/n^4, (sum k^3 - n^4/4)/n^3,
 // from the exact integer sums of chapter 10 (n up to about 10^4 in 64 bits).
-[[nodiscard]] inline double ex10_ratio_k2(std::uint64_t n) {
-  const double N = static_cast<double>(n);
-  return static_cast<double>(sum_k2(n)) / (N * N * N);
+[[nodiscard]] inline double Ex10RatioK2(std::uint64_t n) {
+  const double nd = static_cast<double>(n);
+  return static_cast<double>(SumK2(n)) / (nd * nd * nd);
 }
-[[nodiscard]] inline double ex10_remainder_ratio_k2(std::uint64_t n) {
+[[nodiscard]] inline double Ex10RemainderRatioK2(std::uint64_t n) {
   // 3 S - n^3 is an exact integer; divide by 3 n^2.
-  const double N = static_cast<double>(n);
-  return static_cast<double>(3 * sum_k2(n) - n * n * n) / (3.0 * N * N);
+  const double nd = static_cast<double>(n);
+  return static_cast<double>(3 * SumK2(n) - n * n * n) / (3.0 * nd * nd);
 }
-[[nodiscard]] inline double ex10_ratio_k3(std::uint64_t n) {
-  const double N = static_cast<double>(n);
-  return static_cast<double>(sum_k3(n)) / (N * N * N * N);
+[[nodiscard]] inline double Ex10RatioK3(std::uint64_t n) {
+  const double nd = static_cast<double>(n);
+  return static_cast<double>(SumK3(n)) / (nd * nd * nd * nd);
 }
-[[nodiscard]] inline double ex10_remainder_ratio_k3(std::uint64_t n) {
-  const double N = static_cast<double>(n);
-  return static_cast<double>(4 * sum_k3(n) - n * n * n * n) / (4.0 * N * N * N);
+[[nodiscard]] inline double Ex10RemainderRatioK3(std::uint64_t n) {
+  const double nd = static_cast<double>(n);
+  return static_cast<double>(4 * SumK3(n) - n * n * n * n) /
+         (4.0 * nd * nd * nd);
 }
 
 }  // namespace p4mfe::ch10::ex

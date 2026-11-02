@@ -16,34 +16,34 @@ import math
 IntPoly = dict[int, int]  # exponent -> coefficient
 
 
-def _clean(P: IntPoly) -> IntPoly:
-    return {m: c for m, c in sorted(P.items()) if c != 0}
+def _clean(poly: IntPoly) -> IntPoly:
+    return {m: c for m, c in sorted(poly.items()) if c != 0}
 
 
-def ex02_x_ddx_numerator(N: IntPoly, p: int) -> IntPoly:
-    Q: IntPoly = {}
-    for m, c in N.items():
-        Q[m] = Q.get(m, 0) + m * c
-        Q[m + 1] = Q.get(m + 1, 0) + (p - m) * c
-    return _clean(Q)
+def ex02_x_ddx_numerator(numer: IntPoly, p: int) -> IntPoly:
+    next_poly: IntPoly = {}
+    for m, c in numer.items():
+        next_poly[m] = next_poly.get(m, 0) + m * c
+        next_poly[m + 1] = next_poly.get(m + 1, 0) + (p - m) * c
+    return _clean(next_poly)
 
 
 def ex02_numerator(n: int, j: int) -> IntPoly:
     if n < 1:
         raise ValueError("need n >= 1")
-    N: IntPoly = {1: 1}
-    N[n + 1] = N.get(n + 1, 0) - 1
+    numer: IntPoly = {1: 1}
+    numer[n + 1] = numer.get(n + 1, 0) - 1
     for p in range(1, j + 1):
-        N = ex02_x_ddx_numerator(N, p)
-    return N
+        numer = ex02_x_ddx_numerator(numer, p)
+    return numer
 
 
-def _add(P: IntPoly, m: int, c: int) -> None:
-    P[m] = P.get(m, 0) + c
+def _add(poly: IntPoly, m: int, c: int) -> None:
+    poly[m] = poly.get(m, 0) + c
 
 
 def ex02_book_n2(n: int) -> IntPoly:
-    P: IntPoly = {}
+    poly: IntPoly = {}
     for m, c in (
         (1, 1),
         (2, 1),
@@ -51,12 +51,12 @@ def ex02_book_n2(n: int) -> IntPoly:
         (n + 2, 2 * n * n + 2 * n - 1),
         (n + 3, -n * n),
     ):
-        _add(P, m, c)
-    return _clean(P)
+        _add(poly, m, c)
+    return _clean(poly)
 
 
 def ex02_book_n3(n: int) -> IntPoly:
-    P: IntPoly = {}
+    poly: IntPoly = {}
     terms = (
         (1, 1),
         (2, 4),
@@ -67,13 +67,13 @@ def ex02_book_n3(n: int) -> IntPoly:
         (n + 4, n**3),
     )
     for m, c in terms:
-        _add(P, m, c)
-    return _clean(P)
+        _add(poly, m, c)
+    return _clean(poly)
 
 
-def ex02_derivative_at_one(P: IntPoly, r: int) -> int:
+def ex02_derivative_at_one(poly: IntPoly, r: int) -> int:
     """d^r/dx^r P at x = 1 (exact)."""
-    return sum(c * math.perm(m, r) if m >= r else 0 for m, c in P.items())
+    return sum(c * math.perm(m, r) if m >= r else 0 for m, c in poly.items())
 
 
 def ex02_sum_by_lhopital(n: int, j: int) -> int:

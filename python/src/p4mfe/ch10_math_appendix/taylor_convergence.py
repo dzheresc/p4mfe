@@ -17,18 +17,18 @@ from p4mfe.ch10_math_appendix.power_series import PowerSeries
 
 
 def taylor_bound_geometric(
-    C: float, M: float, a: float, x: float, n: int
+    c: float, m: float, a: float, x: float, n: int
 ) -> float:
-    return taylor_remainder_bound(C * M ** (n + 1), a, x, n)
+    return taylor_remainder_bound(c * m ** (n + 1), a, x, n)
 
 
 def taylor_terms_needed(
-    C: float, M: float, a: float, x: float, tol: float, max_n: int = 1000
+    c: float, m: float, a: float, x: float, tol: float, max_n: int = 1000
 ) -> int:
     if not tol > 0:
         raise ValueError("tol must be positive")
-    q = M * abs(x - a)
-    bound = C * q
+    q = m * abs(x - a)
+    bound = c * q
     for n in range(max_n + 1):
         if bound < tol:
             return n

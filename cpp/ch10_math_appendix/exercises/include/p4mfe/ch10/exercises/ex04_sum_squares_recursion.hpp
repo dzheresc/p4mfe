@@ -42,18 +42,18 @@ namespace p4mfe::ch10::ex {
 
 // Coefficients a_0..a_3 of x_{n+4} = a_0 x_n + a_1 x_{n+1} + a_2 x_{n+2} + a_3
 // x_{n+3}.
-inline constexpr std::array<double, 4> ex04_recursion{-1.0, 4.0, -6.0, 4.0};
+inline constexpr std::array<double, 4> kEx04Recursion{-1.0, 4.0, -6.0, 4.0};
 
 // x_1, ..., x_count from (10.95) and x_1..x_4 = 1, 5, 14, 30 (index 0 holds
 // x_1).
-[[nodiscard]] inline std::vector<double> ex04_terms(std::size_t count) {
+[[nodiscard]] inline std::vector<double> Ex04Terms(std::size_t count) {
   const std::array<double, 4> init{1.0, 5.0, 14.0, 30.0};
-  return recursion_terms(ex04_recursion, init, count);
+  return RecursionTerms(kEx04Recursion, init, count);
 }
 
 // x_1, ..., x_count from the second order form (10.93) (affine, so iterated
 // directly).
-[[nodiscard]] inline std::vector<double> ex04_terms_10_93(std::size_t count) {
+[[nodiscard]] inline std::vector<double> Ex04Terms1093(std::size_t count) {
   std::vector<double> x{1.0, 5.0};
   for (std::size_t n = 1; x.size() < count; ++n)
     x.push_back(2.0 * x[n] - x[n - 1] + 2.0 * static_cast<double>(n) + 3.0);
@@ -62,9 +62,9 @@ inline constexpr std::array<double, 4> ex04_recursion{-1.0, 4.0, -6.0, 4.0};
 }
 
 // c_0..c_3 of x_n = sum c_m n^m, the cubic through (n, x_n), n = 1..4.
-[[nodiscard]] inline Vector ex04_cubic() {
+[[nodiscard]] inline Vector Ex04Cubic() {
   const std::array<double, 4> ns{1.0, 2.0, 3.0, 4.0}, xs{1.0, 5.0, 14.0, 30.0};
-  return interpolating_polynomial(ns, xs);
+  return InterpolatingPolynomial(ns, xs);
 }
 
 }  // namespace p4mfe::ch10::ex

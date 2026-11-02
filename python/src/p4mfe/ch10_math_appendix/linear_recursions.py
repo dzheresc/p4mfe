@@ -70,9 +70,9 @@ def first_order_affine(a: float, b: float, x0: float, n: int) -> float:
     return a**n * (x0 - fixed) + fixed
 
 
-def loan_payment(B0: float, r: float, N: int) -> float:
-    if N < 1:
+def loan_payment(principal: float, r: float, num_periods: int) -> float:
+    if num_periods < 1:
         raise ValueError("need N >= 1")
     if r == 0:
-        return B0 / N
-    return r * B0 / (1 - (1 + r) ** (-N))
+        return principal / num_periods
+    return r * principal / (1 - (1 + r) ** (-num_periods))

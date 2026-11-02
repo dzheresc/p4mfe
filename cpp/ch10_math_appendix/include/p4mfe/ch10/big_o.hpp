@@ -21,20 +21,20 @@ namespace p4mfe::ch10 {
 
 // Observed exponent p of f(h) ~ C h^p as h -> 0, from h and h/2.
 template <std::invocable<double> F>
-[[nodiscard]] double observed_power(F&& f, double h) {
+[[nodiscard]] double ObservedPower(F&& f, double h) {
   return std::log2(std::abs(f(h)) / std::abs(f(0.5 * h)));
 }
 
 // Observed exponent p of f(n) ~ C n^p as n -> infinity, from n and 2n.
 template <std::invocable<double> F>
-[[nodiscard]] double observed_power_at_infinity(F&& f, double n) {
+[[nodiscard]] double ObservedPowerAtInfinity(F&& f, double n) {
   return std::log2(std::abs(f(2.0 * n)) / std::abs(f(n)));
 }
 
 // |f(x) / g(x)| at each point: bounded for f = O(g), tending to 0 for f = o(g).
 template <std::invocable<double> F, std::invocable<double> G>
-[[nodiscard]] std::vector<double> order_ratios(F&& f, G&& g,
-                                               std::span<const double> xs) {
+[[nodiscard]] std::vector<double> OrderRatios(F&& f, G&& g,
+                                              std::span<const double> xs) {
   std::vector<double> r;
   r.reserve(xs.size());
   for (double x : xs) r.push_back(std::abs(f(x) / g(x)));

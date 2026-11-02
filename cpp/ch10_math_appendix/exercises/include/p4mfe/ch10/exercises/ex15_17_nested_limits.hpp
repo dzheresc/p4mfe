@@ -23,12 +23,12 @@ namespace p4mfe::ch10::ex {
 // E.g. a = 2 gives 2, a = 6 gives 3, a = 1 gives the golden ratio.
 // Convergence is linear: L - x_{n+1} = (L - x_n) / (L + x_{n+1}) ~ (L - x_n) /
 // (2L).
-[[nodiscard]] inline double ex15_limit(double a) {
+[[nodiscard]] inline double Ex15Limit(double a) {
   if (!(a > 0.0)) throw std::domain_error("ex15: need a > 0");
   return 0.5 * (1.0 + std::sqrt(1.0 + 4.0 * a));
 }
 // x_n (n >= 1 radicals).
-[[nodiscard]] inline double ex15_iterate(double a, unsigned n) {
+[[nodiscard]] inline double Ex15Iterate(double a, unsigned n) {
   double x = 0.0;
   for (unsigned i = 0; i < n; ++i) x = std::sqrt(a + x);
   return x;
@@ -46,12 +46,12 @@ namespace p4mfe::ch10::ex {
 //   a + 1/(a + 1/(a + ...)) = (a + sqrt(a^2 + 4)) / 2.
 // E.g. a = 1 gives the golden ratio, a = 2 gives 1 + sqrt 2. The iterates
 // alternate around L (odd ones below, even ones above).
-[[nodiscard]] inline double ex16_limit(double a) {
+[[nodiscard]] inline double Ex16Limit(double a) {
   if (!(a > 0.0)) throw std::domain_error("ex16: need a > 0");
   return 0.5 * (a + std::sqrt(a * a + 4.0));
 }
 // x_n (n >= 1 levels; x_1 = a).
-[[nodiscard]] inline double ex16_iterate(double a, unsigned n) {
+[[nodiscard]] inline double Ex16Iterate(double a, unsigned n) {
   if (n == 0) throw std::invalid_argument("ex16: need n >= 1");
   double x = a;
   for (unsigned i = 1; i < n; ++i) x = a + 1.0 / x;
@@ -87,15 +87,15 @@ namespace p4mfe::ch10::ex {
 // At x = e^(1/e) the convergence is slow: x^t = e e^((t-e)/e) ~ t + (t - e)^2 /
 // (2e), so e - t_n ~ 2e / n.
 
-inline constexpr double ex17_x_max = 1.444667861009766;  // e^(1/e)
+inline constexpr double kEx17XMax = 1.444667861009766;  // e^(1/e)
 
-[[nodiscard]] inline double ex17_x_for(double b) {
+[[nodiscard]] inline double Ex17XFor(double b) {
   if (!(b > 0.0)) throw std::domain_error("ex17: need b > 0");
   return std::pow(b, 1.0 / b);
 }
 // t_n of the tower (n >= 1 levels). Stops early (returning +infinity) once
 // t exceeds `cap`, the signature of divergence.
-[[nodiscard]] inline double ex17_tower(double x, unsigned n, double cap = 1e6) {
+[[nodiscard]] inline double Ex17Tower(double x, unsigned n, double cap = 1e6) {
   if (!(x > 0.0) || n == 0)
     throw std::invalid_argument("ex17: need x > 0 and n >= 1");
   double t = x;
