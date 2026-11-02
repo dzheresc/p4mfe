@@ -26,13 +26,15 @@ def shifted_curve_price(cf: CashFlows, zero: Curve, dr: float) -> float:
 
 
 def curve_shift_metrics(cf: CashFlows, zero: Curve) -> BondMetrics:
-    B = Bt = Btt = 0.0
+    price = price_t = price_tt = 0.0
     for t, c in zip(cf.times, cf.amounts):
         v = c * math.exp(-zero(t) * t)
-        B += v
-        Bt += t * v
-        Btt += t * t * v
-    return BondMetrics(float(B), float(Bt / B), float(Btt / B))
+        price += v
+        price_t += t * v
+        price_tt += t * t * v
+    return BondMetrics(
+        float(price), float(price_t / price), float(price_tt / price)
+    )
 
 
 def shifted_curve_price_approx(cf: CashFlows, zero: Curve, dr: float) -> float:

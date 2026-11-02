@@ -15,51 +15,53 @@ import numpy as np
 
 
 # 6.4 -----------------------------------------------------------------------
-def percentage_return(S1: float, S2: float, dividend: float = 0.0) -> float:
-    if not S1 > 0:
+def percentage_return(
+    spot1: float, spot2: float, dividend: float = 0.0
+) -> float:
+    if not spot1 > 0:
         raise ValueError("S1 must be positive")
-    return (S2 + dividend - S1) / S1
+    return (spot2 + dividend - spot1) / spot1
 
 
-def log_return(S1: float, S2: float, dividend: float = 0.0) -> float:
-    if not (S1 > 0 and S2 + dividend > 0):
+def log_return(spot1: float, spot2: float, dividend: float = 0.0) -> float:
+    if not (spot1 > 0 and spot2 + dividend > 0):
         raise ValueError("prices must be positive")
-    return math.log((S2 + dividend) / S1)
+    return math.log((spot2 + dividend) / spot1)
 
 
-def log_from_percentage(R: float) -> float:
-    return math.log1p(R)
+def log_from_percentage(pct_return: float) -> float:
+    return math.log1p(pct_return)
 
 
 def percentage_from_log(r: float) -> float:
     return math.expm1(r)
 
 
-def log_return_taylor(R: float, order: int = 2) -> float:
+def log_return_taylor(pct_return: float, order: int = 2) -> float:
     """Taylor polynomial of ln(1 + R) of the given degree."""
     power, total = 1.0, 0.0
     for k in range(1, order + 1):
-        power *= -R
+        power *= -pct_return
         total -= power / k
     return total
 
 
 def percentage_returns(prices: Sequence[float]) -> np.ndarray:
-    S = np.asarray(prices, float)
-    if np.any(S[:-1] <= 0):
+    spot = np.asarray(prices, float)
+    if np.any(spot[:-1] <= 0):
         raise ValueError("prices must be positive")
-    return S[1:] / S[:-1] - 1
+    return spot[1:] / spot[:-1] - 1
 
 
 def log_returns(prices: Sequence[float]) -> np.ndarray:
-    S = np.asarray(prices, float)
-    if np.any(S <= 0):
+    spot = np.asarray(prices, float)
+    if np.any(spot <= 0):
         raise ValueError("prices must be positive")
-    return np.log(S[1:] / S[:-1])
+    return np.log(spot[1:] / spot[:-1])
 
 
-def compound_percentage_returns(R: Sequence[float]) -> float:
-    return float(np.prod(1 + np.asarray(R, float)) - 1)
+def compound_percentage_returns(pct_returns: Sequence[float]) -> float:
+    return float(np.prod(1 + np.asarray(pct_returns, float)) - 1)
 
 
 def sum_log_returns(r: Sequence[float]) -> float:
@@ -70,13 +72,13 @@ def sum_log_returns(r: Sequence[float]) -> float:
 def portfolio_weights(
     units: Sequence[float], prices: Sequence[float]
 ) -> np.ndarray:
-    n, S = np.asarray(units, float), np.asarray(prices, float)
-    if n.shape != S.shape:
+    n, spot = np.asarray(units, float), np.asarray(prices, float)
+    if n.shape != spot.shape:
         raise ValueError("size mismatch")
-    V = float(n @ S)
-    if V == 0:
+    total_value = float(n @ spot)
+    if total_value == 0:
         raise ValueError("portfolio value is zero")
-    return n * S / V
+    return n * spot / total_value
 
 
 def _check(w, x):
@@ -86,9 +88,9 @@ def _check(w, x):
     return w, x
 
 
-def portfolio_percentage_return(w, R) -> float:
-    w, R = _check(w, R)
-    return float(w @ R)
+def portfolio_percentage_return(w, pct_returns) -> float:
+    w, pct_returns = _check(w, pct_returns)
+    return float(w @ pct_returns)
 
 
 def portfolio_log_return(w, r) -> float:

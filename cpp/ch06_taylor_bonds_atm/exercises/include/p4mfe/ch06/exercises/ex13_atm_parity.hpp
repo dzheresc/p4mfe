@@ -27,37 +27,40 @@ namespace p4mfe::ch06::ex {
 // P_BS = 4.886987, relative error 0.005311 (0.53%), against 0.014761 (1.48%)
 // for (6.103) in exercise 12: the parity-consistent version is almost three
 // times more accurate here.
-[[nodiscard]] inline double ex13_call(double S, double T, double sigma,
-                                      double r, double q) {
-  const double eq = std::exp(-q * T), er = std::exp(-r * T);
-  return atm_price_approx(S, T, sigma) * 0.5 * (eq + er) + 0.5 * S * (eq - er);
+[[nodiscard]] inline double Ex13Call(double spot, double maturity, double sigma,
+                                     double r, double q) {
+  const double eq = std::exp(-q * maturity), er = std::exp(-r * maturity);
+  return AtmPriceApprox(spot, maturity, sigma) * 0.5 * (eq + er) +
+         0.5 * spot * (eq - er);
 }
-[[nodiscard]] inline double ex13_put(double S, double T, double sigma, double r,
-                                     double q) {
-  const double eq = std::exp(-q * T), er = std::exp(-r * T);
-  return atm_price_approx(S, T, sigma) * 0.5 * (eq + er) - 0.5 * S * (eq - er);
+[[nodiscard]] inline double Ex13Put(double spot, double maturity, double sigma,
+                                    double r, double q) {
+  const double eq = std::exp(-q * maturity), er = std::exp(-r * maturity);
+  return AtmPriceApprox(spot, maturity, sigma) * 0.5 * (eq + er) -
+         0.5 * spot * (eq - er);
 }
 // C - P - (S e^(-qT) - K e^(-rT)) with K = S: zero up to rounding for
 // (6.138)-(6.139).
-[[nodiscard]] inline double ex13_parity_gap(double S, double T, double sigma,
-                                            double r, double q) {
-  return ex13_call(S, T, sigma, r, q) - ex13_put(S, T, sigma, r, q) -
-         S * (std::exp(-q * T) - std::exp(-r * T));
+[[nodiscard]] inline double Ex13ParityGap(double spot, double maturity,
+                                          double sigma, double r, double q) {
+  return Ex13Call(spot, maturity, sigma, r, q) -
+         Ex13Put(spot, maturity, sigma, r, q) -
+         spot * (std::exp(-q * maturity) - std::exp(-r * maturity));
 }
 // The same gap for (6.102)-(6.103): S (e^(-rT) - 1 + (r - q)T + 1 - e^(-qT)) !=
 // 0.
-[[nodiscard]] inline double ex13_parity_gap_6103(double S, double T,
-                                                 double sigma, double r,
-                                                 double q) {
-  return atm_call_approx(S, T, sigma, r, q) -
-         atm_put_approx(S, T, sigma, r, q) -
-         S * (std::exp(-q * T) - std::exp(-r * T));
+[[nodiscard]] inline double Ex13ParityGap6103(double spot, double maturity,
+                                              double sigma, double r,
+                                              double q) {
+  return AtmCallApprox(spot, maturity, sigma, r, q) -
+         AtmPutApprox(spot, maturity, sigma, r, q) -
+         spot * (std::exp(-q * maturity) - std::exp(-r * maturity));
 }
 
-[[nodiscard]] inline Ex12Result ex13_solve(const Ex12Market& m = {}) {
-  const double a = ex13_put(m.S, m.T, m.sigma, m.r, m.q);
-  const double bs = ch03::BsPut(m.S, m.S, m.T, m.sigma, m.r, m.q);
-  return {a, bs, ex12_relative_error(bs, a)};
+[[nodiscard]] inline Ex12Result Ex13Solve(const Ex12Market& m = {}) {
+  const double a = Ex13Put(m.spot, m.maturity, m.sigma, m.r, m.q);
+  const double bs = ch03::BsPut(m.spot, m.spot, m.maturity, m.sigma, m.r, m.q);
+  return {a, bs, Ex12RelativeError(bs, a)};
 }
 
 }  // namespace p4mfe::ch06::ex

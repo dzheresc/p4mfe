@@ -14,11 +14,13 @@ from .ex12_atm_put_error import Ex12Result, ex12_relative_error
 EX14_MATURITIES = (3.0, 5.0, 10.0, 20.0)
 
 
-def ex14_row(T: float, S: float = 40.0, sigma: float = 0.3) -> Ex12Result:
-    a = atm_price_approx(S, T, sigma)
-    bs = bs_put(S, S, T, sigma, 0.0, 0.0)
+def ex14_row(
+    maturity: float, spot: float = 40.0, sigma: float = 0.3
+) -> Ex12Result:
+    a = atm_price_approx(spot, maturity, sigma)
+    bs = bs_put(spot, spot, maturity, sigma, 0.0, 0.0)
     return Ex12Result(a, bs, ex12_relative_error(bs, a))
 
 
 def ex14_table() -> list[Ex12Result]:
-    return [ex14_row(T) for T in EX14_MATURITIES]
+    return [ex14_row(maturity) for maturity in EX14_MATURITIES]

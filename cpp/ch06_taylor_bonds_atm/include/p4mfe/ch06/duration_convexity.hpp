@@ -32,57 +32,56 @@ namespace p4mfe::ch06 {
 using ch02::CashFlows;
 
 // dD/dy = D^2 - C.
-[[nodiscard]] constexpr double duration_derivative(double D,
-                                                   double C) noexcept {
-  return D * D - C;
+[[nodiscard]] constexpr double DurationDerivative(double duration,
+                                                  double convexity) noexcept {
+  return duration * duration - convexity;
 }
 
 // C - D^2 = sum_i w_i (t_i - D)^2.
-[[nodiscard]] inline double cash_flow_dispersion(const CashFlows& cf,
-                                                 double y) {
+[[nodiscard]] inline double CashFlowDispersion(const CashFlows& cf, double y) {
   const auto m = ch02::ComputeBondMetrics(cf, y);
   return m.convexity - m.duration * m.duration;
 }
 
 // Convexity for a yield compounded m times a year.
-[[nodiscard]] inline double convexity_discrete(const CashFlows& cf, double y,
-                                               int m) {
+[[nodiscard]] inline double ConvexityDiscrete(const CashFlows& cf, double y,
+                                              int m) {
   if (m <= 0)
     throw std::invalid_argument("convexity_discrete: m must be positive");
   const double g = 1.0 + y / m;
-  double B = 0.0, B2 = 0.0;
+  double price = 0.0, weighted_sum = 0.0;
   for (std::size_t i = 0; i < cf.times.size(); ++i) {
     const double t = cf.times[i];
     const double v = cf.amounts[i] * ch02::DiscountFactorDiscrete(y, t, m);
-    B += v;
-    B2 += v * t * (t + 1.0 / m) / (g * g);
+    price += v;
+    weighted_sum += v * t * (t + 1.0 / m) / (g * g);
   }
-  return B2 / B;
+  return weighted_sum / price;
 }
 
 // Value-weighted averages: D_P = sum V_i D_i / sum V_i (likewise convexity).
-[[nodiscard]] inline double portfolio_average(std::span<const double> values,
-                                              std::span<const double> x) {
+[[nodiscard]] inline double PortfolioAverage(std::span<const double> values,
+                                             std::span<const double> x) {
   if (values.size() != x.size() || values.empty())
     throw std::invalid_argument(
         "portfolio_average: non-empty, same-size inputs required");
-  double V = 0.0, s = 0.0;
+  double total_value = 0.0, s = 0.0;
   for (std::size_t i = 0; i < values.size(); ++i) {
-    V += values[i];
+    total_value += values[i];
     s += values[i] * x[i];
   }
-  if (V == 0.0)
+  if (total_value == 0.0)
     throw std::invalid_argument(
         "portfolio_average: zero total value (use dollar duration)");
-  return s / V;
+  return s / total_value;
 }
-[[nodiscard]] inline double portfolio_duration(
+[[nodiscard]] inline double PortfolioDuration(
     std::span<const double> values, std::span<const double> durations) {
-  return portfolio_average(values, durations);
+  return PortfolioAverage(values, durations);
 }
-[[nodiscard]] inline double portfolio_convexity(
+[[nodiscard]] inline double PortfolioConvexity(
     std::span<const double> values, std::span<const double> convexities) {
-  return portfolio_average(values, convexities);
+  return PortfolioAverage(values, convexities);
 }
 
 }  // namespace p4mfe::ch06

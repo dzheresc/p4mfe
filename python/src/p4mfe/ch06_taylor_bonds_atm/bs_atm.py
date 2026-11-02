@@ -19,50 +19,50 @@ _INV_SQRT_2PI = 1.0 / math.sqrt(2.0 * math.pi)
 
 
 # 6.8.1 ---------------------------------------------------------------------
-def atm_price_approx(S: float, T: float, sigma: float) -> float:
-    return sigma * S * math.sqrt(T) * _INV_SQRT_2PI
+def atm_price_approx(spot: float, maturity: float, sigma: float) -> float:
+    return sigma * spot * math.sqrt(maturity) * _INV_SQRT_2PI
 
 
 def atm_call_approx(
-    S: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float, maturity: float, sigma: float, r: float, q: float = 0.0
 ) -> float:
     return (
-        atm_price_approx(S, T, sigma) * (1 - 0.5 * (r + q) * T)
-        + 0.5 * (r - q) * T * S
+        atm_price_approx(spot, maturity, sigma) * (1 - 0.5 * (r + q) * maturity)
+        + 0.5 * (r - q) * maturity * spot
     )
 
 
 def atm_put_approx(
-    S: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float, maturity: float, sigma: float, r: float, q: float = 0.0
 ) -> float:
     return (
-        atm_price_approx(S, T, sigma) * (1 - 0.5 * (r + q) * T)
-        - 0.5 * (r - q) * T * S
+        atm_price_approx(spot, maturity, sigma) * (1 - 0.5 * (r + q) * maturity)
+        - 0.5 * (r - q) * maturity * spot
     )
 
 
-def atm_implied_vol_approx(price: float, S: float, T: float) -> float:
-    if not (S > 0 and T > 0):
+def atm_implied_vol_approx(price: float, spot: float, maturity: float) -> float:
+    if not (spot > 0 and maturity > 0):
         raise ValueError("need S, T > 0")
-    return price / (S * math.sqrt(T) * _INV_SQRT_2PI)
+    return price / (spot * math.sqrt(maturity) * _INV_SQRT_2PI)
 
 
 def atm_greeks_approx(
-    option_type: OptionType, S: float, T: float, sigma: float
+    option_type: OptionType, spot: float, maturity: float, sigma: float
 ) -> Greeks:
     """First order in sigma sqrt(T), r = q = 0; see the C++ header."""
-    sT = sigma * math.sqrt(T)
-    half_d = 0.5 * sT * _INV_SQRT_2PI
+    sigma_sqrt_t = sigma * math.sqrt(maturity)
+    half_d = 0.5 * sigma_sqrt_t * _INV_SQRT_2PI
     delta = 0.5 + half_d
-    rho = S * T * (0.5 - half_d)
+    rho = spot * maturity * (0.5 - half_d)
     if option_type is OptionType.PUT:
         delta -= 1
-        rho -= S * T
+        rho -= spot * maturity
     return Greeks(
         delta=delta,
-        gamma=_INV_SQRT_2PI / (S * sT),
-        vega=S * math.sqrt(T) * _INV_SQRT_2PI,
-        theta=-0.5 * S * sigma * _INV_SQRT_2PI / math.sqrt(T),
+        gamma=_INV_SQRT_2PI / (spot * sigma_sqrt_t),
+        vega=spot * math.sqrt(maturity) * _INV_SQRT_2PI,
+        theta=-0.5 * spot * sigma * _INV_SQRT_2PI / math.sqrt(maturity),
         rho=rho,
     )
 
@@ -73,24 +73,24 @@ def norm_cdf_linear(x: float) -> float:
 
 
 def atm_call_linearized(
-    S: float, T: float, sigma: float, r: float, q: float = 0.0
+    spot: float, maturity: float, sigma: float, r: float, q: float = 0.0
 ) -> float:
-    d1, d2 = bs_d1_d2(S, S, T, sigma, r, q)
-    return S * math.exp(-q * T) * norm_cdf_linear(d1) - S * math.exp(
-        -r * T
-    ) * norm_cdf_linear(d2)
+    d1, d2 = bs_d1_d2(spot, spot, maturity, sigma, r, q)
+    return spot * math.exp(-q * maturity) * norm_cdf_linear(
+        d1
+    ) - spot * math.exp(-r * maturity) * norm_cdf_linear(d2)
 
 
 # 6.8.3 ---------------------------------------------------------------------
-def atm_price_exact(S: float, T: float, sigma: float) -> float:
-    x = 0.5 * sigma * math.sqrt(T)
-    return S * (norm_cdf(x) - norm_cdf(-x))
+def atm_price_exact(spot: float, maturity: float, sigma: float) -> float:
+    x = 0.5 * sigma * math.sqrt(maturity)
+    return spot * (norm_cdf(x) - norm_cdf(-x))
 
 
-def atm_relative_error(T: float, sigma: float) -> float:
-    a = atm_price_approx(1.0, T, sigma)
-    return (a - atm_price_exact(1.0, T, sigma)) / a
+def atm_relative_error(maturity: float, sigma: float) -> float:
+    a = atm_price_approx(1.0, maturity, sigma)
+    return (a - atm_price_exact(1.0, maturity, sigma)) / a
 
 
-def atm_relative_error_bound(T: float, sigma: float) -> float:
-    return sigma * sigma * T / 24
+def atm_relative_error_bound(maturity: float, sigma: float) -> float:
+    return sigma * sigma * maturity / 24

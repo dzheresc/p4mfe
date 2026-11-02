@@ -17,9 +17,9 @@ from ..bs_atm import atm_price_approx, atm_put_approx
 
 @dataclass(frozen=True)
 class Ex12Market:
-    S: float = 60.0
+    spot: float = 60.0
     sigma: float = 0.25
-    T: float = 1.0
+    maturity: float = 1.0
     r: float = 0.06
     q: float = 0.03
 
@@ -36,12 +36,12 @@ def ex12_relative_error(exact: float, approx: float) -> float:
 
 
 def ex12_zero_rates(m: Ex12Market = Ex12Market()) -> Ex12Result:
-    a = atm_price_approx(m.S, m.T, m.sigma)
-    bs = bs_put(m.S, m.S, m.T, m.sigma, 0.0, 0.0)
+    a = atm_price_approx(m.spot, m.maturity, m.sigma)
+    bs = bs_put(m.spot, m.spot, m.maturity, m.sigma, 0.0, 0.0)
     return Ex12Result(a, bs, ex12_relative_error(bs, a))
 
 
 def ex12_with_rates(m: Ex12Market = Ex12Market()) -> Ex12Result:
-    a = atm_put_approx(m.S, m.T, m.sigma, m.r, m.q)
-    bs = bs_put(m.S, m.S, m.T, m.sigma, m.r, m.q)
+    a = atm_put_approx(m.spot, m.maturity, m.sigma, m.r, m.q)
+    bs = bs_put(m.spot, m.spot, m.maturity, m.sigma, m.r, m.q)
     return Ex12Result(a, bs, ex12_relative_error(bs, a))

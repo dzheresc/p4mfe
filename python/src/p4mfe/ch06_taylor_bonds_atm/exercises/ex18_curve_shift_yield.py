@@ -33,8 +33,8 @@ class Ex18Result:
 
 def ex18_solve() -> Ex18Result:
     cf = ex18_cash_flows()
-    B = bond_price_from_zero_rate(cf, ex18_zero_rate)
-    return Ex18Result(B, bond_yield(cf, B))
+    price = bond_price_from_zero_rate(cf, ex18_zero_rate)
+    return Ex18Result(price, bond_yield(cf, price))
 
 
 def ex18_yield_changes() -> list[float]:

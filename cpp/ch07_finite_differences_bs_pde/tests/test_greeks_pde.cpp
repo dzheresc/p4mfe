@@ -125,7 +125,7 @@ TEST(Ch07BsPde, PdeAndGreeks) {
   const double V0 = ch03::BsCall(S, 55, 0.25, sigma, r) - c0.delta * S;
   const auto h = combine_greeks({1.0, -c0.delta}, {c0, share});
   EXPECT_NEAR(h.delta, 0.0, 1e-15);
-  EXPECT_NEAR(h.theta, ch06::theta_from_pde(V0, S, 0.0, h.gamma, sigma, r),
+  EXPECT_NEAR(h.theta, ch06::ThetaFromPde(V0, S, 0.0, h.gamma, sigma, r),
               1e-10);
   EXPECT_LT(h.theta, 0.0);  // long Gamma pays through time decay
 }

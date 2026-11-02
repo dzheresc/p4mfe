@@ -26,42 +26,42 @@ using ch02::CashFlows;
 
 // B(dr) = sum_i c_i e^(-(r(0, t_i) + dr) t_i).
 template <std::invocable<double> Z>
-[[nodiscard]] double shifted_curve_price(const CashFlows& cf, Z&& zero,
-                                         double dr) {
+[[nodiscard]] double ShiftedCurvePrice(const CashFlows& cf, Z&& zero,
+                                       double dr) {
   return ch02::BondPriceFromZeroRate(cf,
                                      [&](double t) { return zero(t) + dr; });
 }
 
 // Price, duration and convexity with respect to a parallel shift of the curve.
 template <std::invocable<double> Z>
-[[nodiscard]] BondMetrics curve_shift_metrics(const CashFlows& cf, Z&& zero) {
-  double B = 0.0, Bt = 0.0, Btt = 0.0;
+[[nodiscard]] BondMetrics CurveShiftMetrics(const CashFlows& cf, Z&& zero) {
+  double price = 0.0, price_t = 0.0, price_tt = 0.0;
   for (std::size_t i = 0; i < cf.times.size(); ++i) {
     const double t = cf.times[i];
     const double v = cf.amounts[i] * std::exp(-zero(t) * t);
-    B += v;
-    Bt += t * v;
-    Btt += t * t * v;
+    price += v;
+    price_t += t * v;
+    price_tt += t * t * v;
   }
-  return {B, Bt / B, Btt / B};
+  return {price, price_t / price, price_tt / price};
 }
 
 // Second-order Taylor estimate of B(dr) (chapter 2's duration-convexity
 // formula).
 template <std::invocable<double> Z>
-[[nodiscard]] double shifted_curve_price_approx(const CashFlows& cf, Z&& zero,
-                                                double dr) {
-  const auto m = curve_shift_metrics(cf, zero);
+[[nodiscard]] double ShiftedCurvePriceApprox(const CashFlows& cf, Z&& zero,
+                                             double dr) {
+  const auto m = CurveShiftMetrics(cf, zero);
   return ch02::PriceApproxDurationConvexity(m.price, m.duration, m.convexity,
                                             dr);
 }
 
 // Change in the bond's yield caused by a parallel shift dr of the zero curve.
 template <std::invocable<double> Z>
-[[nodiscard]] double yield_change_from_shift(const CashFlows& cf, Z&& zero,
-                                             double dr) {
+[[nodiscard]] double YieldChangeFromShift(const CashFlows& cf, Z&& zero,
+                                          double dr) {
   const double y0 = ch02::BondYield(cf, ch02::BondPriceFromZeroRate(cf, zero));
-  const double y1 = ch02::BondYield(cf, shifted_curve_price(cf, zero, dr));
+  const double y1 = ch02::BondYield(cf, ShiftedCurvePrice(cf, zero, dr));
   return y1 - y0;
 }
 

@@ -24,7 +24,7 @@ namespace p4mfe::ch06::ex {
 // the function everywhere, it is its Taylor series around 0.
 //
 // Partial sum with terms k = 0..n.
-[[nodiscard]] inline double ex08_series(double x, unsigned n) noexcept {
+[[nodiscard]] inline double Ex08Series(double x, unsigned n) noexcept {
   const double x4 = x * x * x * x;
   double term = 1.0, sum = 1.0;
   for (unsigned k = 1; k <= n; ++k) {
@@ -34,11 +34,10 @@ namespace p4mfe::ch06::ex {
   return sum;
 }
 // The same, as the average of chapter 6's e^y partial sums of degree 2n.
-[[nodiscard]] inline double ex08_series_from_exp(double x,
-                                                 unsigned n) noexcept {
-  return 0.5 * (exp_series(x * x, 2 * n) + exp_series(-x * x, 2 * n));
+[[nodiscard]] inline double Ex08SeriesFromExp(double x, unsigned n) noexcept {
+  return 0.5 * (ExpSeries(x * x, 2 * n) + ExpSeries(-x * x, 2 * n));
 }
-[[nodiscard]] inline double ex08_function(double x) { return std::cosh(x * x); }
-inline constexpr double ex08_radius = std::numeric_limits<double>::infinity();
+[[nodiscard]] inline double Ex08Function(double x) { return std::cosh(x * x); }
+inline constexpr double kEx08Radius = std::numeric_limits<double>::infinity();
 
 }  // namespace p4mfe::ch06::ex

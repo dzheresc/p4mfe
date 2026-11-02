@@ -30,17 +30,17 @@ namespace p4mfe::ch06::ex {
 using Quadratic = std::array<double, 3>;  // c0 + c1 x + c2 x^2
 
 // (i): coefficients from g(0), g'(0), g''(0).
-[[nodiscard]] inline Quadratic ex04_quadratic(double g0, double g1, double g2) {
+[[nodiscard]] inline Quadratic Ex04Quadratic(double g0, double g1, double g2) {
   const double e = std::exp(g0);
   return {e, e * g1, 0.5 * e * (g2 + g1 * g1)};
 }
-[[nodiscard]] inline Quadratic ex04_linear(double g0, double g1) {
+[[nodiscard]] inline Quadratic Ex04Linear(double g0, double g1) {
   return {std::exp(g0), std::exp(g0) * g1, 0.0};
 }
 
 // Product of two polynomials truncated to degree 2.
-[[nodiscard]] constexpr Quadratic ex04_multiply(const Quadratic& a,
-                                                const Quadratic& b) noexcept {
+[[nodiscard]] constexpr Quadratic Ex04Multiply(const Quadratic& a,
+                                               const Quadratic& b) noexcept {
   Quadratic c{0.0, 0.0, 0.0};
   for (std::size_t i = 0; i < 3; ++i)
     for (std::size_t j = 0; i + j < 3; ++j) c[i + j] += a[i] * b[j];
@@ -48,21 +48,20 @@ using Quadratic = std::array<double, 3>;  // c0 + c1 x + c2 x^2
 }
 
 // (ii): g(x) = (x + 1)^2.
-[[nodiscard]] inline Quadratic ex04_part_ii() {
-  return ex04_quadratic(1.0, 2.0, 2.0);
+[[nodiscard]] inline Quadratic Ex04PartIi() {
+  return Ex04Quadratic(1.0, 2.0, 2.0);
 }
 
 // (iii): e * [1 + 2x + (2x)^2/2] * [1 + x^2], truncated.
-[[nodiscard]] inline Quadratic ex04_part_iii() {
+[[nodiscard]] inline Quadratic Ex04PartIii() {
   const Quadratic e2x{1.0, 2.0, 2.0};
   const Quadratic ex2{1.0, 0.0, 1.0};
-  auto c = ex04_multiply(e2x, ex2);
+  auto c = Ex04Multiply(e2x, ex2);
   for (double& v : c) v *= std::numbers::e;
   return c;
 }
 
-[[nodiscard]] constexpr double ex04_eval(const Quadratic& c,
-                                         double x) noexcept {
+[[nodiscard]] constexpr double Ex04Eval(const Quadratic& c, double x) noexcept {
   return c[0] + x * (c[1] + x * c[2]);
 }
 

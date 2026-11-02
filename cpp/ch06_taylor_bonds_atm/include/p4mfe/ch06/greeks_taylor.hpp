@@ -25,42 +25,45 @@ namespace p4mfe::ch06 {
 using ch03::Greeks;
 
 // First order in dS only: dV ~ Delta dS.
-[[nodiscard]] constexpr double option_change_delta(const Greeks& g,
-                                                   double dS) noexcept {
-  return g.delta * dS;
+[[nodiscard]] constexpr double OptionChangeDelta(const Greeks& g,
+                                                 double d_spot) noexcept {
+  return g.delta * d_spot;
 }
 
 // Delta-Gamma: dV ~ Delta dS + 1/2 Gamma dS^2.
-[[nodiscard]] constexpr double option_change_delta_gamma(const Greeks& g,
-                                                         double dS) noexcept {
-  return ch03::PortfolioChangeApprox(g.delta, g.gamma, dS);
+[[nodiscard]] constexpr double OptionChangeDeltaGamma(const Greeks& g,
+                                                      double d_spot) noexcept {
+  return ch03::PortfolioChangeApprox(g.delta, g.gamma, d_spot);
 }
 
 // Full approximation: Delta, Gamma, Theta, Vega and Rho terms.
-[[nodiscard]] constexpr double option_change_taylor(const Greeks& g, double dS,
-                                                    double dt,
-                                                    double dsigma = 0.0,
-                                                    double dr = 0.0) noexcept {
-  return ch03::PortfolioChangeApprox(g.delta, g.gamma, dS, g.theta, dt) +
+[[nodiscard]] constexpr double OptionChangeTaylor(const Greeks& g,
+                                                  double d_spot, double dt,
+                                                  double dsigma = 0.0,
+                                                  double dr = 0.0) noexcept {
+  return ch03::PortfolioChangeApprox(g.delta, g.gamma, d_spot, g.theta, dt) +
          g.vega * dsigma + g.rho * dr;
 }
 
 // Theta implied by the Black-Scholes PDE:
 //   Theta = r V - (r - q) S Delta - 1/2 sigma^2 S^2 Gamma.
-[[nodiscard]] constexpr double theta_from_pde(double V, double S, double delta,
-                                              double gamma, double sigma,
-                                              double r,
-                                              double q = 0.0) noexcept {
-  return r * V - (r - q) * S * delta - 0.5 * sigma * sigma * S * S * gamma;
+[[nodiscard]] constexpr double ThetaFromPde(double value, double spot,
+                                            double delta, double gamma,
+                                            double sigma, double r,
+                                            double q = 0.0) noexcept {
+  return r * value - (r - q) * spot * delta -
+         0.5 * sigma * sigma * spot * spot * gamma;
 }
 
 // Change of a Delta-neutral portfolio worth Pi with Gamma `gamma` (q = 0):
 //   dPi ~ r Pi dt + 1/2 Gamma (dS^2 - sigma^2 S^2 dt).
-[[nodiscard]] constexpr double delta_neutral_change(double Pi, double S,
-                                                    double gamma, double sigma,
-                                                    double r, double dS,
-                                                    double dt) noexcept {
-  return r * Pi * dt + 0.5 * gamma * (dS * dS - sigma * sigma * S * S * dt);
+[[nodiscard]] constexpr double DeltaNeutralChange(double portfolio_value,
+                                                  double spot, double gamma,
+                                                  double sigma, double r,
+                                                  double d_spot,
+                                                  double dt) noexcept {
+  return r * portfolio_value * dt +
+         0.5 * gamma * (d_spot * d_spot - sigma * sigma * spot * spot * dt);
 }
 
 }  // namespace p4mfe::ch06

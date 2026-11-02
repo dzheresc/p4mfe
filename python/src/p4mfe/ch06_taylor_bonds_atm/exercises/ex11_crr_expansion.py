@@ -17,15 +17,15 @@ class Ex11Tree:
     p: float
 
 
-def ex11_A(r: float, sigma: float, dt: float) -> float:
+def ex11_a(r: float, sigma: float, dt: float) -> float:
     return 0.5 * (math.exp(-r * dt) + math.exp((r + sigma**2) * dt))
 
 
 def ex11_crr(r: float, sigma: float, dt: float) -> Ex11Tree:
-    A = ex11_A(r, sigma, dt)
-    Am1 = 0.5 * (math.expm1(-r * dt) + math.expm1((r + sigma**2) * dt))
-    root = math.sqrt(Am1 * (A + 1.0))
-    u, d = A + root, A - root
+    a = ex11_a(r, sigma, dt)
+    am1 = 0.5 * (math.expm1(-r * dt) + math.expm1((r + sigma**2) * dt))
+    root = math.sqrt(am1 * (a + 1.0))
+    u, d = a + root, a - root
     return Ex11Tree(u, d, (math.exp(r * dt) - d) / (u - d))
 
 

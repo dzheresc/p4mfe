@@ -42,9 +42,9 @@ def taylor_quadratic(f: Callable[[float], float], a: float, x: float) -> float:
     return f(a) + derivative(f, a) * h + 0.5 * second_derivative(f, a) * h * h
 
 
-def taylor_remainder_bound(M: float, a: float, x: float, n: int) -> float:
+def taylor_remainder_bound(m: float, a: float, x: float, n: int) -> float:
     """M |x-a|^(n+1) / (n+1)!."""
-    return M * abs(x - a) ** (n + 1) / math.factorial(n + 1)
+    return m * abs(x - a) ** (n + 1) / math.factorial(n + 1)
 
 
 def taylor_remainder_integral(
@@ -62,16 +62,16 @@ def taylor_remainder_integral(
 
 
 # 6.2 -----------------------------------------------------------------------
-def taylor_quadratic_from(fa: float, grad, H, h) -> float:
+def taylor_quadratic_from(fa: float, grad, hessian, h) -> float:
     """f(a) + g . h + 1/2 h^T H h for given gradient and Hessian."""
-    g, H, h = (
+    g, hessian, h = (
         np.asarray(grad, float),
-        np.asarray(H, float),
+        np.asarray(hessian, float),
         np.asarray(h, float),
     )
-    if g.shape != h.shape or H.shape != (h.size, h.size):
+    if g.shape != h.shape or hessian.shape != (h.size, h.size):
         raise ValueError("size mismatch")
-    return float(fa + g @ h + 0.5 * h @ H @ h)
+    return float(fa + g @ h + 0.5 * h @ hessian @ h)
 
 
 def taylor_quadratic_nd(f: Callable[[np.ndarray], float], a, x) -> float:

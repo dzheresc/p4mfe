@@ -18,12 +18,12 @@ class Ex17Data:
     value: float = 50e6
     dv01: float = 1e4
     dollar_convexity: float = 400e6
-    B1: float = 1100.0
-    D1: float = 2.5
-    C1: float = 12.0
-    B2: float = 106.0
-    D2: float = 3.0
-    C2: float = 9.0
+    price1: float = 1100.0
+    duration1: float = 2.5
+    convexity1: float = 12.0
+    weighted_sum: float = 106.0
+    duration2: float = 3.0
+    convexity2: float = 9.0
 
 
 def ex17_portfolio(x: Ex17Data = Ex17Data()) -> DollarRisk:
@@ -31,11 +31,15 @@ def ex17_portfolio(x: Ex17Data = Ex17Data()) -> DollarRisk:
 
 
 def ex17_bond1(x: Ex17Data = Ex17Data()) -> DollarRisk:
-    return DollarRisk(x.B1, x.B1 * x.D1, x.B1 * x.C1)
+    return DollarRisk(x.price1, x.price1 * x.duration1, x.price1 * x.convexity1)
 
 
 def ex17_bond2(x: Ex17Data = Ex17Data()) -> DollarRisk:
-    return DollarRisk(x.B2, x.B2 * x.D2, x.B2 * x.C2)
+    return DollarRisk(
+        x.weighted_sum,
+        x.weighted_sum * x.duration2,
+        x.weighted_sum * x.convexity2,
+    )
 
 
 def ex17_new_value(dy: float = 0.005, x: Ex17Data = Ex17Data()) -> float:

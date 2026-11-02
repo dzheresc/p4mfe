@@ -88,11 +88,11 @@ def test_duration_convexity_connections():
     m = bond_metrics(cf, y)
     assert cash_flow_dispersion(cf, y) > 0
     h = 1e-6
-    dD = (bond_duration(cf, y + h) - bond_duration(cf, y - h)) / (2 * h)
-    assert dD == pytest.approx(
+    d_duration = (bond_duration(cf, y + h) - bond_duration(cf, y - h)) / (2 * h)
+    assert d_duration == pytest.approx(
         duration_derivative(m.duration, m.convexity), abs=1e-6
     )
-    assert dD < 0
+    assert d_duration < 0
     assert cash_flow_dispersion(
         bond_cash_flows(4.0, 0.0, 2), y
     ) == pytest.approx(0.0, abs=1e-12)
@@ -102,15 +102,15 @@ def test_duration_convexity_connections():
 def test_discrete_convexity(m):
     cf = bond_cash_flows(3.0, 0.05, 2)
     y, h = 0.06, 1e-5
-    B = bond_price_discrete(cf, y, m)
+    price = bond_price_discrete(cf, y, m)
     fd = (
         (
             bond_price_discrete(cf, y + h, m)
-            - 2 * B
+            - 2 * price
             + bond_price_discrete(cf, y - h, m)
         )
         / h**2
-        / B
+        / price
     )
     assert convexity_discrete(cf, y, m) == pytest.approx(fd, abs=1e-3)
     assert convexity_discrete(cf, y, 1_000_000) == pytest.approx(
@@ -127,12 +127,12 @@ def test_portfolio_averages():
         np.concatenate([n1 * b1.amounts, n2 * b2.amounts]),
     )
     m1, m2, mp = bond_metrics(b1, y), bond_metrics(b2, y), bond_metrics(both, y)
-    V = [n1 * m1.price, n2 * m2.price]
-    assert portfolio_duration(V, [m1.duration, m2.duration]) == pytest.approx(
-        mp.duration, abs=1e-12
-    )
+    values = [n1 * m1.price, n2 * m2.price]
+    assert portfolio_duration(
+        values, [m1.duration, m2.duration]
+    ) == pytest.approx(mp.duration, abs=1e-12)
     assert portfolio_convexity(
-        V, [m1.convexity, m2.convexity]
+        values, [m1.convexity, m2.convexity]
     ) == pytest.approx(mp.convexity, abs=1e-12)
     with pytest.raises(ValueError):
         portfolio_duration([1, -1], [2, 3])
@@ -160,10 +160,10 @@ def test_dollar_risk_and_dv01():
     assert abs(dv01_reprice(cf, y) - r.dv01()) > 1e-6
     assert dv01_central(cf, y) == pytest.approx(r.dv01(), abs=1e-8)
     for dy in (-0.01, 0.002):
-        dV = bond_price(cf, y + dy) - r.value
+        d_value = bond_price(cf, y + dy) - r.value
         assert (
-            abs(value_change_approx_convexity(r, dy) - dV)
-            < abs(value_change_approx(r, dy) - dV) / 10
+            abs(value_change_approx_convexity(r, dy) - d_value)
+            < abs(value_change_approx(r, dy) - d_value) / 10
         )
 
 
@@ -185,14 +185,16 @@ def test_immunization():
     y = 0.045
     port_cf = bond_cash_flows(7.0, 0.05, 2)
     h1_cf, h2_cf = bond_cash_flows(2.0, 0.03, 2), bond_cash_flows(20.0, 0.06, 2)
-    P = scale(bond_dollar_risk(port_cf, y), 1000.0)
-    H1, H2 = bond_dollar_risk(h1_cf, y), bond_dollar_risk(h2_cf, y)
-    im = immunize(P, H1, H2)
-    total = portfolio_dollar_risk([1.0, im.units1, im.units2], [P, H1, H2])
+    portfolio = scale(bond_dollar_risk(port_cf, y), 1000.0)
+    hedge1, hedge2 = bond_dollar_risk(h1_cf, y), bond_dollar_risk(h2_cf, y)
+    im = immunize(portfolio, hedge1, hedge2)
+    total = portfolio_dollar_risk(
+        [1.0, im.units1, im.units2], [portfolio, hedge1, hedge2]
+    )
     assert total.value + im.cash == pytest.approx(0.0, abs=1e-8)
     assert total.dollar_duration == pytest.approx(0.0, abs=1e-7)
     assert total.dollar_convexity == pytest.approx(0.0, abs=1e-5)
-    q = duration_hedge_units(P, H1)
+    q = duration_hedge_units(portfolio, hedge1)
 
     def value(dy, u1, u2, cash):
         return (
@@ -204,9 +206,9 @@ def test_immunization():
 
     for dy in (-0.01, -0.001, 0.005):
         immunized = value(dy, im.units1, im.units2, im.cash)
-        duration_only = value(dy, q, 0, -(P.value + q * H1.value))
-        unhedged = value(dy, 0, 0, -P.value)
+        duration_only = value(dy, q, 0, -(portfolio.value + q * hedge1.value))
+        unhedged = value(dy, 0, 0, -portfolio.value)
         assert abs(immunized) < abs(duration_only) / 5
         assert abs(duration_only) < abs(unhedged) / 5
     with pytest.raises(ValueError):
-        immunize(P, H1, scale(H1, 2.0))
+        immunize(portfolio, hedge1, scale(hedge1, 2.0))

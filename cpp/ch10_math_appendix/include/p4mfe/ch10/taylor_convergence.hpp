@@ -28,7 +28,7 @@ namespace p4mfe::ch10 {
 // C (M |x - a|)^(n+1) / (n+1)!, via chapter 6's Lagrange remainder bound.
 [[nodiscard]] inline double taylor_bound_geometric(double C, double M, double a,
                                                    double x, unsigned n) {
-  return ch06::taylor_remainder_bound(C * std::pow(M, n + 1), a, x, n);
+  return ch06::TaylorRemainderBound(C * std::pow(M, n + 1), a, x, n);
 }
 
 // Smallest n with C (M |x-a|)^(n+1) / (n+1)! < tol.

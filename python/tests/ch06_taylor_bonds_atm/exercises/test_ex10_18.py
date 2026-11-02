@@ -49,9 +49,9 @@ def test_ex10_log_product_integral():
         assert ex10_moment_numerical(n) == pytest.approx(
             ex10_moment(n), abs=1e-8
         )
-    for N in (10, 100, 1000):
-        tail = EX10_EXACT - ex10_partial_sum(N)
-        assert 0 < tail < 0.5 / N**2
+    for num_terms in (10, 100, 1000):
+        tail = EX10_EXACT - ex10_partial_sum(num_terms)
+        assert 0 < tail < 0.5 / num_terms**2
     for n in range(1, 51):
         assert 1 / (n * (n + 1) ** 2) == pytest.approx(
             1 / n - 1 / (n + 1) - 1 / (n + 1) ** 2, abs=1e-15
@@ -92,12 +92,15 @@ def test_ex12_atm_put():
 def test_ex13_parity():
     for r in (0.0, 0.06, 0.1):
         for q in (0.0, 0.03):
-            for T in (0.25, 1.0, 5.0):
-                assert ex13_parity_gap(60.0, T, 0.25, r, q) == pytest.approx(
-                    0.0, abs=1e-12
-                )
+            for maturity in (0.25, 1.0, 5.0):
+                assert ex13_parity_gap(
+                    60.0, maturity, 0.25, r, q
+                ) == pytest.approx(0.0, abs=1e-12)
                 if r != q:
-                    assert abs(ex13_parity_gap_6103(60.0, T, 0.25, r, q)) > 1e-6
+                    assert (
+                        abs(ex13_parity_gap_6103(60.0, maturity, 0.25, r, q))
+                        > 1e-6
+                    )
     res = ex13_solve()
     assert res.approx == pytest.approx(4.861031, abs=5e-7)
     assert res.relative_error == pytest.approx(0.005311, abs=5e-7)

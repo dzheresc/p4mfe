@@ -48,5 +48,5 @@ def ex06_k(t: float) -> float:
 
 
 def ex06_k_prime(t: float) -> float:
-    D = 12.0 + 6.0 * t - t * t
-    return t**3 * (24.0 - t) / ((1.0 + t) * D * D)
+    d = 12.0 + 6.0 * t - t * t
+    return t**3 * (24.0 - t) / ((1.0 + t) * d * d)

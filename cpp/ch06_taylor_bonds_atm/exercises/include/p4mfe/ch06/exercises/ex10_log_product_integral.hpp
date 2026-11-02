@@ -32,36 +32,36 @@ namespace p4mfe::ch06::ex {
 // (iv) Partial fractions: 1/(n(n+1)^2) = 1/n - 1/(n+1) - 1/(n+1)^2. The first
 // two telescope to 1, and sum_{n>=1} 1/(n+1)^2 = pi^2/6 - 1, so
 //   I = 1 - (pi^2/6 - 1) = 2 - pi^2/6 = 0.355065933151774.
-[[nodiscard]] inline double ex10_integrand(double x) {
+[[nodiscard]] inline double Ex10Integrand(double x) {
   return std::log1p(-x) * std::log(x);
 }
-inline constexpr double ex10_exact =
+inline constexpr double kEx10Exact =
     2.0 - std::numbers::pi * std::numbers::pi / 6.0;
 
 // The integral by chapter 2's midpoint-rule driver, which never evaluates the
 // endpoints where the logs are infinite.
-[[nodiscard]] inline double ex10_numerical(double tol = 1e-10) {
-  return ch02::ImproperIntegral(ex10_integrand, 0.0, 1.0, tol).value;
+[[nodiscard]] inline double Ex10Numerical(double tol = 1e-10) {
+  return ch02::ImproperIntegral(Ex10Integrand, 0.0, 1.0, tol).value;
 }
 // int_0^1 x^n ln x dx = -1/(n+1)^2, and the same numerically.
-[[nodiscard]] constexpr double ex10_moment(unsigned n) noexcept {
+[[nodiscard]] constexpr double Ex10Moment(unsigned n) noexcept {
   const double m = static_cast<double>(n) + 1.0;
   return -1.0 / (m * m);
 }
 // Numerically after x = e^(-s): int_0^1 x^n ln x dx = -int_0^inf s e^(-(n+1) s)
 // ds, which removes the ln singularity at 0 (for n = 0 the midpoint rule on [0,
 // 1] would converge only like h).
-[[nodiscard]] inline double ex10_moment_numerical(unsigned n,
-                                                  double tol = 1e-11) {
+[[nodiscard]] inline double Ex10MomentNumerical(unsigned n,
+                                                double tol = 1e-11) {
   const double m = static_cast<double>(n) + 1.0;
   return ch02::ImproperIntegral([m](double s) { return -s * std::exp(-m * s); },
                                 0.0, ch02::kInfinity, tol)
       .value;
 }
 // Partial sum sum_{n=1}^N 1/(n(n+1)^2); the tail is below 1/(2 N^2).
-[[nodiscard]] inline double ex10_partial_sum(unsigned N) noexcept {
+[[nodiscard]] inline double Ex10PartialSum(unsigned num_terms) noexcept {
   double s = 0.0;
-  for (unsigned n = N; n >= 1; --n) {  // smallest terms first
+  for (unsigned n = num_terms; n >= 1; --n) {  // smallest terms first
     const double m = static_cast<double>(n);
     s += 1.0 / (m * (m + 1.0) * (m + 1.0));
   }

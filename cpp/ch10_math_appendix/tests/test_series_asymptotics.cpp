@@ -54,10 +54,10 @@ TEST(Ch10BigO, LargeN) {
 // ----------------------------------------------------------------- 10.6 ---
 TEST(Ch10PowerSeries, MatchesChapter6PartialSums) {
   for (double x : {-0.6, 0.3, 0.9}) {
-    EXPECT_NEAR(exp_power_series(12)(x), ch06::exp_series(x, 12), 1e-15);
-    EXPECT_NEAR(geometric_power_series(30)(x), ch06::geometric_series(x, 30),
+    EXPECT_NEAR(exp_power_series(12)(x), ch06::ExpSeries(x, 12), 1e-15);
+    EXPECT_NEAR(geometric_power_series(30)(x), ch06::GeometricSeries(x, 30),
                 1e-14);
-    EXPECT_NEAR(log1p_power_series(40)(x), ch06::log1p_series(x, 40), 1e-14);
+    EXPECT_NEAR(log1p_power_series(40)(x), ch06::Log1pSeries(x, 40), 1e-14);
   }
 }
 

@@ -25,21 +25,21 @@ namespace p4mfe::ch06::ex {
 // The linearization of e^(-rT), e^(-qT) breaks down as (r + q)T grows: at
 // T = 20 the factor 1 - (r + q)T/2 is 0.35 and the "price" is negative. Only
 // the 1-year value is usable.
-inline constexpr std::array<double, 5> ex15_maturities{1.0, 3.0, 5.0, 10.0,
+inline constexpr std::array<double, 5> kEx15Maturities{1.0, 3.0, 5.0, 10.0,
                                                        20.0};
 
-[[nodiscard]] inline Ex12Result ex15_row(double T, double S = 40.0,
-                                         double sigma = 0.3, double r = 0.045,
-                                         double q = 0.02) {
-  const double a = atm_put_approx(S, T, sigma, r, q);
-  const double bs = ch03::BsPut(S, S, T, sigma, r, q);
-  return {a, bs, ex12_relative_error(bs, a)};
+[[nodiscard]] inline Ex12Result Ex15Row(double maturity, double spot = 40.0,
+                                        double sigma = 0.3, double r = 0.045,
+                                        double q = 0.02) {
+  const double a = AtmPutApprox(spot, maturity, sigma, r, q);
+  const double bs = ch03::BsPut(spot, spot, maturity, sigma, r, q);
+  return {a, bs, Ex12RelativeError(bs, a)};
 }
 
-[[nodiscard]] inline std::array<Ex12Result, 5> ex15_table() {
+[[nodiscard]] inline std::array<Ex12Result, 5> Ex15Table() {
   std::array<Ex12Result, 5> out{};
   for (std::size_t i = 0; i < out.size(); ++i)
-    out[i] = ex15_row(ex15_maturities[i]);
+    out[i] = Ex15Row(kEx15Maturities[i]);
   return out;
 }
 

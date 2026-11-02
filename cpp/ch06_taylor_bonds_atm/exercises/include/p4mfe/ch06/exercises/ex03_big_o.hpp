@@ -21,15 +21,15 @@ namespace p4mfe::ch06::ex {
 //
 // Evaluated as expm1(-x) + x/(1 + x), which avoids the cancellation of the
 // two leading 1's for small x.
-[[nodiscard]] inline double ex03_difference(double x) {
+[[nodiscard]] inline double Ex03Difference(double x) {
   return std::expm1(-x) + x / (1.0 + x);
 }
-[[nodiscard]] constexpr double ex03_leading(double x) noexcept {
+[[nodiscard]] constexpr double Ex03Leading(double x) noexcept {
   return -0.5 * x * x;
 }
-[[nodiscard]] constexpr double ex03_two_terms(double x) noexcept {
+[[nodiscard]] constexpr double Ex03TwoTerms(double x) noexcept {
   return x * x * (-0.5 + 5.0 / 6.0 * x);
 }
-inline constexpr double ex03_big_o_constant = 2.0;  // valid for |x| <= 1/2
+inline constexpr double kEx03BigOConstant = 2.0;  // valid for |x| <= 1/2
 
 }  // namespace p4mfe::ch06::ex

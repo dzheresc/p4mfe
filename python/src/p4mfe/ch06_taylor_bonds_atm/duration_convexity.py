@@ -15,9 +15,9 @@ import numpy as np
 from p4mfe.ch02_integration_bonds.bonds import CashFlows, bond_metrics
 
 
-def duration_derivative(D: float, C: float) -> float:
+def duration_derivative(duration: float, convexity: float) -> float:
     """dD/dy = D^2 - C."""
-    return D * D - C
+    return duration * duration - convexity
 
 
 def cash_flow_dispersion(cf: CashFlows, y: float) -> float:
@@ -35,13 +35,13 @@ def convexity_discrete(cf: CashFlows, y: float, m: int) -> float:
 
 
 def portfolio_average(values: Sequence[float], x: Sequence[float]) -> float:
-    V, x = np.asarray(values, float), np.asarray(x, float)
-    if V.shape != x.shape or V.size == 0:
+    v, x = np.asarray(values, float), np.asarray(x, float)
+    if v.shape != x.shape or v.size == 0:
         raise ValueError("non-empty, same-size inputs required")
-    total = float(V.sum())
+    total = float(v.sum())
     if total == 0:
         raise ValueError("zero total value (use dollar duration)")
-    return float(V @ x) / total
+    return float(v @ x) / total
 
 
 def portfolio_duration(values, durations) -> float:

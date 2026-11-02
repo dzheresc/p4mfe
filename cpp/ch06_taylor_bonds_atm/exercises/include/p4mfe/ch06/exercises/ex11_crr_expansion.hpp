@@ -41,28 +41,28 @@ struct Ex11Tree {
   double u, d, p;
 };
 
-[[nodiscard]] inline double ex11_A(double r, double sigma, double dt) {
+[[nodiscard]] inline double Ex11A(double r, double sigma, double dt) {
   return 0.5 * (std::exp(-r * dt) + std::exp((r + sigma * sigma) * dt));
 }
 // (6.131)-(6.133). sqrt(A^2 - 1) is computed as sqrt((A - 1)(A + 1)) with
 // A - 1 from expm1, which avoids the cancellation in A^2 - 1 for small dt.
-[[nodiscard]] inline Ex11Tree ex11_crr(double r, double sigma, double dt) {
-  const double A = ex11_A(r, sigma, dt);
-  const double Am1 =
+[[nodiscard]] inline Ex11Tree Ex11Crr(double r, double sigma, double dt) {
+  const double a = Ex11A(r, sigma, dt);
+  const double am1 =
       0.5 * (std::expm1(-r * dt) + std::expm1((r + sigma * sigma) * dt));
-  const double root = std::sqrt(Am1 * (A + 1.0));
-  const double u = A + root, d = A - root;
+  const double root = std::sqrt(am1 * (a + 1.0));
+  const double u = a + root, d = a - root;
   return {u, d, (std::exp(r * dt) - d) / (u - d)};
 }
 // (6.134)-(6.136).
-[[nodiscard]] inline Ex11Tree ex11_approx(double r, double sigma, double dt) {
+[[nodiscard]] inline Ex11Tree Ex11Approx(double r, double sigma, double dt) {
   const double s = sigma * std::sqrt(dt);
   return {std::exp(s), std::exp(-s),
           0.5 + 0.5 * (r / sigma - 0.5 * sigma) * std::sqrt(dt)};
 }
 // Leading coefficient of u_CRR - e^(sigma sqrt(dt)) in powers of dt^(3/2).
-[[nodiscard]] constexpr double ex11_u_coefficient(double r,
-                                                  double sigma) noexcept {
+[[nodiscard]] constexpr double Ex11UCoefficient(double r,
+                                                double sigma) noexcept {
   return r * (r + sigma * sigma) / (2.0 * sigma) +
          5.0 * sigma * sigma * sigma / 24.0;
 }

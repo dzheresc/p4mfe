@@ -31,9 +31,9 @@ def header(title: str) -> None:
     print(f"\n== {title} ==")
 
 
-def put_row(T, r) -> None:
+def put_row(maturity, r) -> None:
     print(
-        f"  T = {T:4.0f}  P_approx = {r.approx:10.6f}  P_BS = {r.black_scholes:10.6f}"
+        f"  T = {maturity:4.0f}  P_approx = {r.approx:10.6f}  P_BS = {r.black_scholes:10.6f}"
         f"  rel. error = {100 * r.relative_error:8.4f}%"
     )
 
@@ -120,12 +120,12 @@ def main() -> None:
     )
 
     header("Ex 14: ATM put, K = 40, sigma = 30%, r = q = 0")
-    for T, r in zip(EX14_MATURITIES, ex14_table()):
-        put_row(T, r)
+    for maturity, r in zip(EX14_MATURITIES, ex14_table()):
+        put_row(maturity, r)
 
     header("Ex 15: ATM put, K = 40, sigma = 30%, r = 4.5%, q = 2%")
-    for T, r in zip(EX15_MATURITIES, ex15_table()):
-        put_row(T, r)
+    for maturity, r in zip(EX15_MATURITIES, ex15_table()):
+        put_row(maturity, r)
 
     header("Ex 16: B = 101, D = 1.5, C = 2.5")
     for row in ex16_table():

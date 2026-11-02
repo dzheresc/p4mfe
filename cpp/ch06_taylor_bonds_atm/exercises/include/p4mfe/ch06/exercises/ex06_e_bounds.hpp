@@ -36,42 +36,42 @@ namespace p4mfe::ch06::ex {
 //   (1/t + 1/2) ln(1 + t) = 1 + t^2/12 + O(t^3),
 //   (1/t + 1/2 - t/12) ln(1 + t) = 1 - t^3/24 + O(t^4),
 // so both bounds approach e, the lower one at rate 1/x^3, the upper at 1/x^2.
-[[nodiscard]] constexpr double ex06_lower_exponent(double x) noexcept {
+[[nodiscard]] constexpr double Ex06LowerExponent(double x) noexcept {
   return x + 0.5 - 1.0 / (12.0 * x);
 }
-[[nodiscard]] constexpr double ex06_upper_exponent(double x) noexcept {
+[[nodiscard]] constexpr double Ex06UpperExponent(double x) noexcept {
   return x + 0.5;
 }
 
-[[nodiscard]] inline double ex06_lower(double x) {
-  return std::exp(ex06_lower_exponent(x) * std::log1p(1.0 / x));
+[[nodiscard]] inline double Ex06Lower(double x) {
+  return std::exp(Ex06LowerExponent(x) * std::log1p(1.0 / x));
 }
-[[nodiscard]] inline double ex06_upper(double x) {
-  return std::exp(ex06_upper_exponent(x) * std::log1p(1.0 / x));
+[[nodiscard]] inline double Ex06Upper(double x) {
+  return std::exp(Ex06UpperExponent(x) * std::log1p(1.0 / x));
 }
 
 // The logs of the bounds minus 1: negative / positive iff the inequalities
 // hold. Computed in log space, which keeps the tiny gaps for large x accurate.
-[[nodiscard]] inline double ex06_log_gap_lower(double x) {
-  return ex06_lower_exponent(x) * std::log1p(1.0 / x) - 1.0;
+[[nodiscard]] inline double Ex06LogGapLower(double x) {
+  return Ex06LowerExponent(x) * std::log1p(1.0 / x) - 1.0;
 }
-[[nodiscard]] inline double ex06_log_gap_upper(double x) {
-  return ex06_upper_exponent(x) * std::log1p(1.0 / x) - 1.0;
+[[nodiscard]] inline double Ex06LogGapUpper(double x) {
+  return Ex06UpperExponent(x) * std::log1p(1.0 / x) - 1.0;
 }
 
 // The auxiliary functions of the proof and their closed-form derivatives.
-[[nodiscard]] inline double ex06_h(double t) {
+[[nodiscard]] inline double Ex06H(double t) {
   return std::log1p(t) - 2.0 * t / (2.0 + t);
 }
-[[nodiscard]] constexpr double ex06_h_prime(double t) noexcept {
+[[nodiscard]] constexpr double Ex06HPrime(double t) noexcept {
   return t * t / ((1.0 + t) * (2.0 + t) * (2.0 + t));
 }
-[[nodiscard]] inline double ex06_k(double t) {
+[[nodiscard]] inline double Ex06K(double t) {
   return 12.0 * t / (12.0 + 6.0 * t - t * t) - std::log1p(t);
 }
-[[nodiscard]] constexpr double ex06_k_prime(double t) noexcept {
-  const double D = 12.0 + 6.0 * t - t * t;
-  return t * t * t * (24.0 - t) / ((1.0 + t) * D * D);
+[[nodiscard]] constexpr double Ex06KPrime(double t) noexcept {
+  const double d = 12.0 + 6.0 * t - t * t;
+  return t * t * t * (24.0 - t) / ((1.0 + t) * d * d);
 }
 
 }  // namespace p4mfe::ch06::ex

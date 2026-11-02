@@ -30,17 +30,17 @@ struct Ex02Result {
   double bound;  // 3^x x^(n+1) / (n+1)!
 };
 
-[[nodiscard]] inline double ex02_error_bound(double x, unsigned n) {
+[[nodiscard]] inline double Ex02ErrorBound(double x, unsigned n) {
   return std::pow(3.0, x) * std::pow(x, n + 1) /
          std::tgamma(static_cast<double>(n) + 2.0);
 }
 
 // Smallest n whose remainder bound is below tol (x >= 0).
-[[nodiscard]] inline Ex02Result ex02_solve(double x = 0.25,
-                                           double tol = 0.5e-6) {
+[[nodiscard]] inline Ex02Result Ex02Solve(double x = 0.25,
+                                          double tol = 0.5e-6) {
   unsigned n = 0;
-  while (ex02_error_bound(x, n) >= tol) ++n;
-  return {n, exp_series(x, n), ex02_error_bound(x, n)};
+  while (Ex02ErrorBound(x, n) >= tol) ++n;
+  return {n, ExpSeries(x, n), Ex02ErrorBound(x, n)};
 }
 
 }  // namespace p4mfe::ch06::ex
