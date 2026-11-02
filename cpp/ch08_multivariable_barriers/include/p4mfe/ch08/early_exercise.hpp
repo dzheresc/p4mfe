@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -40,17 +41,43 @@ enum class ExerciseStyle { European, American };
     const double p = (std::exp((r - q) * dt) - d) / (u - d);
     if (!(p > 0.0 && p < 1.0)) throw std::invalid_argument("binomial_price: step too large (p not in (0, 1))");
     const double disc = std::exp(-r * dt);
+    const double pu = disc * p, pd = disc * (1.0 - p);
+    const double u2 = u * u;
+    // Values far out of the money decay geometrically down the tree and reach
+    // the subnormal range after about a thousand steps. On Intel CPUs each
+    // subnormal operation costs ~100 cycles, which made the European tree
+    // ~25x slower at n = 10,000. Values below the smallest normal double
+    // (about 1e-308, far below any price) are set to 0 instead.
+    constexpr double kTiny = std::numeric_limits<double>::min();
     std::vector<double> V(n + 1);
     for (std::size_t j = 0; j <= n; ++j)
         V[j] = ch01::payoff(type, S * std::pow(u, 2.0 * static_cast<double>(j) - static_cast<double>(n)), K);
-    for (std::size_t i = n; i-- > 0;) {
-        for (std::size_t j = 0; j <= i; ++j) {
-            V[j] = disc * (p * V[j + 1] + (1.0 - p) * V[j]);
-            if (style == ExerciseStyle::American) {
-                const double Sij = S * std::pow(u, 2.0 * static_cast<double>(j) - static_cast<double>(i));
-                V[j] = std::max(V[j], ch01::payoff(type, Sij, K));
+    if (style == ExerciseStyle::American) {
+        for (std::size_t i = n; i-- > 0;) {
+            // S u^(2j - i): one pow per row, then a factor u^2 per node.
+            double s_ij = S * std::pow(u, -static_cast<double>(i));
+            for (std::size_t j = 0; j <= i; ++j, s_ij *= u2) {
+                const double v = pu * V[j + 1] + pd * V[j];
+                V[j] = std::max(v < kTiny ? 0.0 : v, ch01::payoff(type, s_ij, K));
             }
         }
+        return V[0];
+    }
+    // European: only nodes in [lo, hi] are nonzero (a put's zeros are at the
+    // top of the tree, a call's at the bottom). The range widens by at most
+    // one node per step and is trimmed once its end values drop below kTiny,
+    // so zero nodes are never computed and subnormals never persist.
+    std::size_t lo = 0, hi = n;
+    while (lo <= n && V[lo] == 0.0) ++lo;
+    if (lo > n) return 0.0;
+    while (V[hi] == 0.0) --hi;
+    for (std::size_t i = n; i-- > 0;) {
+        lo = lo > 0 ? lo - 1 : 0;
+        hi = std::min(hi, i);
+        for (std::size_t j = lo; j <= hi; ++j) V[j] = pu * V[j + 1] + pd * V[j];
+        while (hi > lo && V[hi] < kTiny) V[hi--] = 0.0;
+        while (lo < hi && V[lo] < kTiny) V[lo++] = 0.0;
+        if (V[lo] < kTiny) return 0.0;  // lo == hi and the last value vanished
     }
     return V[0];
 }
