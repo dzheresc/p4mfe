@@ -80,10 +80,10 @@ TEST(Ch04Independent, ConvolutionOfExponentialsIsGamma) {
 }
 
 TEST(Ch04Independent, JointDensityFactorsAndCovarianceVanishes) {
-  const auto f_x = [](double x) { return p4mfe::norm_pdf(x); };
+  const auto f_x = [](double x) { return p4mfe::NormPdf(x); };
   const auto e = ch03::ExponentialDistribution(1.0);
   const auto f = IndependentJointPdf(f_x, e.pdf);
-  EXPECT_DOUBLE_EQ(f(0.3, 2.0), p4mfe::norm_pdf(0.3) * std::exp(-2.0));
+  EXPECT_DOUBLE_EQ(f(0.3, 2.0), p4mfe::NormPdf(0.3) * std::exp(-2.0));
   // E[(X + 1) Y] = E[X + 1] E[Y] = 1 for independent X, Y: integrate the
   // factored density over a box that holds all but ~1e-14 of the mass.
   const auto inner = [&](double x) {

@@ -42,7 +42,7 @@ using ch03::NormalParams;
                                               double sigma) {
   if (!(p > 0.0 && p < 1.0))
     throw std::domain_error("lognormal_quantile: need 0 < p < 1");
-  return std::exp(mu + sigma * norm_inv(p));
+  return std::exp(mu + sigma * NormInv(p));
 }
 
 // Median e^mu (the 0.5-quantile), below the mean e^(mu + sigma^2/2); the mode

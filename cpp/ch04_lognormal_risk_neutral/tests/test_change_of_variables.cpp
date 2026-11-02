@@ -9,12 +9,12 @@
 #include <p4mfe/ch04/change_of_variables.hpp>
 
 using namespace p4mfe::ch04;
-using p4mfe::norm_pdf;
+using p4mfe::NormPdf;
 namespace ch02 = p4mfe::ch02;
 namespace ch03 = p4mfe::ch03;
 
 namespace {
-const auto kPhi = [](double x) { return norm_pdf(x); };
+const auto kPhi = [](double x) { return NormPdf(x); };
 }  // namespace
 
 TEST(Ch04ChangeOfVariables, LinearOfStandardNormalIsNormal) {

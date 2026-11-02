@@ -55,7 +55,7 @@ inline constexpr double kEx02ExactDerivative =
 inline const double kEx02LeadingCoefficient = -kEx02ExactDerivative / 6.0;
 
 [[nodiscard]] inline double Ex02Forward(double h) {
-  return ForwardDifference([](double x) { return norm_cdf(x); }, 0.0, h);
+  return ForwardDifference([](double x) { return NormCdf(x); }, 0.0, h);
 }
 [[nodiscard]] inline double Ex02Error(double h) {
   return Ex02Forward(h) - kEx02ExactDerivative;

@@ -44,5 +44,5 @@ int main() {
                 m2 / count, m4 / count, tail / count);
   }
   std::printf("%10s  %10.5f  %10.5f  %10.5f  %12.6f\n", "exact", 0.0, 1.0, 3.0,
-              norm_cdf(-2.0));
+              NormCdf(-2.0));
 }

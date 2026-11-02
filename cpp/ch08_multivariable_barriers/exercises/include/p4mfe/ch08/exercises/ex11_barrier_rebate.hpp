@@ -59,8 +59,8 @@ namespace p4mfe::ch08::ex {
   const double l = std::sqrt(c.b), st = sigma * std::sqrt(maturity),
                h = std::log(barrier / spot);
   const double z = h / st + l * st;
-  return std::exp((c.a + l) * h) * norm_cdf(z) +
-         std::exp((c.a - l) * h) * norm_cdf(z - 2.0 * l * st);
+  return std::exp((c.a + l) * h) * NormCdf(z) +
+         std::exp((c.a - l) * h) * NormCdf(z - 2.0 * l * st);
 }
 
 [[nodiscard]] inline double Ex11DownAndOutCallWithRebate(

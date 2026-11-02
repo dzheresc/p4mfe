@@ -41,9 +41,9 @@ namespace p4mfe::ch04::ex {
       (std::log(spot0 / strike) + (r - q - 0.5 * sigma * sigma) * maturity) / s;
   const double d1 = d2 + s;
   return spot0 * spot0 * std::exp((r - 2.0 * q + sigma * sigma) * maturity) *
-             norm_cdf(d1 + s) -
-         2.0 * strike * spot0 * std::exp(-q * maturity) * norm_cdf(d1) +
-         strike * strike * std::exp(-r * maturity) * norm_cdf(d2);
+             NormCdf(d1 + s) -
+         2.0 * strike * spot0 * std::exp(-q * maturity) * NormCdf(d1) +
+         strike * strike * std::exp(-r * maturity) * NormCdf(d2);
 }
 
 // ----------------------------------------------------------- Exercise 13 ---
@@ -72,7 +72,7 @@ namespace p4mfe::ch04::ex {
   const double d2 = (m - std::log(strike)) / s;
   const double d1 = d2 + s;
   return std::exp(-r * maturity) *
-         (std::exp(m + 0.5 * s * s) * norm_cdf(d1) - strike * norm_cdf(d2));
+         (std::exp(m + 0.5 * s * s) * NormCdf(d1) - strike * NormCdf(d2));
 }
 
 }  // namespace p4mfe::ch04::ex

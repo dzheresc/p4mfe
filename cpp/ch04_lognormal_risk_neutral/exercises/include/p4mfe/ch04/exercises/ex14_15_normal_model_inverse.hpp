@@ -48,7 +48,7 @@ namespace p4mfe::ch04::ex {
   const double s = sigma * std::sqrt(maturity);
   const double d = (forward - strike) / s;
   return std::exp(-r * maturity) *
-         ((forward - strike) * norm_cdf(d) + s * norm_pdf(d));
+         ((forward - strike) * NormCdf(d) + s * NormPdf(d));
 }
 // e^(-rT) E_RN[(K - S(T))^+] computed directly, for the remark above.
 [[nodiscard]] inline double Ex14PutForward(double forward, double strike,
@@ -57,7 +57,7 @@ namespace p4mfe::ch04::ex {
   const double s = sigma * std::sqrt(maturity);
   const double d = (forward - strike) / s;
   return std::exp(-r * maturity) *
-         ((strike - forward) * norm_cdf(-d) + s * norm_pdf(d));
+         ((strike - forward) * NormCdf(-d) + s * NormPdf(d));
 }
 // (i) with the book's F = S(0) + rT.
 [[nodiscard]] inline double Ex14Call(double spot0, double strike,
@@ -107,9 +107,9 @@ namespace p4mfe::ch04::ex {
                                             double maturity, double sigma,
                                             double r, double q = 0.0) {
   const double d2 = ch03::BsD1D2(spot0, strike, maturity, sigma, r, q).d2;
-  return std::exp(-r * maturity) / strike * norm_cdf(d2) -
+  return std::exp(-r * maturity) / strike * NormCdf(d2) -
          Ex15InverseClaim(spot0, maturity, sigma, r, q) *
-             norm_cdf(d2 - sigma * std::sqrt(maturity));
+             NormCdf(d2 - sigma * std::sqrt(maturity));
 }
 
 }  // namespace p4mfe::ch04::ex

@@ -60,7 +60,7 @@ using ch01::OptionType;
                                           double q = 0.0) {
   const auto [d1, d2] = ch03::BsD1D2(spot, strike, maturity, sigma, r, q);
   return std::exp(-r * maturity) *
-         norm_cdf(type == OptionType::kCall ? d2 : -d2);
+         NormCdf(type == OptionType::kCall ? d2 : -d2);
 }
 
 // Asset-or-nothing: pays S_T if the option finishes in the money.
@@ -71,7 +71,7 @@ using ch01::OptionType;
                                            double q = 0.0) {
   const auto [d1, d2] = ch03::BsD1D2(spot, strike, maturity, sigma, r, q);
   return spot * std::exp(-q * maturity) *
-         norm_cdf(type == OptionType::kCall ? d1 : -d1);
+         NormCdf(type == OptionType::kCall ? d1 : -d1);
 }
 
 // The two probabilities of the call, side by side:
@@ -86,7 +86,7 @@ struct ExerciseProbabilities {
     double spot, double strike, double maturity, double sigma, double r,
     double q = 0.0) {
   const auto [d1, d2] = ch03::BsD1D2(spot, strike, maturity, sigma, r, q);
-  return {norm_cdf(d1), norm_cdf(d2)};
+  return {NormCdf(d1), NormCdf(d2)};
 }
 
 }  // namespace p4mfe::ch04

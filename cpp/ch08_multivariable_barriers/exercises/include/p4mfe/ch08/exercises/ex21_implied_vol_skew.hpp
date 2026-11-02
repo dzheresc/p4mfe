@@ -41,9 +41,9 @@ struct SmileMarket {
                                          const SmileMarket& m = {}) {
   const auto [d1, d2] =
       ch03::BsD1D2(m.spot, strike, m.maturity, sigma_imp, m.r, m.q);
-  return (d_call_d_strike + std::exp(-m.r * m.maturity) * norm_cdf(d2)) /
+  return (d_call_d_strike + std::exp(-m.r * m.maturity) * NormCdf(d2)) /
          (m.spot * std::exp(-m.q * m.maturity) * std::sqrt(m.maturity) *
-          norm_pdf(d1));
+          NormPdf(d1));
 }
 
 // A smooth skewed smile for the checks: sigma(K) = 0.2 - 0.1 k + 0.15 k^2, k =

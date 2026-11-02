@@ -88,7 +88,7 @@ template <class G>
 double RnPriceAbove(G g, double z_lo, const Case& c) {
   const auto f = [&](double z) {
     return g(PriceFromNormal(z, c.spot, c.maturity, c.sigma, c.r, c.q)) *
-           norm_pdf(z);
+           NormPdf(z);
   };
   return std::exp(-c.r * c.maturity) * ch02::SimpsonRule(f, z_lo, 12.0, 20000);
 }
@@ -132,7 +132,7 @@ TEST(Ch04Ex14, NormalModel) {
   const double forward = Ex14BookForward(spot0, r, maturity);
   // (i) closed form vs direct integration against phi.
   const ch03::ContinuousDistribution std_normal{
-      [](double z) { return norm_pdf(z); }, -ch02::kInfinity, ch02::kInfinity};
+      [](double z) { return NormPdf(z); }, -ch02::kInfinity, ch02::kInfinity};
   const double s = sigma * std::sqrt(maturity);
   const double numeric =
       std::exp(-r * maturity) *

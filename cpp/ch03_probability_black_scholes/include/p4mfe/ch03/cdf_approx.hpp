@@ -10,7 +10,7 @@
 //  * Simpson's rule on
 //      N(x) = 1/2 + 1/sqrt(2 pi) integral_0^x e^(-t^2/2) dt,
 //    with n doubled until the tolerance is met (section 2.4.1).
-// The reference p4mfe::norm_cdf uses std::erfc and is exact to rounding.
+// The reference p4mfe::NormCdf uses std::erfc and is exact to rounding.
 
 #include <cmath>
 #include <numbers>
@@ -26,7 +26,7 @@ namespace p4mfe::ch03 {
   const double z = 1.0 / (1.0 + 0.2316419 * x);
   const double poly =
       z * (kA1 + z * (kA2 + z * (kA3 + z * (kA4 + z * kA5))));  // Horner
-  return 1.0 - p4mfe::norm_pdf(x) * poly;
+  return 1.0 - p4mfe::NormPdf(x) * poly;
 }
 
 [[nodiscard]] inline double NormCdfSimpson(double x, double tol = 1e-12) {

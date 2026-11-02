@@ -43,7 +43,7 @@ template <std::invocable<double> Payoff>
                                             double r, double q = 0.0,
                                             double tol = 1e-9) {
   const ch03::ContinuousDistribution std_normal{
-      [](double z) { return norm_pdf(z); }, -ch02::kInfinity, ch02::kInfinity};
+      [](double z) { return NormPdf(z); }, -ch02::kInfinity, ch02::kInfinity};
   return ch03::ExpectedValue(
       std_normal,
       [&](double z) {
@@ -72,8 +72,8 @@ template <std::invocable<double> Payoff>
   const double forward =
       spot0 * std::exp((r - q) * maturity);  // forward price = E_RN[S_T]
   return type == OptionType::kCall
-             ? forward * norm_cdf(d1) - strike * norm_cdf(d2)
-             : strike * norm_cdf(-d2) - forward * norm_cdf(-d1);
+             ? forward * NormCdf(d1) - strike * NormCdf(d2)
+             : strike * NormCdf(-d2) - forward * NormCdf(-d1);
 }
 
 // Monte Carlo estimate of e^(-rT) E_RN[g(S_T)] with n independent draws of Z,

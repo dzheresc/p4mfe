@@ -32,8 +32,8 @@ TEST(Ch07Ex02, ForwardDifferenceOfNIsSecondOrderAtZero) {
               1e-3 * 0.07);
   // At x = 1 (N''(1) != 0) the forward difference is first order.
   const auto err1 = [](double h) {
-    return ForwardDifference([](double x) { return norm_cdf(x); }, 1.0, h) -
-           norm_pdf(1.0);
+    return ForwardDifference([](double x) { return NormCdf(x); }, 1.0, h) -
+           NormPdf(1.0);
   };
   EXPECT_NEAR(ExObservedOrder(err1, 0.05), 1.0, 0.1);
 }

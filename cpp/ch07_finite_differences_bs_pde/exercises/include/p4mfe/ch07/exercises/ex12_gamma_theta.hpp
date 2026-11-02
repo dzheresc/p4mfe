@@ -53,8 +53,8 @@ struct Ex12Market {
 [[nodiscard]] inline double Ex12Rhs(const Ex12Market& m) {
   const auto [d1, d2] =
       ch03::BsD1D2(m.spot, m.strike, m.tau, m.sigma, m.r, 0.0);
-  return 1.0 / (1.0 + m.sigma / (2.0 * m.r * std::sqrt(m.tau)) * norm_pdf(d2) /
-                          norm_cdf(d2));
+  return 1.0 / (1.0 + m.sigma / (2.0 * m.r * std::sqrt(m.tau)) * NormPdf(d2) /
+                          NormCdf(d2));
 }
 
 }  // namespace p4mfe::ch07::ex

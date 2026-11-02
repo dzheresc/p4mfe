@@ -38,14 +38,14 @@ namespace p4mfe::ch03::ex {
                                       double maturity, double sigma, double r,
                                       double q = 0.0) {
   const auto [d1, d2] = BsD1D2(spot, strike, maturity, sigma, r, q);
-  return spot * std::exp(-q * maturity) * std::sqrt(maturity) * norm_pdf(d1) *
+  return spot * std::exp(-q * maturity) * std::sqrt(maturity) * NormPdf(d1) *
          d1 * d2 / sigma;
 }
 [[nodiscard]] inline double Ex16Vanna(double spot, double strike,
                                       double maturity, double sigma, double r,
                                       double q = 0.0) {
   const auto [d1, d2] = BsD1D2(spot, strike, maturity, sigma, r, q);
-  return -std::exp(-q * maturity) * norm_pdf(d1) * d2 / sigma;
+  return -std::exp(-q * maturity) * NormPdf(d1) * d2 / sigma;
 }
 
 // ----------------------------------------------------------- Exercise 17 ---
@@ -94,8 +94,8 @@ namespace p4mfe::ch03::ex {
 [[nodiscard]] inline double Ex18AtmQEqRBracket(double maturity, double sigma,
                                                double r) {
   const double x = 0.5 * sigma * std::sqrt(maturity);
-  return r * (2.0 * norm_cdf(x) - 1.0) -
-         sigma * norm_pdf(x) / (2.0 * std::sqrt(maturity));
+  return r * (2.0 * NormCdf(x) - 1.0) -
+         sigma * NormPdf(x) / (2.0 * std::sqrt(maturity));
 }
 // The maturity where that Theta changes sign, by bisection on the bracket
 // (which is negative for small T and positive for large T).
@@ -139,8 +139,8 @@ struct StrikeDerivatives {
   const double d2 = BsD1D2(spot, strike, maturity, sigma, r, q).d2;
   const double er = std::exp(-r * maturity);
   const double second =
-      er * norm_pdf(d2) / (strike * sigma * std::sqrt(maturity));
-  return {-er * norm_cdf(d2), second, er * norm_cdf(-d2), second};
+      er * NormPdf(d2) / (strike * sigma * std::sqrt(maturity));
+  return {-er * NormCdf(d2), second, er * NormCdf(-d2), second};
 }
 
 // ----------------------------------------------------------- Exercise 21 ---

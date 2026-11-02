@@ -16,8 +16,8 @@
 using namespace p4mfe::ch04;
 namespace ch02 = p4mfe::ch02;
 namespace ch03 = p4mfe::ch03;
-using p4mfe::norm_cdf;
-using p4mfe::norm_pdf;
+using p4mfe::NormCdf;
+using p4mfe::NormPdf;
 
 namespace {
 constexpr double kS0 = 40, kK = 42, kT = 0.75, kSigma = 0.3, kR = 0.04,
@@ -97,18 +97,18 @@ TEST(Ch04RiskNeutral, DerivationRestrictsToExerciseRegion) {
   EXPECT_NEAR(spot_t(-d2), kK, 1e-12);
   // phi(z) underflows to 0 long before S_T(z) overflows; skip S_T there.
   const auto weighted = [&](double z) {
-    const double p = norm_pdf(z);
+    const double p = NormPdf(z);
     return p == 0.0 ? 0.0 : spot_t(z) * p;
   };
   const double asset_part =
       ch02::ImproperIntegral(weighted, -d2, ch02::kInfinity, 1e-10).value;
   const double cash_part =
-      ch02::ImproperIntegral([](double z) { return norm_pdf(z); }, -d2,
+      ch02::ImproperIntegral([](double z) { return NormPdf(z); }, -d2,
                              ch02::kInfinity, 1e-10)
           .value;
-  EXPECT_NEAR(asset_part, kS0 * std::exp((kR - kQ) * kT) * norm_cdf(d1),
+  EXPECT_NEAR(asset_part, kS0 * std::exp((kR - kQ) * kT) * NormCdf(d1),
               1e-8);  // completing the square
-  EXPECT_NEAR(cash_part, norm_cdf(d2), 1e-9);
+  EXPECT_NEAR(cash_part, NormCdf(d2), 1e-9);
 }
 
 TEST(Ch04RiskNeutral, MonteCarloWithinStandardErrors) {
@@ -131,13 +131,13 @@ TEST(Ch04RiskNeutral, MonteCarloWithinStandardErrors) {
 TEST(Ch04InTheMoney, ProbabilitiesUnderBothMeasures) {
   const auto [d1, d2] = ch03::BsD1D2(kS0, kK, kT, kSigma, kR, kQ);
   EXPECT_NEAR(ProbItm(OptionType::kCall, kS0, kK, kT, kSigma, kR, kQ),
-              norm_cdf(d2), 1e-15);
+              NormCdf(d2), 1e-15);
   EXPECT_NEAR(ProbItm(OptionType::kPut, kS0, kK, kT, kSigma, kR, kQ),
-              norm_cdf(-d2), 1e-15);
+              NormCdf(-d2), 1e-15);
   // Real-world: replace r by mu in d2.
   const double d2_mu = d2 + (kMu - kR) * std::sqrt(kT) / kSigma;
   EXPECT_NEAR(ProbItm(OptionType::kCall, kS0, kK, kT, kSigma, kMu, kQ),
-              norm_cdf(d2_mu), 1e-14);
+              NormCdf(d2_mu), 1e-14);
   EXPECT_GT(ProbItm(OptionType::kCall, kS0, kK, kT, kSigma, kMu, kQ),
             ProbItm(OptionType::kCall, kS0, kK, kT, kSigma, kR, kQ));
   EXPECT_NEAR(ProbBetween(35, 45, kS0, kT, kSigma, kMu, kQ),

@@ -16,7 +16,7 @@ TEST(Ch03Ex22, AtmGammaFallsWithMaturity) {
   // ~ 1/sqrt(T) as T -> 0.
   const double maturity = 1e-6;
   EXPECT_NEAR(Ex22AtmGamma(maturity) * 50 * 0.3 * std::sqrt(maturity),
-              norm_pdf(0.0), 1e-5);
+              NormPdf(0.0), 1e-5);
 }
 
 TEST(Ch03Ex23, AtmVegaRisesWithMaturity) {

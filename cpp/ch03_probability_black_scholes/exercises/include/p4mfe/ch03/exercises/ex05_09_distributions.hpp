@@ -118,8 +118,8 @@ struct Ex05Tree {
 // For mu = 0 this is sigma sqrt(2/pi). Also
 //   E[X^2] = var(X) + E[X]^2 = sigma^2 + mu^2.
 [[nodiscard]] inline double Ex08MeanAbs(double mu, double sigma) {
-  return mu * (1.0 - 2.0 * norm_cdf(-mu / sigma)) +
-         2.0 * sigma * norm_pdf(mu / sigma);
+  return mu * (1.0 - 2.0 * NormCdf(-mu / sigma)) +
+         2.0 * sigma * NormPdf(mu / sigma);
 }
 [[nodiscard]] constexpr double Ex08SecondMoment(double mu,
                                                 double sigma) noexcept {

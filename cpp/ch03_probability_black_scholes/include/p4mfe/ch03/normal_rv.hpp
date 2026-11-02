@@ -4,7 +4,7 @@
 // underlies the Black-Scholes formula.
 //
 // The standard normal density and cdf themselves, phi and N, are the shared
-// helpers p4mfe::norm_pdf and p4mfe::norm_cdf (cpp/common). Section 3.9's
+// helpers p4mfe::NormPdf and p4mfe::NormCdf (cpp/common). Section 3.9's
 // approximations of N are in cdf_approx.hpp.
 
 #include <cmath>
@@ -13,8 +13,8 @@
 
 namespace p4mfe::ch03 {
 
-using p4mfe::norm_cdf;
-using p4mfe::norm_pdf;
+using p4mfe::NormCdf;
+using p4mfe::NormPdf;
 
 // ---------------------------------------------------------------- 3.3 ------
 // Z standard normal: E[Z] = 0, var(Z) = 1, and its moment generating function
@@ -34,13 +34,13 @@ struct NormalParams {
 [[nodiscard]] inline double NormalPdf(double x, double mu, double sigma) {
   if (sigma <= 0.0)
     throw std::invalid_argument("normal_pdf: sigma must be positive");
-  return norm_pdf((x - mu) / sigma) / sigma;
+  return NormPdf((x - mu) / sigma) / sigma;
 }
 // P(X <= x) = N((x - mu) / sigma).
 [[nodiscard]] inline double NormalCdf(double x, double mu, double sigma) {
   if (sigma <= 0.0)
     throw std::invalid_argument("normal_cdf: sigma must be positive");
-  return norm_cdf((x - mu) / sigma);
+  return NormCdf((x - mu) / sigma);
 }
 
 // a X + b Y for jointly normal X, Y with correlation rho is normal with

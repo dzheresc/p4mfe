@@ -143,7 +143,7 @@ TEST(Ch08Ex21, ImpliedVolSlope) {
     const double vega = ch03::BsGreeks(OptionType::kCall, m.spot, strike,
                                        m.maturity, s, m.r, m.q)
                             .vega;
-    const double d_call = -std::exp(-m.r * m.maturity) * norm_cdf(d2) +
+    const double d_call = -std::exp(-m.r * m.maturity) * NormCdf(d2) +
                           vega * Ex21SmileSlope(strike, m);
     (void)d1;
     EXPECT_NEAR(Ex21DsigmaDK(strike, s, d_call, m), Ex21SmileSlope(strike, m),

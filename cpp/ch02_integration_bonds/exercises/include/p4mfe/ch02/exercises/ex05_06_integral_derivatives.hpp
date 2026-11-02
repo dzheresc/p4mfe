@@ -36,7 +36,7 @@ struct Ex05Params {
          (p.sigma * std::sqrt(p.maturity));
 }
 [[nodiscard]] inline double Ex05G(const Ex05Params& p, double x) {
-  return norm_cdf(Ex05B(p, x));
+  return NormCdf(Ex05B(p, x));
 }
 [[nodiscard]] inline double Ex05GPrime(const Ex05Params& p, double x) {
   const double b = Ex05B(p, x);
@@ -69,9 +69,9 @@ struct Ex05Params {
 //   integral_t^inf x phi(x) dx = phi(t),  integral_t^inf phi = 1 - N(t),
 //   g(t) = phi(t) - t (1 - N(t)),  g'(t) = -(1 - N(t)),  g''(t) = phi(t).
 [[nodiscard]] inline double Ex06GNormal(double t) {
-  return norm_pdf(t) - t * norm_cdf(-t);
+  return NormPdf(t) - t * NormCdf(-t);
 }
-[[nodiscard]] inline double Ex06GNormalPrime(double t) { return -norm_cdf(-t); }
+[[nodiscard]] inline double Ex06GNormalPrime(double t) { return -NormCdf(-t); }
 
 // g(t) for any h, by numerical integration on [t, inf).
 template <std::invocable<double> H>
@@ -95,8 +95,8 @@ struct Ex06Market {
   const double d1 = (std::log(m.spot / strike) +
                      (m.r + 0.5 * m.sigma * m.sigma) * m.maturity) /
                     sv;
-  return m.spot * norm_cdf(d1) -
-         strike * std::exp(-m.r * m.maturity) * norm_cdf(d1 - sv);
+  return m.spot * NormCdf(d1) -
+         strike * std::exp(-m.r * m.maturity) * NormCdf(d1 - sv);
 }
 
 [[nodiscard]] inline double Ex06DiscountedDensity(const Ex06Market& m,
@@ -105,7 +105,7 @@ struct Ex06Market {
   const double z = (std::log(strike / m.spot) -
                     (m.r - 0.5 * m.sigma * m.sigma) * m.maturity) /
                    sv;
-  return std::exp(-m.r * m.maturity) * norm_pdf(z) / (strike * sv);
+  return std::exp(-m.r * m.maturity) * NormPdf(z) / (strike * sv);
 }
 
 }  // namespace p4mfe::ch02::ex

@@ -82,7 +82,7 @@ template <std::invocable<double> Call>
 [[nodiscard]] inline double Ex06CallKk(const SpreadMarket& m = {}) {
   const auto [d1, d2] =
       ch03::BsD1D2(m.spot, m.strike, m.maturity, m.sigma, m.r, m.q);
-  return std::exp(-m.r * m.maturity) * norm_pdf(d2) /
+  return std::exp(-m.r * m.maturity) * NormPdf(d2) /
          (m.strike * m.sigma * std::sqrt(m.maturity));
 }
 // (iii) payoff of 1/x butterflies.

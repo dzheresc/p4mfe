@@ -90,14 +90,14 @@ struct Ex12Market {
                                         double maturity, double sigma, double r,
                                         double q = 0.0) {
   return spot * std::exp(-q * maturity) *
-         norm_cdf(BsD1D2(spot, strike, maturity, sigma, r, q).d1);
+         NormCdf(BsD1D2(spot, strike, maturity, sigma, r, q).d1);
 }
 [[nodiscard]] inline double Ex15AonDelta(double spot, double strike,
                                          double maturity, double sigma,
                                          double r, double q = 0.0) {
   const double d1 = BsD1D2(spot, strike, maturity, sigma, r, q).d1;
   return std::exp(-q * maturity) *
-         (norm_cdf(d1) + norm_pdf(d1) / (sigma * std::sqrt(maturity)));
+         (NormCdf(d1) + NormPdf(d1) / (sigma * std::sqrt(maturity)));
 }
 
 }  // namespace p4mfe::ch03::ex

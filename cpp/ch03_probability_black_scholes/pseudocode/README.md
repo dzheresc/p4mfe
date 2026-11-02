@@ -43,7 +43,7 @@ end
   The results agree.
 - The polynomial is evaluated by Horner's rule,
   `y(a1 + y(a2 + y(a3 + y(a4 + y a5))))`, rather than as a sum of powers.
-- `exp(−t^2/2)/√(2π)` is `p4mfe::norm_pdf(x)` from the shared helpers.
+- `exp(−t^2/2)/√(2π)` is `p4mfe::NormPdf(x)` from the shared helpers.
 - The code comments quote the error bound as 7.5e-8, the figure in
   Abramowitz and Stegun (formula 26.2.17). The book's text above the table
   says 7.5·10^−7; the code's bound is the tighter one.
@@ -84,7 +84,7 @@ Differences:
   book's `T − t`. For the book's usual `t = 0` the two are the same.
 - One call returns one price: `bs_price` takes an `OptionType` (`Call` or
   `Put`, from chapter 1) instead of returning `C` and `P` together.
-- `N(x)` is `p4mfe::norm_cdf`, computed from `std::erfc` (Python:
+- `N(x)` is `p4mfe::NormCdf`, computed from `std::erfc` (Python:
   `math.erfc`) and exact to rounding, not the Table 3.1 approximation.
 - `q` defaults to 0, and the code throws `std::invalid_argument`
   (`ValueError`) unless `S`, `K`, `T` and `sigma` are positive.

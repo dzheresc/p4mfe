@@ -27,7 +27,7 @@ int main() {
   for (double x : {0.5, 1.0, 2.0, 3.0})
     for (unsigned n : {4u, 10u, 20u})
       std::printf("%6.2f  %4u  %18.15f  %12.3e\n", x, n, NormCdfSeries(x, n),
-                  NormCdfSeries(x, n) - norm_cdf(x));
+                  NormCdfSeries(x, n) - NormCdf(x));
 
   std::printf("\nPercentage vs. log returns: r = ln(1 + R) ~ R - R^2/2\n");
   std::printf("%8s  %12s  %12s  %12s\n", "R", "r", "R - R^2/2", "error");

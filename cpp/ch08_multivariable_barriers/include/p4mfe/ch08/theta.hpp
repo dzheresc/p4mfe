@@ -34,7 +34,7 @@ template <std::invocable<double> Payoff>
                                      double sigma, double r, double q = 0.0,
                                      double tol = 1e-7) {
   const auto integrand = [&](double z, double tau) {
-    const double p = norm_pdf(z);
+    const double p = NormPdf(z);
     return p == 0.0
                ? 0.0
                : std::exp(-r * tau) *
