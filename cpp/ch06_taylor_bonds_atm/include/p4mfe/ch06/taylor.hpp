@@ -36,8 +36,8 @@ using ch01::Vector;
 // ---------------------------------------------------------------- 6.1 ------
 // P_n(x) from the derivatives f(a), f'(a), ..., f^(n)(a) (n = derivs.size()-1).
 // Horner-like: accumulates (x-a)^k / k! term by term.
-[[nodiscard]] inline double taylor_polynomial(std::span<const double> derivs,
-                                              double a, double x) {
+[[nodiscard]] inline double TaylorPolynomial(std::span<const double> derivs,
+                                             double a, double x) {
   if (derivs.empty())
     throw std::invalid_argument("taylor_polynomial: need at least f(a)");
   const double h = x - a;
@@ -54,28 +54,28 @@ using ch01::Vector;
 // derivatives (chapter 1):
 //   f(x) ~ f(a) + f'(a)(x-a),   f(x) ~ f(a) + f'(a)(x-a) + f''(a)(x-a)^2/2.
 template <std::invocable<double> F>
-[[nodiscard]] double taylor_linear(F&& f, double a, double x) {
+[[nodiscard]] double TaylorLinear(F&& f, double a, double x) {
   return f(a) + ch01::Derivative(f, a) * (x - a);
 }
 template <std::invocable<double> F>
-[[nodiscard]] double taylor_quadratic(F&& f, double a, double x) {
+[[nodiscard]] double TaylorQuadratic(F&& f, double a, double x) {
   const double h = x - a;
   return f(a) + ch01::Derivative(f, a) * h +
          0.5 * ch01::SecondDerivative(f, a) * h * h;
 }
 
 // Lagrange bound: |R_n(x)| <= M |x-a|^(n+1) / (n+1)!.
-[[nodiscard]] inline double taylor_remainder_bound(double M, double a, double x,
-                                                   unsigned n) {
-  return M * std::pow(std::abs(x - a), n + 1) /
+[[nodiscard]] inline double TaylorRemainderBound(double m, double a, double x,
+                                                 unsigned n) {
+  return m * std::pow(std::abs(x - a), n + 1) /
          std::tgamma(static_cast<double>(n) + 2.0);
 }
 
 // Integral form of the remainder, R_n(x) = int_a^x (x-t)^n / n! f^(n+1)(t) dt,
 // computed with chapter 2's Simpson's rule to a tolerance. `dn1` is f^(n+1).
 template <std::invocable<double> G>
-[[nodiscard]] double taylor_remainder_integral(G&& dn1, double a, double x,
-                                               unsigned n, double tol = 1e-12) {
+[[nodiscard]] double TaylorRemainderIntegral(G&& dn1, double a, double x,
+                                             unsigned n, double tol = 1e-12) {
   if (x == a) return 0.0;
   const double nfact = std::tgamma(static_cast<double>(n) + 1.0);
   const auto integrand = [&](double t) {
@@ -89,16 +89,16 @@ template <std::invocable<double> G>
 
 // ---------------------------------------------------------------- 6.2 ------
 // f(a) + g . h + 1/2 h^T H h for given f(a), gradient g and Hessian H.
-[[nodiscard]] inline double taylor_quadratic_nd(double fa, const Vector& grad,
-                                                const Matrix& H,
-                                                const Vector& h) {
+[[nodiscard]] inline double TaylorQuadraticNd(double fa, const Vector& grad,
+                                              const Matrix& hessian,
+                                              const Vector& h) {
   const std::size_t n = h.size();
-  if (grad.size() != n || H.size() != n)
+  if (grad.size() != n || hessian.size() != n)
     throw std::invalid_argument("taylor_quadratic_nd: size mismatch");
   double lin = 0.0, quad = 0.0;
   for (std::size_t i = 0; i < n; ++i) {
     lin += grad[i] * h[i];
-    for (std::size_t j = 0; j < n; ++j) quad += h[i] * H[i][j] * h[j];
+    for (std::size_t j = 0; j < n; ++j) quad += h[i] * hessian[i][j] * h[j];
   }
   return fa + lin + 0.5 * quad;
 }
@@ -106,20 +106,19 @@ template <std::invocable<double> G>
 // Same, with gradient and Hessian of f at a from chapter 1's central
 // differences.
 template <typename F>
-[[nodiscard]] double taylor_quadratic_nd(F&& f, const Vector& a,
-                                         const Vector& x) {
+[[nodiscard]] double TaylorQuadraticNd(F&& f, const Vector& a,
+                                       const Vector& x) {
   if (a.size() != x.size())
     throw std::invalid_argument("taylor_quadratic_nd: size mismatch");
   Vector h(a.size());
   for (std::size_t i = 0; i < a.size(); ++i) h[i] = x[i] - a[i];
-  return taylor_quadratic_nd(f(a), ch01::Gradient(f, a), ch01::Hessian(f, a),
-                             h);
+  return TaylorQuadraticNd(f(a), ch01::Gradient(f, a), ch01::Hessian(f, a), h);
 }
 
 // First-order (linear) multivariable Taylor approximation, f(a) + grad f(a) .
 // h.
 template <typename F>
-[[nodiscard]] double taylor_linear_nd(F&& f, const Vector& a, const Vector& x) {
+[[nodiscard]] double TaylorLinearNd(F&& f, const Vector& a, const Vector& x) {
   if (a.size() != x.size())
     throw std::invalid_argument("taylor_linear_nd: size mismatch");
   const Vector g = ch01::Gradient(f, a);
@@ -137,7 +136,7 @@ struct Partials2D {
 
 // Partials from chapter 1's central differences.
 template <std::invocable<double, double> F>
-[[nodiscard]] Partials2D partials_2d(F&& f, double a, double b) {
+[[nodiscard]] Partials2D Partials2d(F&& f, double a, double b) {
   const auto g = [&](const Vector& v) { return f(v[0], v[1]); };
   const Vector p{a, b};
   return {f(a, b),
@@ -149,14 +148,13 @@ template <std::invocable<double, double> F>
 }
 
 // Linear and quadratic two-variable Taylor approximations at (a + dx, b + dy).
-[[nodiscard]] constexpr double taylor_linear_2d(const Partials2D& d, double dx,
-                                                double dy) noexcept {
+[[nodiscard]] constexpr double TaylorLinear2d(const Partials2D& d, double dx,
+                                              double dy) noexcept {
   return d.f + d.fx * dx + d.fy * dy;
 }
-[[nodiscard]] constexpr double taylor_quadratic_2d(const Partials2D& d,
-                                                   double dx,
-                                                   double dy) noexcept {
-  return taylor_linear_2d(d, dx, dy) +
+[[nodiscard]] constexpr double TaylorQuadratic2d(const Partials2D& d, double dx,
+                                                 double dy) noexcept {
+  return TaylorLinear2d(d, dx, dy) +
          0.5 * (d.fxx * dx * dx + 2.0 * d.fxy * dx * dy + d.fyy * dy * dy);
 }
 

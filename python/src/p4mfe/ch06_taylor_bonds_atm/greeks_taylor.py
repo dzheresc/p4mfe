@@ -11,27 +11,27 @@ from p4mfe.ch03_probability_black_scholes.black_scholes import Greeks
 from p4mfe.ch03_probability_black_scholes.hedging import portfolio_change_approx
 
 
-def option_change_delta(g: Greeks, dS: float) -> float:
-    return g.delta * dS
+def option_change_delta(g: Greeks, d_spot: float) -> float:
+    return g.delta * d_spot
 
 
-def option_change_delta_gamma(g: Greeks, dS: float) -> float:
-    return portfolio_change_approx(g.delta, g.gamma, dS)
+def option_change_delta_gamma(g: Greeks, d_spot: float) -> float:
+    return portfolio_change_approx(g.delta, g.gamma, d_spot)
 
 
 def option_change_taylor(
-    g: Greeks, dS: float, dt: float, dsigma: float = 0.0, dr: float = 0.0
+    g: Greeks, d_spot: float, dt: float, dsigma: float = 0.0, dr: float = 0.0
 ) -> float:
     return (
-        portfolio_change_approx(g.delta, g.gamma, dS, g.theta, dt)
+        portfolio_change_approx(g.delta, g.gamma, d_spot, g.theta, dt)
         + g.vega * dsigma
         + g.rho * dr
     )
 
 
 def theta_from_pde(
-    V: float,
-    S: float,
+    value: float,
+    spot: float,
     delta: float,
     gamma: float,
     sigma: float,
@@ -39,16 +39,22 @@ def theta_from_pde(
     q: float = 0.0,
 ) -> float:
     """Theta = r V - (r - q) S Delta - 1/2 sigma^2 S^2 Gamma."""
-    return r * V - (r - q) * S * delta - 0.5 * sigma * sigma * S * S * gamma
+    return (
+        r * value
+        - (r - q) * spot * delta
+        - 0.5 * sigma * sigma * spot * spot * gamma
+    )
 
 
 def delta_neutral_change(
-    Pi: float,
-    S: float,
+    portfolio_value: float,
+    spot: float,
     gamma: float,
     sigma: float,
     r: float,
-    dS: float,
+    d_spot: float,
     dt: float,
 ) -> float:
-    return r * Pi * dt + 0.5 * gamma * (dS * dS - sigma * sigma * S * S * dt)
+    return r * portfolio_value * dt + 0.5 * gamma * (
+        d_spot * d_spot - sigma * sigma * spot * spot * dt
+    )

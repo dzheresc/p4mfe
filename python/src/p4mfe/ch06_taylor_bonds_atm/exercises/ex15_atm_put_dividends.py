@@ -15,16 +15,16 @@ EX15_MATURITIES = (1.0, 3.0, 5.0, 10.0, 20.0)
 
 
 def ex15_row(
-    T: float,
-    S: float = 40.0,
+    maturity: float,
+    spot: float = 40.0,
     sigma: float = 0.3,
     r: float = 0.045,
     q: float = 0.02,
 ) -> Ex12Result:
-    a = atm_put_approx(S, T, sigma, r, q)
-    bs = bs_put(S, S, T, sigma, r, q)
+    a = atm_put_approx(spot, maturity, sigma, r, q)
+    bs = bs_put(spot, spot, maturity, sigma, r, q)
     return Ex12Result(a, bs, ex12_relative_error(bs, a))
 
 
 def ex15_table() -> list[Ex12Result]:
-    return [ex15_row(T) for T in EX15_MATURITIES]
+    return [ex15_row(maturity) for maturity in EX15_MATURITIES]

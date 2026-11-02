@@ -16,37 +16,45 @@ from ..bs_atm import atm_call_approx, atm_price_approx, atm_put_approx
 from .ex12_atm_put_error import Ex12Market, Ex12Result, ex12_relative_error
 
 
-def ex13_call(S: float, T: float, sigma: float, r: float, q: float) -> float:
-    eq, er = math.exp(-q * T), math.exp(-r * T)
-    return atm_price_approx(S, T, sigma) * 0.5 * (eq + er) + 0.5 * S * (eq - er)
+def ex13_call(
+    spot: float, maturity: float, sigma: float, r: float, q: float
+) -> float:
+    eq, er = math.exp(-q * maturity), math.exp(-r * maturity)
+    return atm_price_approx(spot, maturity, sigma) * 0.5 * (
+        eq + er
+    ) + 0.5 * spot * (eq - er)
 
 
-def ex13_put(S: float, T: float, sigma: float, r: float, q: float) -> float:
-    eq, er = math.exp(-q * T), math.exp(-r * T)
-    return atm_price_approx(S, T, sigma) * 0.5 * (eq + er) - 0.5 * S * (eq - er)
+def ex13_put(
+    spot: float, maturity: float, sigma: float, r: float, q: float
+) -> float:
+    eq, er = math.exp(-q * maturity), math.exp(-r * maturity)
+    return atm_price_approx(spot, maturity, sigma) * 0.5 * (
+        eq + er
+    ) - 0.5 * spot * (eq - er)
 
 
 def ex13_parity_gap(
-    S: float, T: float, sigma: float, r: float, q: float
+    spot: float, maturity: float, sigma: float, r: float, q: float
 ) -> float:
     return (
-        ex13_call(S, T, sigma, r, q)
-        - ex13_put(S, T, sigma, r, q)
-        - S * (math.exp(-q * T) - math.exp(-r * T))
+        ex13_call(spot, maturity, sigma, r, q)
+        - ex13_put(spot, maturity, sigma, r, q)
+        - spot * (math.exp(-q * maturity) - math.exp(-r * maturity))
     )
 
 
 def ex13_parity_gap_6103(
-    S: float, T: float, sigma: float, r: float, q: float
+    spot: float, maturity: float, sigma: float, r: float, q: float
 ) -> float:
     return (
-        atm_call_approx(S, T, sigma, r, q)
-        - atm_put_approx(S, T, sigma, r, q)
-        - S * (math.exp(-q * T) - math.exp(-r * T))
+        atm_call_approx(spot, maturity, sigma, r, q)
+        - atm_put_approx(spot, maturity, sigma, r, q)
+        - spot * (math.exp(-q * maturity) - math.exp(-r * maturity))
     )
 
 
 def ex13_solve(m: Ex12Market = Ex12Market()) -> Ex12Result:
-    a = ex13_put(m.S, m.T, m.sigma, m.r, m.q)
-    bs = bs_put(m.S, m.S, m.T, m.sigma, m.r, m.q)
+    a = ex13_put(m.spot, m.maturity, m.sigma, m.r, m.q)
+    bs = bs_put(m.spot, m.spot, m.maturity, m.sigma, m.r, m.q)
     return Ex12Result(a, bs, ex12_relative_error(bs, a))

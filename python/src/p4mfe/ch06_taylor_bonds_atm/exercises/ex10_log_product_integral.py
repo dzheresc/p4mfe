@@ -35,5 +35,5 @@ def ex10_moment_numerical(n: int, tol: float = 1e-11) -> float:
     ).value
 
 
-def ex10_partial_sum(N: int) -> float:
-    return math.fsum(1.0 / (n * (n + 1) ** 2) for n in range(N, 0, -1))
+def ex10_partial_sum(num_terms: int) -> float:
+    return math.fsum(1.0 / (n * (n + 1) ** 2) for n in range(num_terms, 0, -1))

@@ -25,7 +25,7 @@ namespace p4mfe::ch06::ex {
 // singularities nearest to 0.
 //
 // Partial sum with the nonzero terms j = 0..n.
-[[nodiscard]] inline double ex07_series(double x, unsigned n) noexcept {
+[[nodiscard]] inline double Ex07Series(double x, unsigned n) noexcept {
   double power = x, sum = 0.0;
   for (unsigned j = 0; j <= n; ++j) {
     sum += power / (2.0 * j + 1.0);
@@ -34,12 +34,12 @@ namespace p4mfe::ch06::ex {
   return 2.0 * sum;
 }
 // The same from chapter 6's ln(1 + x) partial sums (degree 2n + 1), |x| < 1.
-[[nodiscard]] inline double ex07_series_from_log1p(double x, unsigned n) {
-  return log1p_series(x, 2 * n + 1) - log1p_series(-x, 2 * n + 1);
+[[nodiscard]] inline double Ex07SeriesFromLog1p(double x, unsigned n) {
+  return Log1pSeries(x, 2 * n + 1) - Log1pSeries(-x, 2 * n + 1);
 }
-[[nodiscard]] inline double ex07_function(double x) {
+[[nodiscard]] inline double Ex07Function(double x) {
   return std::log1p(x) - std::log1p(-x);
 }
-inline constexpr double ex07_radius = 1.0;
+inline constexpr double kEx07Radius = 1.0;
 
 }  // namespace p4mfe::ch06::ex

@@ -45,13 +45,13 @@ namespace p4mfe::ch06::ex {
 // series test; it diverges at x = -1.)
 
 // f(x) - P_n(x), reusing chapter 6's partial sums of ln(1 + x).
-[[nodiscard]] inline double ex09_error(double x, unsigned n) {
-  return std::log1p(x) - log1p_series(x, n);
+[[nodiscard]] inline double Ex09Error(double x, unsigned n) {
+  return std::log1p(x) - Log1pSeries(x, n);
 }
 
 // (i): the integral form, computed with chapter 2's Simpson's rule.
-[[nodiscard]] inline double ex09_error_integral(double x, unsigned n,
-                                                double tol = 1e-13) {
+[[nodiscard]] inline double Ex09ErrorIntegral(double x, unsigned n,
+                                              double tol = 1e-13) {
   if (!(x > -1.0)) throw std::domain_error("ex09_error_integral: need x > -1");
   if (x == 0.0) return 0.0;
   const double sign = (n % 2 == 0) ? 1.0 : -1.0;  // (-1)^(n+2) = (-1)^n
@@ -65,8 +65,8 @@ namespace p4mfe::ch06::ex {
 }
 
 // (ii): the middle term of (6.129), 0 <= x < 1.
-[[nodiscard]] inline double ex09_middle_bound(double x, unsigned n,
-                                              double tol = 1e-13) {
+[[nodiscard]] inline double Ex09MiddleBound(double x, unsigned n,
+                                            double tol = 1e-13) {
   if (!(x >= 0.0 && x < 1.0))
     throw std::domain_error("ex09_middle_bound: need 0 <= x < 1");
   if (x == 0.0) return 0.0;
@@ -77,14 +77,14 @@ namespace p4mfe::ch06::ex {
 }
 
 // (ii)-(iii): the final bound, |x|^n |ln(1 + x)|, valid for every |x| < 1.
-[[nodiscard]] inline double ex09_bound(double x, unsigned n) {
+[[nodiscard]] inline double Ex09Bound(double x, unsigned n) {
   if (!(std::abs(x) < 1.0)) throw std::domain_error("ex09_bound: need |x| < 1");
   return std::pow(std::abs(x), n) * std::abs(std::log1p(x));
 }
 
 // (iii): int_0^s (s - z)^n / (1 - z)^(n+1) dz, s = -x in [0, 1).
-[[nodiscard]] inline double ex09_error_negative(double x, unsigned n,
-                                                double tol = 1e-13) {
+[[nodiscard]] inline double Ex09ErrorNegative(double x, unsigned n,
+                                              double tol = 1e-13) {
   if (!(x > -1.0 && x <= 0.0))
     throw std::domain_error("ex09_error_negative: need -1 < x <= 0");
   const double s = -x;

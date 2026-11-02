@@ -41,39 +41,38 @@ struct DollarRisk {
   double dollar_duration;   // -dV/dy
   double dollar_convexity;  //  d2V/dy2
 
-  [[nodiscard]] constexpr double dv01() const noexcept {
+  [[nodiscard]] constexpr double Dv01() const noexcept {
     return dollar_duration / 10000.0;
   }
 };
 
 // ---------------------------------------------------------------- 6.7 ------
 // Dollar convexity of one bond, B C (chapter 2 gives dollar_duration = B D).
-[[nodiscard]] inline double dollar_convexity(const CashFlows& cf, double y) {
+[[nodiscard]] inline double DollarConvexity(const CashFlows& cf, double y) {
   const auto m = ch02::ComputeBondMetrics(cf, y);
   return m.price * m.convexity;
 }
 
-[[nodiscard]] inline DollarRisk bond_dollar_risk(const CashFlows& cf,
-                                                 double y) {
+[[nodiscard]] inline DollarRisk BondDollarRisk(const CashFlows& cf, double y) {
   const auto m = ch02::ComputeBondMetrics(cf, y);
   return {m.price, m.price * m.duration, m.price * m.convexity};
 }
 
 // `units` of a position with risk r.
-[[nodiscard]] constexpr DollarRisk scale(const DollarRisk& r,
+[[nodiscard]] constexpr DollarRisk Scale(const DollarRisk& r,
                                          double units) noexcept {
   return {units * r.value, units * r.dollar_duration,
           units * r.dollar_convexity};
 }
 
 // Sum of positions: everything is additive.
-[[nodiscard]] inline DollarRisk portfolio_dollar_risk(
+[[nodiscard]] inline DollarRisk PortfolioDollarRisk(
     std::span<const double> units, std::span<const DollarRisk> risks) {
   if (units.size() != risks.size())
     throw std::invalid_argument("portfolio_dollar_risk: size mismatch");
   DollarRisk p{0.0, 0.0, 0.0};
   for (std::size_t i = 0; i < units.size(); ++i) {
-    const auto s = scale(risks[i], units[i]);
+    const auto s = Scale(risks[i], units[i]);
     p.value += s.value;
     p.dollar_duration += s.dollar_duration;
     p.dollar_convexity += s.dollar_convexity;
@@ -82,22 +81,22 @@ struct DollarRisk {
 }
 
 // dV ~ -D$ dy  and  dV ~ -D$ dy + C$ dy^2 / 2.
-[[nodiscard]] constexpr double value_change_approx(const DollarRisk& r,
-                                                   double dy) noexcept {
+[[nodiscard]] constexpr double ValueChangeApprox(const DollarRisk& r,
+                                                 double dy) noexcept {
   return -r.dollar_duration * dy;
 }
-[[nodiscard]] constexpr double value_change_approx_convexity(
-    const DollarRisk& r, double dy) noexcept {
+[[nodiscard]] constexpr double ValueChangeApproxConvexity(const DollarRisk& r,
+                                                          double dy) noexcept {
   return -r.dollar_duration * dy + 0.5 * r.dollar_convexity * dy * dy;
 }
 
 // D = D$ / V and C = C$ / V, defined only for V != 0.
-[[nodiscard]] inline double duration_from_dollar(const DollarRisk& r) {
+[[nodiscard]] inline double DurationFromDollar(const DollarRisk& r) {
   if (r.value == 0.0)
     throw std::domain_error("duration_from_dollar: zero value");
   return r.dollar_duration / r.value;
 }
-[[nodiscard]] inline double convexity_from_dollar(const DollarRisk& r) {
+[[nodiscard]] inline double ConvexityFromDollar(const DollarRisk& r) {
   if (r.value == 0.0)
     throw std::domain_error("convexity_from_dollar: zero value");
   return r.dollar_convexity / r.value;
@@ -106,17 +105,17 @@ struct DollarRisk {
 // -------------------------------------------------------------- 6.7.1 ------
 // DV01 from repricing: V(y - 1bp) - V(y), and the central version
 // (V(y - 1bp) - V(y + 1bp)) / 2, which matches D$/10000 to O(bp^3).
-[[nodiscard]] inline double dv01_reprice(const CashFlows& cf, double y) {
+[[nodiscard]] inline double Dv01Reprice(const CashFlows& cf, double y) {
   return ch02::BondPrice(cf, y - 1e-4) - ch02::BondPrice(cf, y);
 }
-[[nodiscard]] inline double dv01_central(const CashFlows& cf, double y) {
+[[nodiscard]] inline double Dv01Central(const CashFlows& cf, double y) {
   return 0.5 * (ch02::BondPrice(cf, y - 1e-4) - ch02::BondPrice(cf, y + 1e-4));
 }
 
 // -------------------------------------------------------------- 6.7.2 ------
 // Duration hedge with a single bond: units with q D$_h = -D$.
-[[nodiscard]] inline double duration_hedge_units(const DollarRisk& portfolio,
-                                                 const DollarRisk& hedge) {
+[[nodiscard]] inline double DurationHedgeUnits(const DollarRisk& portfolio,
+                                               const DollarRisk& hedge) {
   if (hedge.dollar_duration == 0.0)
     throw std::invalid_argument("duration_hedge_units: hedge has zero D$");
   return -portfolio.dollar_duration / hedge.dollar_duration;
@@ -129,15 +128,15 @@ struct Immunization {
 };
 
 // Solves the 2x2 system above by Cramer's rule.
-[[nodiscard]] inline Immunization immunize(const DollarRisk& portfolio,
+[[nodiscard]] inline Immunization Immunize(const DollarRisk& portfolio,
                                            const DollarRisk& bond1,
                                            const DollarRisk& bond2) {
   const double det = bond1.dollar_duration * bond2.dollar_convexity -
                      bond2.dollar_duration * bond1.dollar_convexity;
-  const double scale_ =
+  const double scale =
       std::abs(bond1.dollar_duration * bond2.dollar_convexity) +
       std::abs(bond2.dollar_duration * bond1.dollar_convexity);
-  if (std::abs(det) <= 1e-12 * scale_)
+  if (std::abs(det) <= 1e-12 * scale)
     throw std::invalid_argument(
         "immunize: hedging bonds must have different D$/C$ ratios");
   const double q1 = (-portfolio.dollar_duration * bond2.dollar_convexity +

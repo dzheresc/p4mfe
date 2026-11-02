@@ -29,24 +29,24 @@ namespace p4mfe::ch06::ex {
 // P_BS = 4.886987, relative error (6.137) = 0.014761 (1.48%): the rate terms
 // make the approximation about six times worse here.
 struct Ex12Market {
-  double S = 60.0, sigma = 0.25, T = 1.0, r = 0.06, q = 0.03;
+  double spot = 60.0, sigma = 0.25, maturity = 1.0, r = 0.06, q = 0.03;
 };
 struct Ex12Result {
   double approx, black_scholes, relative_error;
 };
 
-[[nodiscard]] inline double ex12_relative_error(double exact, double approx) {
+[[nodiscard]] inline double Ex12RelativeError(double exact, double approx) {
   return std::abs(exact - approx) / exact;
 }
-[[nodiscard]] inline Ex12Result ex12_zero_rates(const Ex12Market& m = {}) {
-  const double a = atm_price_approx(m.S, m.T, m.sigma);
-  const double bs = ch03::BsPut(m.S, m.S, m.T, m.sigma, 0.0, 0.0);
-  return {a, bs, ex12_relative_error(bs, a)};
+[[nodiscard]] inline Ex12Result Ex12ZeroRates(const Ex12Market& m = {}) {
+  const double a = AtmPriceApprox(m.spot, m.maturity, m.sigma);
+  const double bs = ch03::BsPut(m.spot, m.spot, m.maturity, m.sigma, 0.0, 0.0);
+  return {a, bs, Ex12RelativeError(bs, a)};
 }
-[[nodiscard]] inline Ex12Result ex12_with_rates(const Ex12Market& m = {}) {
-  const double a = atm_put_approx(m.S, m.T, m.sigma, m.r, m.q);
-  const double bs = ch03::BsPut(m.S, m.S, m.T, m.sigma, m.r, m.q);
-  return {a, bs, ex12_relative_error(bs, a)};
+[[nodiscard]] inline Ex12Result Ex12WithRates(const Ex12Market& m = {}) {
+  const double a = AtmPutApprox(m.spot, m.maturity, m.sigma, m.r, m.q);
+  const double bs = ch03::BsPut(m.spot, m.spot, m.maturity, m.sigma, m.r, m.q);
+  return {a, bs, Ex12RelativeError(bs, a)};
 }
 
 }  // namespace p4mfe::ch06::ex

@@ -34,30 +34,30 @@ namespace p4mfe::ch06::ex {
 // flat over the bond's life (r1 runs from 3.83% at 6 months to 4.26% at 4
 // years), and the shortfall grows linearly in dr. A flat curve would move the
 // yield by exactly dr (section 6.5).
-[[nodiscard]] inline double ex18_zero_rate(double t) {
+[[nodiscard]] inline double Ex18ZeroRate(double t) {
   return 0.025 + std::exp(-t / 100.0) / 100.0 + t / (100.0 * (t + 1.0));
 }
-[[nodiscard]] inline ch02::CashFlows ex18_cash_flows() {
+[[nodiscard]] inline ch02::CashFlows Ex18CashFlows() {
   return ch02::BondCashFlows(4.0, 0.06, 2);
 }
 
 struct Ex18Result {
   double price, yield;
 };
-[[nodiscard]] inline Ex18Result ex18_solve() {
-  const auto cf = ex18_cash_flows();
-  const double B = ch02::BondPriceFromZeroRate(cf, ex18_zero_rate);
-  return {B, ch02::BondYield(cf, B)};
+[[nodiscard]] inline Ex18Result Ex18Solve() {
+  const auto cf = Ex18CashFlows();
+  const double price = ch02::BondPriceFromZeroRate(cf, Ex18ZeroRate);
+  return {price, ch02::BondYield(cf, price)};
 }
 
-inline constexpr std::array<double, 5> ex18_shifts{0.001, 0.002, 0.005, 0.01,
+inline constexpr std::array<double, 5> kEx18Shifts{0.001, 0.002, 0.005, 0.01,
                                                    0.02};
 
-[[nodiscard]] inline std::array<double, 5> ex18_yield_changes() {
-  const auto cf = ex18_cash_flows();
+[[nodiscard]] inline std::array<double, 5> Ex18YieldChanges() {
+  const auto cf = Ex18CashFlows();
   std::array<double, 5> out{};
   for (std::size_t i = 0; i < out.size(); ++i)
-    out[i] = yield_change_from_shift(cf, ex18_zero_rate, ex18_shifts[i]);
+    out[i] = YieldChangeFromShift(cf, Ex18ZeroRate, kEx18Shifts[i]);
   return out;
 }
 

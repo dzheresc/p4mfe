@@ -25,19 +25,20 @@ namespace p4mfe::ch06::ex {
 // roughly like sigma^2 T / 24 = 0.375% per year: it is linear in T because
 // it comes from the neglected (sigma sqrt(T))^2 term. The approximation is
 // not reliable for long-dated options.
-inline constexpr std::array<double, 4> ex14_maturities{3.0, 5.0, 10.0, 20.0};
+inline constexpr std::array<double, 4> kEx14Maturities{3.0, 5.0, 10.0, 20.0};
 
-[[nodiscard]] inline Ex12Result ex14_row(double T, double S = 40.0,
-                                         double sigma = 0.3) {
-  const double a = atm_price_approx(S, T, sigma);
-  const double bs = ch03::BsPut(S, S, T, sigma, 0.0, 0.0);
-  return {a, bs, ex12_relative_error(bs, a)};
+[[nodiscard]] inline Ex12Result Ex14ComputeRow(double maturity,
+                                               double spot = 40.0,
+                                               double sigma = 0.3) {
+  const double a = AtmPriceApprox(spot, maturity, sigma);
+  const double bs = ch03::BsPut(spot, spot, maturity, sigma, 0.0, 0.0);
+  return {a, bs, Ex12RelativeError(bs, a)};
 }
 
-[[nodiscard]] inline std::array<Ex12Result, 4> ex14_table() {
+[[nodiscard]] inline std::array<Ex12Result, 4> Ex14Table() {
   std::array<Ex12Result, 4> out{};
   for (std::size_t i = 0; i < out.size(); ++i)
-    out[i] = ex14_row(ex14_maturities[i]);
+    out[i] = Ex14ComputeRow(kEx14Maturities[i]);
   return out;
 }
 

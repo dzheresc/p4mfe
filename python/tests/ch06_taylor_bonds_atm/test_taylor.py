@@ -50,8 +50,8 @@ def test_polynomial_around_nonzero_point():
 @pytest.mark.parametrize("x", [-0.8, 0.2, 1.5])
 def test_integral_remainder_is_exact(a, x):
     d = [math.sin(a), math.cos(a), -math.sin(a), -math.cos(a)]
-    R = taylor_remainder_integral(np.sin, a, x, 3)
-    assert taylor_polynomial(d, a, x) + R == pytest.approx(
+    remainder = taylor_remainder_integral(np.sin, a, x, 3)
+    assert taylor_polynomial(d, a, x) + remainder == pytest.approx(
         math.sin(x), abs=1e-11
     )
 

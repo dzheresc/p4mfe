@@ -21,21 +21,21 @@ namespace p4mfe::ch06::ex {
 // This is also the binomial series (6.3.1) with p = 1/2 cut after k = 3.
 // The next derivative, f''''(x) = -(15/16)(1 + x)^(-7/2), gives the error
 //   sqrt(1 + x) - P_3(x) = -(5/128) x^4 + O(x^5).
-inline constexpr std::array<double, 4> ex01_derivatives_at_zero{1.0, 0.5, -0.25,
-                                                                0.375};
-inline constexpr std::array<double, 4> ex01_coefficients{1.0, 0.5, -0.125,
+inline constexpr std::array<double, 4> kEx01DerivativesAtZero{1.0, 0.5, -0.25,
+                                                              0.375};
+inline constexpr std::array<double, 4> kEx01Coefficients{1.0, 0.5, -0.125,
                                                          0.0625};
-inline constexpr double ex01_error_coefficient = -5.0 / 128.0;
+inline constexpr double kEx01ErrorCoefficient = -5.0 / 128.0;
 
-[[nodiscard]] constexpr double ex01_cubic(double x) noexcept {
-  return ex01_coefficients[0] +
-         x * (ex01_coefficients[1] +
-              x * (ex01_coefficients[2] + x * ex01_coefficients[3]));
+[[nodiscard]] constexpr double Ex01Cubic(double x) noexcept {
+  return kEx01Coefficients[0] +
+         x * (kEx01Coefficients[1] +
+              x * (kEx01Coefficients[2] + x * kEx01Coefficients[3]));
 }
 // The same polynomial built from the derivatives (chapter 6's
 // taylor_polynomial).
-[[nodiscard]] inline double ex01_cubic_from_derivatives(double x) {
-  return taylor_polynomial(ex01_derivatives_at_zero, 0.0, x);
+[[nodiscard]] inline double Ex01CubicFromDerivatives(double x) {
+  return TaylorPolynomial(kEx01DerivativesAtZero, 0.0, x);
 }
 
 }  // namespace p4mfe::ch06::ex
