@@ -85,6 +85,18 @@ overhead of a few hundred bytes from Google Benchmark itself, spread over the
 16 iterations of its memory run, so a kernel that never allocates shows about
 0.06 allocations per iteration.
 
+Baselines, comparisons and the coverage check:
+
+```sh
+tools/bench/run_baseline.sh bench/baselines/<date>-<machine>   # timing, heap, RSS, ENVIRONMENT.md, SUMMARY.md
+tools/bench/compare.py <baseline-dir> <run-dir>                 # Markdown report; exit 1 on heap growth > 5%
+tools/bench/coverage.sh                                         # needs gcovr; every public function must run
+```
+
+The `bench` workflow runs the same baseline nightly (and on demand) on a
+GitHub runner, compares it with `bench/baselines/ci` when that exists, and runs
+the coverage check.
+
 ## Pseudocode from the book
 
 The book gives pseudocode for 16 algorithms. Each chapter that has them

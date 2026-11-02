@@ -1,8 +1,12 @@
 # Performance testing plan
 
-Status: phases 1 and 2 built. The harness (CMake option, presets, counting
-allocator, size tiers, CI smoke job) and workloads W1 to W8 exist under
-`cpp/*/bench/`; the coverage check and the baseline are next.
+Status: phases 1 and 2 built; phase 3 tooling built. The harness (CMake
+option, presets, counting allocator, size tiers, CI smoke job) and workloads
+W1 to W8 exist under `cpp/*/bench/`. The coverage check passes (all 367
+public header functions run under the smoke tier, no waivers), and
+`tools/bench/` holds the baseline runner, summary, comparison and coverage
+scripts plus the nightly `bench.yml` workflow. Recording the baselines is
+next.
 
 ## Goals
 
@@ -253,6 +257,16 @@ undefined behaviour still show up.
    calls; that list must be empty or explicitly waived in
    `bench/coverage-waivers.txt` with a reason.
 
+Built as `tools/bench/coverage.sh` (preset `bench-coverage`, needs `gcovr`).
+gcov cannot list inline or template functions that nothing instantiated, so
+`tools/bench/uncovered.py` takes the public functions from the headers
+(namespace-scope declarations, `detail` namespaces and exercises excluded)
+and counts one as executed when any line of its body ran. Overloads count
+as one name. The sweep benchmarks (`bench_ch0N_*.cpp` files added for this)
+cover the small closed forms that the main workloads did not reach; at the
+smoke tier, line coverage of the chapter headers is 87%, the rest being
+mostly error branches.
+
 Branch-sensitive paths get their own cases rather than one average: Newton
 vs bisection fallback in implied vol, calls vs puts, European vs American,
 antithetic on and off, forward vs central differences, finite vs infinite
@@ -344,11 +358,17 @@ Mechanics:
 The baseline is the first deliverable after the harness itself, and no
 performance change is merged before it exists.
 
-- Command: `cmake --preset bench` then `tools/bench/run_baseline.sh`, which
-  runs the **standard** tier with 10 repetitions and the peak-RSS pass, and
-  writes JSON.
-- Stored at `bench/baselines/<date>-<machine>/`:
-  - `cpp.json` (Google Benchmark JSON, includes the memory manager fields),
+- Command: `tools/bench/run_baseline.sh <out-dir> [repetitions]`, which
+  builds the `bench` preset and runs the **standard** tier (or
+  `P4MFE_BENCH_TIER`) with 10 repetitions, a separate heap pass and the
+  peak-RSS pass.
+- Stored at `bench/baselines/<date>-<machine>/` (the runner baseline at
+  `bench/baselines/ci/`):
+  - `cpp/*.json` (Google Benchmark JSON per executable, aggregates of the
+    timing repetitions),
+  - `mem/*.json` (one run with exactly 4 iterations per benchmark, for the
+    heap counters; separate because Google Benchmark 1.9.1 keeps dangling
+    pointers to the memory results of earlier repetitions),
   - `rss.json` (peak RSS per workload),
   - `ENVIRONMENT.md`: CPU model, core count, RAM, OS and kernel, compiler and
     version, standard library, CMake build type and full flags, Google
@@ -360,8 +380,9 @@ performance change is merged before it exists.
   reference, noisy but what regressions are compared against) and one on a
   quiet local machine (the reference for judging optimizations).
 - Every later optimization PR includes a before/after table against the
-  baseline from the same machine, produced by Google Benchmark's
-  `tools/compare.py`.
+  baseline from the same machine, produced by `tools/bench/compare.py
+  <baseline> <run>` (median time, allocations per iteration, peak heap; exit
+  status 1 when heap use grows by more than 5%).
 
 ## CMake integration
 
@@ -390,8 +411,9 @@ performance change is merged before it exists.
   - Timings are reported, not gated; GitHub-hosted runners vary by 10 to 20%.
     A slowdown over 25% on the median of 10 repetitions is flagged as a
     warning.
-- **Weekly or manual**: ASan + UBSan smoke run, valgrind memcheck on the
-  exercise programs, and the coverage report.
+  The same workflow runs the coverage check.
+- **Weekly or manual** (later): ASan + UBSan smoke run and valgrind memcheck
+  on the exercise programs.
 - Updating the baseline is a deliberate PR that replaces the JSON and
   `ENVIRONMENT.md`, never automatic.
 

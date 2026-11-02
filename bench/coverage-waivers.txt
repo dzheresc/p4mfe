@@ -1,0 +1,5 @@
+# Public header functions the benchmarks may leave unexecuted, one per line:
+#   p4mfe::chNN::name   # why it is not worth a benchmark
+# A namespace prefix waives everything under it. tools/bench/coverage.sh
+# fails on any unexecuted function not listed here. Currently empty: every
+# public function is executed by the smoke tier.
