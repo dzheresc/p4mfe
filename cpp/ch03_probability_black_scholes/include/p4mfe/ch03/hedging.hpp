@@ -15,15 +15,16 @@
 namespace p4mfe::ch03 {
 
 // Second-order approximation of the change in portfolio value.
-[[nodiscard]] constexpr double portfolio_change_approx(
-    double delta, double gamma, double dS, double theta = 0.0,
-    double dt = 0.0) noexcept {
-  return delta * dS + 0.5 * gamma * dS * dS + theta * dt;
+[[nodiscard]] constexpr double PortfolioChangeApprox(double delta, double gamma,
+                                                     double d_spot,
+                                                     double theta = 0.0,
+                                                     double dt = 0.0) noexcept {
+  return delta * d_spot + 0.5 * gamma * d_spot * d_spot + theta * dt;
 }
 
 // Shares to trade so that a portfolio with Delta `portfolio_delta` becomes
 // Delta-neutral: -portfolio_delta.
-[[nodiscard]] constexpr double delta_hedge_shares(
+[[nodiscard]] constexpr double DeltaHedgeShares(
     double portfolio_delta) noexcept {
   return -portfolio_delta;
 }
@@ -38,16 +39,16 @@ struct HedgedPosition {
   double cash;
 
   // Value after dt years, when the option is worth V_new and the spot is S_new.
-  [[nodiscard]] double value(double V_new, double S_new, double r,
+  [[nodiscard]] double Value(double value_new, double spot_new, double r,
                              double dt) const {
-    return options * V_new + shares * S_new + cash * std::exp(r * dt);
+    return options * value_new + shares * spot_new + cash * std::exp(r * dt);
   }
 };
 
-[[nodiscard]] inline HedgedPosition delta_hedge(double options, double V,
-                                                double delta, double S) {
-  const double shares = delta_hedge_shares(options * delta);
-  return {options, shares, -(options * V + shares * S)};
+[[nodiscard]] inline HedgedPosition DeltaHedge(double options, double value,
+                                               double delta, double spot) {
+  const double shares = DeltaHedgeShares(options * delta);
+  return {options, shares, -(options * value + shares * spot)};
 }
 
 // Delta-Gamma neutral hedge with a second option H (Delta delta_h, Gamma
@@ -59,10 +60,9 @@ struct DeltaGammaHedge {
   double shares;
 };
 
-[[nodiscard]] inline DeltaGammaHedge delta_gamma_hedge(double portfolio_delta,
-                                                       double portfolio_gamma,
-                                                       double delta_h,
-                                                       double gamma_h) {
+[[nodiscard]] inline DeltaGammaHedge ComputeDeltaGammaHedge(
+    double portfolio_delta, double portfolio_gamma, double delta_h,
+    double gamma_h) {
   if (gamma_h == 0.0)
     throw std::invalid_argument(
         "delta_gamma_hedge: hedging option needs nonzero Gamma");

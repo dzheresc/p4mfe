@@ -51,7 +51,7 @@ struct Ex03Market {
 };
 
 [[nodiscard]] inline double ex03_f(double x, const Ex03Market& m) {
-  return ch03::bs_call(m.S, m.K, m.T, x, m.r, m.q) - m.C;
+  return ch03::BsCall(m.S, m.K, m.T, x, m.r, m.q) - m.C;
 }
 [[nodiscard]] inline double ex03_forward(const Ex03Market& m) {
   return m.S * std::exp((m.r - m.q) * m.T);

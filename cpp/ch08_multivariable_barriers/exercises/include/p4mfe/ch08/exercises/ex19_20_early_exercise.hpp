@@ -33,7 +33,7 @@ struct CallMarket {
 
 [[nodiscard]] inline double ex19_time_value(double S,
                                             const CallMarket& m = {}) {
-  return ch03::bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - std::max(S - m.K, 0.0);
+  return ch03::BsCall(S, m.K, m.T, m.sigma, m.r, m.q) - std::max(S - m.K, 0.0);
 }
 
 // The lower bound used in (i): S - K e^(-rT) - (S - K) = K (1 - e^(-rT)).
@@ -62,7 +62,7 @@ struct CallMarket {
 
 [[nodiscard]] inline double ex20_crossover(const CallMarket& m) {
   const auto f = [&](double S) {
-    return ch03::bs_call(S, m.K, m.T, m.sigma, m.r, m.q) - (S - m.K);
+    return ch03::BsCall(S, m.K, m.T, m.sigma, m.r, m.q) - (S - m.K);
   };
   const double S0 = ex20_threshold(m);
   return ch05::bisection(f, m.K, S0, {1e-12, 1e-10 * S0, 400}).x;

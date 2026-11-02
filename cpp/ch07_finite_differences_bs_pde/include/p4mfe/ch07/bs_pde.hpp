@@ -137,16 +137,16 @@ template <std::uniform_random_bit_generator G>
   const double carry =
       std::exp(q * dt) -
       1.0;  // dividends on one share over dt, per unit of price
-  double shares = ch03::bs_greeks(type, path[0], K, T, sigma, r, q).delta;
+  double shares = ch03::BsGreeks(type, path[0], K, T, sigma, r, q).delta;
   double cash =
-      ch03::bs_price(type, path[0], K, T, sigma, r, q) - shares * path[0];
+      ch03::BsPrice(type, path[0], K, T, sigma, r, q) - shares * path[0];
   for (std::size_t k = 1; k <= n; ++k) {
     const double S = path[k];
     cash = cash * growth + shares * path[k - 1] * carry;
     if (k == n) break;
     const double tau = T - static_cast<double>(k) * dt;
     const double new_shares =
-        ch03::bs_greeks(type, S, K, tau, sigma, r, q).delta;
+        ch03::BsGreeks(type, S, K, tau, sigma, r, q).delta;
     cash -= (new_shares - shares) * S;
     shares = new_shares;
   }

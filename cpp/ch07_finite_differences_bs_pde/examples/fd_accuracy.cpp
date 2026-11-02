@@ -27,10 +27,8 @@ int main() {
       optimal_step(FdScheme::Central, 2));
 
   const double S = 100, K = 100, T = 1, sigma = 0.2, r = 0.05;
-  const auto exact = ch03::bs_greeks(OptionType::kCall, S, K, T, sigma, r);
-  const auto call_S = [&](double s) {
-    return ch03::bs_call(s, K, T, sigma, r);
-  };
+  const auto exact = ch03::BsGreeks(OptionType::kCall, S, K, T, sigma, r);
+  const auto call_S = [&](double s) { return ch03::BsCall(s, K, T, sigma, r); };
   std::printf("ATM call S = K = 100, T = 1, sigma = 0.2, r = 0.05\n");
   std::printf("Delta = %.12f, Gamma = %.12f\n", exact.delta, exact.gamma);
   std::printf("%8s  %14s  %14s  %14s\n", "dS", "fwd Delta err", "cen Delta err",

@@ -53,7 +53,7 @@ struct Ex11Market {
          price_pdf(x, m.S0, m.T, m.sigma, m.r, m.q);
 }
 [[nodiscard]] inline double ex11_put_bs(const Ex11Market& m = {}) {
-  return ch03::bs_put(m.S0, m.K, m.T, m.sigma, m.r, m.q);
+  return ch03::BsPut(m.S0, m.K, m.T, m.sigma, m.r, m.q);
 }
 [[nodiscard]] inline double ex11_put_numeric(std::size_t n, ch02::Rule rule,
                                              const Ex11Market& m = {}) {

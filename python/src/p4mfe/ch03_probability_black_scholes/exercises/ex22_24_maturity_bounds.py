@@ -25,35 +25,37 @@ EX22_MATURITIES = (1 / 24, 0.25, 1.0)  # fifteen days taken as half a month
 
 
 def ex22_atm_gamma(
-    T: float, S: float = 50.0, sigma: float = 0.3, r: float = 0.05
+    maturity: float, spot: float = 50.0, sigma: float = 0.3, r: float = 0.05
 ) -> float:
-    return bs_greeks(OptionType.CALL, S, S, T, sigma, r).gamma
+    return bs_greeks(OptionType.CALL, spot, spot, maturity, sigma, r).gamma
 
 
 def ex23_atm_vega(
-    T: float, S: float = 50.0, sigma: float = 0.3, r: float = 0.0
+    maturity: float, spot: float = 50.0, sigma: float = 0.3, r: float = 0.0
 ) -> float:
-    return bs_greeks(OptionType.CALL, S, S, T, sigma, r).vega
+    return bs_greeks(OptionType.CALL, spot, spot, maturity, sigma, r).vega
 
 
 def ex23_vega_maturity_slope(
-    tau: float, S: float = 50.0, sigma: float = 0.3
+    tau: float, spot: float = 50.0, sigma: float = 0.3
 ) -> float:
     d1 = 0.5 * sigma * math.sqrt(tau)
-    return S * norm_pdf(d1) / (2 * math.sqrt(tau)) * (1 - sigma**2 * tau / 4)
+    return spot * norm_pdf(d1) / (2 * math.sqrt(tau)) * (1 - sigma**2 * tau / 4)
 
 
 def ex24_call_bounds(
-    S: float, K: float, T: float, r: float, q: float = 0.0
+    spot: float, strike: float, maturity: float, r: float, q: float = 0.0
 ) -> PriceBounds:
     return PriceBounds(
-        S * math.exp(-q * T) - K * math.exp(-r * T), S * math.exp(-q * T)
+        spot * math.exp(-q * maturity) - strike * math.exp(-r * maturity),
+        spot * math.exp(-q * maturity),
     )
 
 
 def ex24_put_bounds(
-    S: float, K: float, T: float, r: float, q: float = 0.0
+    spot: float, strike: float, maturity: float, r: float, q: float = 0.0
 ) -> PriceBounds:
     return PriceBounds(
-        K * math.exp(-r * T) - S * math.exp(-q * T), K * math.exp(-r * T)
+        strike * math.exp(-r * maturity) - spot * math.exp(-q * maturity),
+        strike * math.exp(-r * maturity),
     )

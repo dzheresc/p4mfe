@@ -65,13 +65,13 @@ TEST(Ch05Ex03, LimitsAndMonotonicity) {
     const Ex03Market m{S, K, T, r, q, C};
     // (i)
     EXPECT_NEAR(ex03_f(200.0, m), ex03_limit_infinity(m), 1e-9);
-    const auto d_big = ch03::bs_d1_d2(S, K, T, 200.0, r, q);
+    const auto d_big = ch03::BsD1D2(S, K, T, 200.0, r, q);
     EXPECT_GT(d_big.d1, 50.0);
     EXPECT_LT(d_big.d2, -50.0);
     // (ii)
     EXPECT_NEAR(ex03_f(1e-12, m), ex03_limit_zero(m),
                 1e-9);  // f - lim = O(x) when F = K
-    const auto d_small = ch03::bs_d1_d2(S, K, T, 1e-6, r, q);
+    const auto d_small = ch03::BsD1D2(S, K, T, 1e-6, r, q);
     const double lim = ex03_d_limit_zero(m);
     if (std::isinf(lim)) {
       EXPECT_GT(d_small.d1 * lim, 0.0);
@@ -87,7 +87,7 @@ TEST(Ch05Ex03, LimitsAndMonotonicity) {
     double prev = ex03_limit_zero(m);
     for (double x = 0.01; x < 5.0; x += 0.01) {
       const double fx = ex03_f(x, m);
-      EXPECT_GT(ch03::bs_greeks(ch01::OptionType::kCall, S, K, T, x, r, q).vega,
+      EXPECT_GT(ch03::BsGreeks(ch01::OptionType::kCall, S, K, T, x, r, q).vega,
                 0.0);
       EXPECT_GE(fx, prev);
       EXPECT_LT(fx, ex03_limit_infinity(m));
@@ -119,9 +119,9 @@ TEST(Ch05Ex04, ImpliedVolThreeMethods) {
   EXPECT_GE(b.iterations, 20u);  // at least log2(1 / 1e-6) halvings
   // The implied vol reprices the call; matches chapter 3's solver.
   const Ex04Market m;
-  EXPECT_NEAR(ch03::bs_call(m.S, m.K, m.T, n.x, m.r, m.q), m.C, 1e-9);
-  EXPECT_NEAR(ch03::implied_vol_newton(ch01::OptionType::kCall, m.C, m.S, m.K,
-                                       m.T, m.r, m.q)
+  EXPECT_NEAR(ch03::BsCall(m.S, m.K, m.T, n.x, m.r, m.q), m.C, 1e-9);
+  EXPECT_NEAR(ch03::ImpliedVolNewton(ch01::OptionType::kCall, m.C, m.S, m.K,
+                                     m.T, m.r, m.q)
                   .sigma,
               n.x, 1e-8);
   // (ii)

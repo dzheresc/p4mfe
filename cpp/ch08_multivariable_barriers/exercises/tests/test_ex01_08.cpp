@@ -17,7 +17,7 @@ TEST(Ch08Ex01, GammaRisesThenFalls) {
     const double s = ex01_argmax(m);
     EXPECT_NEAR(ex01_gamma(s, m), ex01_max_gamma(m), 1e-12 * ex01_max_gamma(m));
     // d1(S*) = -sigma sqrt(T), and the log-derivative changes sign there.
-    EXPECT_NEAR(ch03::bs_d1_d2(s, m.K, m.T, m.sigma, m.r).d1,
+    EXPECT_NEAR(ch03::BsD1D2(s, m.K, m.T, m.sigma, m.r).d1,
                 -m.sigma * std::sqrt(m.T), 1e-12);
     // Strictly increasing on a grid below S*, strictly decreasing above.
     double prev = 0.0;

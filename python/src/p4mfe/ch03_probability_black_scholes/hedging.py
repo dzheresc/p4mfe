@@ -10,9 +10,13 @@ from dataclasses import dataclass
 
 
 def portfolio_change_approx(
-    delta: float, gamma: float, dS: float, theta: float = 0.0, dt: float = 0.0
+    delta: float,
+    gamma: float,
+    d_spot: float,
+    theta: float = 0.0,
+    dt: float = 0.0,
 ) -> float:
-    return delta * dS + 0.5 * gamma * dS * dS + theta * dt
+    return delta * d_spot + 0.5 * gamma * d_spot * d_spot + theta * dt
 
 
 def delta_hedge_shares(portfolio_delta: float) -> float:
@@ -29,19 +33,21 @@ class HedgedPosition:
     shares: float
     cash: float
 
-    def value(self, V_new: float, S_new: float, r: float, dt: float) -> float:
+    def value(
+        self, value_new: float, spot_new: float, r: float, dt: float
+    ) -> float:
         return (
-            self.options * V_new
-            + self.shares * S_new
+            self.options * value_new
+            + self.shares * spot_new
             + self.cash * math.exp(r * dt)
         )
 
 
 def delta_hedge(
-    options: float, V: float, delta: float, S: float
+    options: float, value: float, delta: float, spot: float
 ) -> HedgedPosition:
     shares = delta_hedge_shares(options * delta)
-    return HedgedPosition(options, shares, -(options * V + shares * S))
+    return HedgedPosition(options, shares, -(options * value + shares * spot))
 
 
 @dataclass(frozen=True)

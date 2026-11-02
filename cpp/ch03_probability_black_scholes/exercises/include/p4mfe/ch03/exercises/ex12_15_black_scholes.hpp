@@ -22,13 +22,14 @@ namespace p4mfe::ch03::ex {
 //   P = 45 e^(-0.03) N(-d2) - 50 e^(-0.01) N(-d1) = 0.675922.
 // Check with Put-Call parity: C - P = 50 e^(-0.01) - 45 e^(-0.03) = 5.832443.
 struct Ex12Market {
-  double S = 50.0, K = 45.0, T = 0.5, sigma = 0.2, r = 0.06, q = 0.02;
+  double spot = 50.0, strike = 45.0, maturity = 0.5, sigma = 0.2, r = 0.06,
+         q = 0.02;
 };
-[[nodiscard]] inline double ex12_call(const Ex12Market& m = {}) {
-  return bs_call(m.S, m.K, m.T, m.sigma, m.r, m.q);
+[[nodiscard]] inline double Ex12Call(const Ex12Market& m = {}) {
+  return BsCall(m.spot, m.strike, m.maturity, m.sigma, m.r, m.q);
 }
-[[nodiscard]] inline double ex12_put(const Ex12Market& m = {}) {
-  return bs_put(m.S, m.K, m.T, m.sigma, m.r, m.q);
+[[nodiscard]] inline double Ex12Put(const Ex12Market& m = {}) {
+  return BsPut(m.spot, m.strike, m.maturity, m.sigma, m.r, m.q);
 }
 
 // ----------------------------------------------------------- Exercise 13 ---
@@ -47,10 +48,10 @@ struct Ex12Market {
 // (it costs exactly that) and reinvest every dividend in the asset; at T you
 // hold one share and deliver it. For q = 0: buy one share and hold it. This is
 // a static hedge (Delta = e^(-q(T-t)) at all times, Gamma = 0).
-[[nodiscard]] inline double ex13_put_zero_strike() { return 0.0; }
-[[nodiscard]] inline double ex13_call_zero_strike(double S, double T,
-                                                  double q = 0.0) {
-  return S * std::exp(-q * T);
+[[nodiscard]] inline double Ex13PutZeroStrike() { return 0.0; }
+[[nodiscard]] inline double Ex13CallZeroStrike(double spot, double maturity,
+                                               double q = 0.0) {
+  return spot * std::exp(-q * maturity);
 }
 
 // ----------------------------------------------------------- Exercise 14 ---
@@ -63,11 +64,11 @@ struct Ex12Market {
 //   rho(P) = rho(C) - K (T-t) e^(-r(T-t))
 //          = K (T-t) e^(-r(T-t)) (N(d2) - 1) = -K (T-t) e^(-r(T-t)) N(-d2),
 // using 1 - N(x) = N(-x).
-[[nodiscard]] inline double ex14_rho_put_from_parity(double S, double K,
-                                                     double T, double sigma,
-                                                     double r, double q = 0.0) {
-  return bs_greeks(OptionType::kCall, S, K, T, sigma, r, q).rho -
-         K * T * std::exp(-r * T);
+[[nodiscard]] inline double Ex14RhoPutFromParity(double spot, double strike,
+                                                 double maturity, double sigma,
+                                                 double r, double q = 0.0) {
+  return BsGreeks(OptionType::kCall, spot, strike, maturity, sigma, r, q).rho -
+         strike * maturity * std::exp(-r * maturity);
 }
 
 // ----------------------------------------------------------- Exercise 15 ---
@@ -85,17 +86,18 @@ struct Ex12Market {
 // The first term is the Delta of a plain call; the second, always positive,
 // comes from the jump in the payoff at K (it is K times the Delta of the
 // cash-or- nothing call K 1_{S_T > K}, since C_AoN = C + K * CashOrNothing).
-[[nodiscard]] inline double ex15_aon_call(double S, double K, double T,
-                                          double sigma, double r,
-                                          double q = 0.0) {
-  return S * std::exp(-q * T) * norm_cdf(bs_d1_d2(S, K, T, sigma, r, q).d1);
+[[nodiscard]] inline double Ex15AonCall(double spot, double strike,
+                                        double maturity, double sigma, double r,
+                                        double q = 0.0) {
+  return spot * std::exp(-q * maturity) *
+         norm_cdf(BsD1D2(spot, strike, maturity, sigma, r, q).d1);
 }
-[[nodiscard]] inline double ex15_aon_delta(double S, double K, double T,
-                                           double sigma, double r,
-                                           double q = 0.0) {
-  const double d1 = bs_d1_d2(S, K, T, sigma, r, q).d1;
-  return std::exp(-q * T) *
-         (norm_cdf(d1) + norm_pdf(d1) / (sigma * std::sqrt(T)));
+[[nodiscard]] inline double Ex15AonDelta(double spot, double strike,
+                                         double maturity, double sigma,
+                                         double r, double q = 0.0) {
+  const double d1 = BsD1D2(spot, strike, maturity, sigma, r, q).d1;
+  return std::exp(-q * maturity) *
+         (norm_cdf(d1) + norm_pdf(d1) / (sigma * std::sqrt(maturity)));
 }
 
 }  // namespace p4mfe::ch03::ex

@@ -63,7 +63,7 @@ void BM_asset_model(benchmark::State& state) {
 
 void BM_density_transforms(benchmark::State& state) {
   // Densities of aX+b, e^X, X^2 and generic transforms on a 10,000-point grid.
-  const auto phi = [](double x) { return ch03::normal_pdf(x, 0.0, 1.0); };
+  const auto phi = [](double x) { return ch03::NormalPdf(x, 0.0, 1.0); };
   const auto lin = ch04::linear_transform_pdf(phi, 2.0, 1.0);
   const auto ex = ch04::exp_transform_pdf(phi);
   const auto sq = ch04::square_transform_pdf(phi);
@@ -78,7 +78,7 @@ void BM_density_transforms(benchmark::State& state) {
       [](double y) { return y > 0.0; });
   const std::size_t n = 10'000;
   if (!check(state,
-             std::abs(ex(1.5) - ch03::lognormal_pdf(1.5, 0.0, 1.0)) < 1e-12 &&
+             std::abs(ex(1.5) - ch03::LognormalPdf(1.5, 0.0, 1.0)) < 1e-12 &&
                  std::abs(num(1.5) - ex(1.5)) < 1e-6,
              "transformed densities disagree"))
     return;
@@ -103,12 +103,12 @@ void BM_independent(benchmark::State& state) {
     X[i] = {0.0005 * static_cast<double>(i % 7),
             0.0001 * static_cast<double>(1 + i % 5)};
   }
-  const auto phi = [](double x) { return ch03::normal_pdf(x, 0.0, 1.0); };
+  const auto phi = [](double x) { return ch03::NormalPdf(x, 0.0, 1.0); };
   const auto joint = ch04::independent_joint_pdf(phi, phi);
   // N(0,1) + N(0,1) = N(0,2).
   const double conv = ch04::sum_pdf(phi, phi, 0.5);
   if (!check(state,
-             std::abs(conv - ch03::normal_pdf(0.5, 0.0, std::sqrt(2.0))) < 1e-8,
+             std::abs(conv - ch03::NormalPdf(0.5, 0.0, std::sqrt(2.0))) < 1e-8,
              "sum_pdf is off"))
     return;
   for (auto _ : state) {

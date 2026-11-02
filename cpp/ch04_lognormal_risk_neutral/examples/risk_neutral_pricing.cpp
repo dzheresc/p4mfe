@@ -19,7 +19,7 @@ int main() {
 
   const auto call = [K](double s) { return std::max(s - K, 0.0); };
   std::printf("Black-Scholes (chapter 3)         %.10f\n",
-              p4mfe::ch03::bs_call(S, K, T, sigma, r, q));
+              p4mfe::ch03::BsCall(S, K, T, sigma, r, q));
   std::printf("e^(-rT) x closed-form expectation %.10f\n",
               std::exp(-r * T) *
                   rn_expected_payoff(OptionType::kCall, S, K, T, sigma, r, q));

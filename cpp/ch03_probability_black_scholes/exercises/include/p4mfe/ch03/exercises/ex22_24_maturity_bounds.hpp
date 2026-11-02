@@ -13,7 +13,7 @@ namespace p4mfe::ch03::ex {
 // Fifteen days, three months and one year. Fifteen days is taken as half a
 // month, 1/24 years (15/365 = 0.0411 would raise Gamma and lower vega by
 // about 0.7%).
-inline constexpr std::array<double, 3> ex22_maturities{1.0 / 24.0, 0.25, 1.0};
+inline constexpr std::array<double, 3> kEx22Maturities{1.0 / 24.0, 0.25, 1.0};
 
 // ----------------------------------------------------------- Exercise 22 ---
 // Compute the Gamma of ATM calls with maturities of fifteen days, three
@@ -31,10 +31,9 @@ inline constexpr std::array<double, 3> ex22_maturities{1.0 / 24.0, 0.25, 1.0};
 // with the spot, so a Delta hedge on a short-dated ATM option goes stale
 // quickly and must be rebalanced much more often (and Delta-Gamma hedging
 // matters most) than for long-dated options.
-[[nodiscard]] inline double ex22_atm_gamma(double T, double S = 50.0,
-                                           double sigma = 0.3,
-                                           double r = 0.05) {
-  return bs_greeks(OptionType::kCall, S, S, T, sigma, r).gamma;
+[[nodiscard]] inline double Ex22AtmGamma(double maturity, double spot = 50.0,
+                                         double sigma = 0.3, double r = 0.05) {
+  return BsGreeks(OptionType::kCall, spot, spot, maturity, sigma, r).gamma;
 }
 
 // ----------------------------------------------------------- Exercise 23 ---
@@ -67,15 +66,15 @@ inline constexpr std::array<double, 3> ex22_maturities{1.0 / 24.0, 0.25, 1.0};
 // sqrt(tau): the 1-year vega is about sqrt(24) = 4.9 times the 15-day vega
 // (4.85 exactly), as in (ii). Long-dated options are the most exposed to
 // volatility.
-[[nodiscard]] inline double ex23_atm_vega(double T, double S = 50.0,
-                                          double sigma = 0.3, double r = 0.0) {
-  return bs_greeks(OptionType::kCall, S, S, T, sigma, r).vega;
+[[nodiscard]] inline double Ex23AtmVega(double maturity, double spot = 50.0,
+                                        double sigma = 0.3, double r = 0.0) {
+  return BsGreeks(OptionType::kCall, spot, spot, maturity, sigma, r).vega;
 }
-[[nodiscard]] inline double ex23_vega_maturity_slope(double tau,
-                                                     double S = 50.0,
-                                                     double sigma = 0.3) {
+[[nodiscard]] inline double Ex23VegaMaturitySlope(double tau,
+                                                  double spot = 50.0,
+                                                  double sigma = 0.3) {
   const double d1 = 0.5 * sigma * std::sqrt(tau);
-  return S * norm_pdf(d1) / (2.0 * std::sqrt(tau)) *
+  return spot * norm_pdf(d1) / (2.0 * std::sqrt(tau)) *
          (1.0 - sigma * sigma * tau / 4.0);
 }
 
@@ -102,15 +101,18 @@ inline constexpr std::array<double, 3> ex22_maturities{1.0 / 24.0, 0.25, 1.0};
 // P = C - S e^(-qT) + K e^(-rT): subtract S e^(-qT) - K e^(-rT) throughout,
 // and C >= 0 gives the positive part of the lower bound.
 // Black-Scholes prices always lie inside (ch01::call_bounds / put_bounds).
-[[nodiscard]] inline ch01::PriceBounds ex24_put_bounds(double S, double K,
-                                                       double T, double r,
-                                                       double q = 0.0) {
-  return {K * std::exp(-r * T) - S * std::exp(-q * T), K * std::exp(-r * T)};
+[[nodiscard]] inline ch01::PriceBounds Ex24PutBounds(double spot, double strike,
+                                                     double maturity, double r,
+                                                     double q = 0.0) {
+  return {strike * std::exp(-r * maturity) - spot * std::exp(-q * maturity),
+          strike * std::exp(-r * maturity)};
 }
-[[nodiscard]] inline ch01::PriceBounds ex24_call_bounds(double S, double K,
-                                                        double T, double r,
-                                                        double q = 0.0) {
-  return {S * std::exp(-q * T) - K * std::exp(-r * T), S * std::exp(-q * T)};
+[[nodiscard]] inline ch01::PriceBounds Ex24CallBounds(double spot,
+                                                      double strike,
+                                                      double maturity, double r,
+                                                      double q = 0.0) {
+  return {spot * std::exp(-q * maturity) - strike * std::exp(-r * maturity),
+          spot * std::exp(-q * maturity)};
 }
 
 }  // namespace p4mfe::ch03::ex

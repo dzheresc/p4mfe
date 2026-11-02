@@ -18,7 +18,7 @@ struct SpreadMarket {
 
 // Black-Scholes call price as a function of the strike only.
 [[nodiscard]] inline double ex_call(double K, const SpreadMarket& m = {}) {
-  return ch03::bs_call(m.S, K, m.T, m.sigma, m.r, m.q);
+  return ch03::BsCall(m.S, K, m.T, m.sigma, m.r, m.q);
 }
 
 // ------------------------------------------------------------ Exercise 6 ---
@@ -77,7 +77,7 @@ template <std::invocable<double> Call>
          (x * x);
 }
 [[nodiscard]] inline double ex06_call_kk(const SpreadMarket& m = {}) {
-  const auto [d1, d2] = ch03::bs_d1_d2(m.S, m.K, m.T, m.sigma, m.r, m.q);
+  const auto [d1, d2] = ch03::BsD1D2(m.S, m.K, m.T, m.sigma, m.r, m.q);
   return std::exp(-m.r * m.T) * norm_pdf(d2) / (m.K * m.sigma * std::sqrt(m.T));
 }
 // (iii) payoff of 1/x butterflies.

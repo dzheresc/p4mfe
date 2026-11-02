@@ -29,10 +29,10 @@ struct TwoOptionHedge {
   double puts;
 };
 // Units of two options that zero both the Delta and the Gamma.
-[[nodiscard]] inline TwoOptionHedge ex25_options_only(double port_delta,
-                                                      double port_gamma,
-                                                      double dc, double gc,
-                                                      double dp, double gp) {
+[[nodiscard]] inline TwoOptionHedge Ex25OptionsOnly(double port_delta,
+                                                    double port_gamma,
+                                                    double dc, double gc,
+                                                    double dp, double gp) {
   const double det = dc * gp - dp * gc;
   if (det == 0.0)
     throw std::invalid_argument(
@@ -50,9 +50,9 @@ struct TwoOptionHedge {
 // d1 = (ln(92/90) + (0.05 + 0.02) * 0.25) / (0.2 * 0.5) = 0.394789,
 // Delta(C) = N(d1) = 0.653501, so short 1000 * 0.653501 = 653.5 shares
 // (about 654).
-[[nodiscard]] inline double ex26_shares() {
-  return delta_hedge_shares(
-      1000.0 * bs_greeks(OptionType::kCall, 92.0, 90.0, 0.25, 0.2, 0.05).delta);
+[[nodiscard]] inline double Ex26Shares() {
+  return DeltaHedgeShares(
+      1000.0 * BsGreeks(OptionType::kCall, 92.0, 90.0, 0.25, 0.2, 0.05).delta);
 }
 
 // ----------------------------------------------------------- Exercise 27 ---
@@ -83,20 +83,20 @@ struct Ex27Result {
   double portfolio_value;  // options + shares + cash with interest, next day
   double unhedged_loss;    // 1000 (C(0) - C(next day))
 };
-[[nodiscard]] inline Ex27Result ex27(double dt = 1.0 / 252.0,
-                                     double S1 = 98.0) {
-  constexpr double n = 1000.0, S = 100.0, K = 100.0, T = 0.5, sigma = 0.3,
-                   r = 0.05;
-  const double C0 = bs_call(S, K, T, sigma, r);
-  const auto pos = delta_hedge(
-      n, C0, bs_greeks(OptionType::kCall, S, K, T, sigma, r).delta, S);
-  const double C1 = bs_call(S1, K, T - dt, sigma, r);
-  return {n * C0,
+[[nodiscard]] inline Ex27Result Ex27(double dt = 1.0 / 252.0,
+                                     double spot1 = 98.0) {
+  constexpr double kN = 1000.0, kS = 100.0, kK = 100.0, kT = 0.5, kSigma = 0.3,
+                   kR = 0.05;
+  const double call0 = BsCall(kS, kK, kT, kSigma, kR);
+  const auto pos = DeltaHedge(
+      kN, call0, BsGreeks(OptionType::kCall, kS, kK, kT, kSigma, kR).delta, kS);
+  const double call1 = BsCall(spot1, kK, kT - dt, kSigma, kR);
+  return {kN * call0,
           pos.shares,
           pos.cash,
-          n * C1 + pos.shares * S1,
-          pos.value(C1, S1, r, dt),
-          n * (C0 - C1)};
+          kN * call1 + pos.shares * spot1,
+          pos.Value(call1, spot1, kR, dt),
+          kN * (call0 - call1)};
 }
 
 // ----------------------------------------------------------- Exercise 28 ---
@@ -123,20 +123,22 @@ struct Ex28Result {
   double value1;       // (iii), one month later before rebalancing
   double shares2;      // shares held after rebalancing in (iii)
 };
-[[nodiscard]] inline Ex28Result ex28() {
-  constexpr double n = 1000.0, K = 25.0, T = 0.5, sigma = 0.3, r = 0.04,
-                   S0 = 20.0, S1 = 24.0, dt = 1.0 / 12.0;
-  constexpr double shares0 = 400.0, cash0 = 10000.0;
-  const double P0 = bs_put(S0, K, T, sigma, r);
-  const double D0 = bs_greeks(OptionType::kPut, S0, K, T, sigma, r).delta;
-  const double value0 = n * P0 + shares0 * S0 + cash0;
-  const double port_delta0 = n * D0 + shares0;
-  const double shares1 = shares0 + delta_hedge_shares(port_delta0);
-  const double cash1 = cash0 - (shares1 - shares0) * S0;
-  const double P1 = bs_put(S1, K, T - dt, sigma, r);
-  const double D1 = bs_greeks(OptionType::kPut, S1, K, T - dt, sigma, r).delta;
-  const double value1 = n * P1 + shares1 * S1 + cash1 * std::exp(r * dt);
-  return {value0, port_delta0, shares1, cash1, value1, -n * D1};
+[[nodiscard]] inline Ex28Result Ex28() {
+  constexpr double kN = 1000.0, kK = 25.0, kT = 0.5, kSigma = 0.3, kR = 0.04,
+                   kS0 = 20.0, kS1 = 24.0, kDt = 1.0 / 12.0;
+  constexpr double kShares0 = 400.0, kCash0 = 10000.0;
+  const double put0 = BsPut(kS0, kK, kT, kSigma, kR);
+  const double delta0 =
+      BsGreeks(OptionType::kPut, kS0, kK, kT, kSigma, kR).delta;
+  const double value0 = kN * put0 + kShares0 * kS0 + kCash0;
+  const double port_delta0 = kN * delta0 + kShares0;
+  const double shares1 = kShares0 + DeltaHedgeShares(port_delta0);
+  const double cash1 = kCash0 - (shares1 - kShares0) * kS0;
+  const double put1 = BsPut(kS1, kK, kT - kDt, kSigma, kR);
+  const double delta1 =
+      BsGreeks(OptionType::kPut, kS1, kK, kT - kDt, kSigma, kR).delta;
+  const double value1 = kN * put1 + shares1 * kS1 + cash1 * std::exp(kR * kDt);
+  return {value0, port_delta0, shares1, cash1, value1, -kN * delta1};
 }
 
 // ----------------------------------------------------------- Exercise 29 ---
@@ -157,13 +159,15 @@ struct Ex29Hedge {
   double puts;
   double shares;
 };
-[[nodiscard]] inline Ex29Hedge ex29_hedge(double pd = 300.0, double pg = 100.0,
-                                          double pv = 89.0) {
-  constexpr double cd = 0.2, cg = 0.1, cv = 0.1, qd = -0.8, qg = 0.3, qv = 0.2;
-  const double det = cg * qv - qg * cv;
-  const double x = (-pg * qv + qg * pv) / det;
-  const double y = (-cg * pv + cv * pg) / det;
-  return {x, y, -(pd + x * cd + y * qd)};
+[[nodiscard]] inline Ex29Hedge Ex29ComputeHedge(double pd = 300.0,
+                                                double pg = 100.0,
+                                                double pv = 89.0) {
+  constexpr double kCd = 0.2, kCg = 0.1, kCv = 0.1, kQd = -0.8, kQg = 0.3,
+                   kQv = 0.2;
+  const double det = kCg * kQv - kQg * kCv;
+  const double x = (-pg * kQv + kQg * pv) / det;
+  const double y = (-kCg * pv + kCv * pg) / det;
+  return {x, y, -(pd + x * kCd + y * kQd)};
 }
 
 }  // namespace p4mfe::ch03::ex

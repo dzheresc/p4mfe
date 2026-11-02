@@ -30,14 +30,14 @@ int main() {
   for (double r : {0.0, 0.03, 0.06})
     for (double q : {0.0, 0.02})
       std::printf("%6.3f  %6.3f  %10.5f  %10.5f  %10.5f  %10.5f\n", r, q,
-                  ch03::bs_call(S, S, 0.5, 0.25, r, q),
+                  ch03::BsCall(S, S, 0.5, 0.25, r, q),
                   atm_call_approx(S, 0.5, 0.25, r, q),
-                  ch03::bs_put(S, S, 0.5, 0.25, r, q),
+                  ch03::BsPut(S, S, 0.5, 0.25, r, q),
                   atm_put_approx(S, 0.5, 0.25, r, q));
 
   const double K = 105, T = 0.5, sigma = 0.3, r = 0.04, q = 0.01;
-  const double V = ch03::bs_call(S, K, T, sigma, r, q);
-  const auto g = ch03::bs_greeks(ch03::OptionType::kCall, S, K, T, sigma, r, q);
+  const double V = ch03::BsCall(S, K, T, sigma, r, q);
+  const auto g = ch03::BsGreeks(ch03::OptionType::kCall, S, K, T, sigma, r, q);
   std::printf(
       "\nCall S = %.0f, K = %.0f, T = %.1f: V = %.6f, Delta = %.4f, Gamma = "
       "%.5f, Theta = %.4f\n",
@@ -47,7 +47,7 @@ int main() {
   const double dt = 1.0 / 252;
   for (double dS : {-5.0, -1.0, 1.0, 5.0})
     std::printf("%6.1f  %12.6f  %12.6f  %12.6f  %12.6f\n", dS,
-                ch03::bs_call(S + dS, K, T - dt, sigma, r, q) - V,
+                ch03::BsCall(S + dS, K, T - dt, sigma, r, q) - V,
                 option_change_delta(g, dS), option_change_delta_gamma(g, dS),
                 option_change_taylor(g, dS, dt));
 }

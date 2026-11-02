@@ -100,7 +100,7 @@ inline constexpr double inv_sqrt_2pi =
 [[nodiscard]] inline double atm_call_linearized(double S, double T,
                                                 double sigma, double r,
                                                 double q = 0.0) {
-  const auto [d1, d2] = ch03::bs_d1_d2(S, S, T, sigma, r, q);
+  const auto [d1, d2] = ch03::BsD1D2(S, S, T, sigma, r, q);
   return S * std::exp(-q * T) * norm_cdf_linear(d1) -
          S * std::exp(-r * T) * norm_cdf_linear(d2);
 }

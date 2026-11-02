@@ -67,7 +67,7 @@ template <Pricer P>
                                          FdScheme scheme = FdScheme::Central) {
   return fd_greeks(
       [&](double s, double t, double v, double x) {
-        return ch03::bs_price(type, s, K, t, v, x, q);
+        return ch03::BsPrice(type, s, K, t, v, x, q);
       },
       S, T, sigma, r, h, scheme);
 }

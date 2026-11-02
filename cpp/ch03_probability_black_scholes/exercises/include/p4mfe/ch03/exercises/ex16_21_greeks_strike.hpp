@@ -34,15 +34,18 @@ namespace p4mfe::ch03::ex {
 //   (Or: vanna = d/dsigma [e^(-qT) N(d1)] = e^(-qT) phi(d1) (-d2/sigma).)
 // (ii) C - P = S e^(-qT) - K e^(-rT) does not depend on sigma, so
 //   vega(P) = vega(C), volga(P) = volga(C), vanna(P) = vanna(C).
-[[nodiscard]] inline double ex16_volga(double S, double K, double T,
-                                       double sigma, double r, double q = 0.0) {
-  const auto [d1, d2] = bs_d1_d2(S, K, T, sigma, r, q);
-  return S * std::exp(-q * T) * std::sqrt(T) * norm_pdf(d1) * d1 * d2 / sigma;
+[[nodiscard]] inline double Ex16Volga(double spot, double strike,
+                                      double maturity, double sigma, double r,
+                                      double q = 0.0) {
+  const auto [d1, d2] = BsD1D2(spot, strike, maturity, sigma, r, q);
+  return spot * std::exp(-q * maturity) * std::sqrt(maturity) * norm_pdf(d1) *
+         d1 * d2 / sigma;
 }
-[[nodiscard]] inline double ex16_vanna(double S, double K, double T,
-                                       double sigma, double r, double q = 0.0) {
-  const auto [d1, d2] = bs_d1_d2(S, K, T, sigma, r, q);
-  return -std::exp(-q * T) * norm_pdf(d1) * d2 / sigma;
+[[nodiscard]] inline double Ex16Vanna(double spot, double strike,
+                                      double maturity, double sigma, double r,
+                                      double q = 0.0) {
+  const auto [d1, d2] = BsD1D2(spot, strike, maturity, sigma, r, q);
+  return -std::exp(-q * maturity) * norm_pdf(d1) * d2 / sigma;
 }
 
 // ----------------------------------------------------------- Exercise 17 ---
@@ -57,10 +60,11 @@ namespace p4mfe::ch03::ex {
 //   C - P = S e^(-qT) (N(d1) + N(-d1)) - S e^(-rT) (N(d2) + N(-d2))
 //         = S (e^(-qT) - e^(-rT)),
 // the same, so the conclusion holds within the model too.
-[[nodiscard]] inline double ex17_atm_call_minus_put(double S, double T,
-                                                    double sigma, double r,
-                                                    double q) {
-  return bs_call(S, S, T, sigma, r, q) - bs_put(S, S, T, sigma, r, q);
+[[nodiscard]] inline double Ex17AtmCallMinusPut(double spot, double maturity,
+                                                double sigma, double r,
+                                                double q) {
+  return BsCall(spot, spot, maturity, sigma, r, q) -
+         BsPut(spot, spot, maturity, sigma, r, q);
 }
 
 // ----------------------------------------------------------- Exercise 18 ---
@@ -81,26 +85,26 @@ namespace p4mfe::ch03::ex {
 // tends to 0, so Theta(C) > 0 for T large enough. For sigma = 0.2,
 // r = q = 0.05 the sign changes at T* = 9.68 years (e.g. Theta = 0.0248 per
 // year at T = 10 with S = 100).
-[[nodiscard]] inline double ex18_theta_call(double S, double K, double T,
-                                            double sigma, double r,
-                                            double q = 0.0) {
-  return bs_greeks(OptionType::kCall, S, K, T, sigma, r, q).theta;
+[[nodiscard]] inline double Ex18ThetaCall(double spot, double strike,
+                                          double maturity, double sigma,
+                                          double r, double q = 0.0) {
+  return BsGreeks(OptionType::kCall, spot, strike, maturity, sigma, r, q).theta;
 }
 // The bracket in (ii): Theta(C) / (S e^(-rT)) for an ATM call with q = r.
-[[nodiscard]] inline double ex18_atm_q_eq_r_bracket(double T, double sigma,
-                                                    double r) {
-  const double x = 0.5 * sigma * std::sqrt(T);
+[[nodiscard]] inline double Ex18AtmQEqRBracket(double maturity, double sigma,
+                                               double r) {
+  const double x = 0.5 * sigma * std::sqrt(maturity);
   return r * (2.0 * norm_cdf(x) - 1.0) -
-         sigma * norm_pdf(x) / (2.0 * std::sqrt(T));
+         sigma * norm_pdf(x) / (2.0 * std::sqrt(maturity));
 }
 // The maturity where that Theta changes sign, by bisection on the bracket
 // (which is negative for small T and positive for large T).
-[[nodiscard]] inline double ex18_theta_sign_change(double sigma, double r,
-                                                   double lo = 1e-6,
-                                                   double hi = 1e3) {
+[[nodiscard]] inline double Ex18ThetaSignChange(double sigma, double r,
+                                                double lo = 1e-6,
+                                                double hi = 1e3) {
   for (int i = 0; i < 200; ++i) {
     const double mid = 0.5 * (lo + hi);
-    (ex18_atm_q_eq_r_bracket(mid, sigma, r) < 0.0 ? lo : hi) = mid;
+    (Ex18AtmQEqRBracket(mid, sigma, r) < 0.0 ? lo : hi) = mid;
   }
   return 0.5 * (lo + hi);
 }
@@ -124,16 +128,18 @@ namespace p4mfe::ch03::ex {
 //   dP/dK = -e^(-rT) N(d2) + e^(-rT) = e^(-rT) N(-d2),
 //   d2P/dK2 = d2C/dK2 = e^(-rT) phi(d2) / (K sigma sqrt(T)).
 struct StrikeDerivatives {
-  double dC_dK;
-  double d2C_dK2;
-  double dP_dK;
-  double d2P_dK2;
+  double d_call_d_strike;
+  double d2_call_d_strike2;
+  double d_put_d_strike;
+  double d2_put_d_strike2;
 };
-[[nodiscard]] inline StrikeDerivatives ex19_strike_derivatives(
-    double S, double K, double T, double sigma, double r, double q = 0.0) {
-  const double d2 = bs_d1_d2(S, K, T, sigma, r, q).d2;
-  const double er = std::exp(-r * T);
-  const double second = er * norm_pdf(d2) / (K * sigma * std::sqrt(T));
+[[nodiscard]] inline StrikeDerivatives Ex19StrikeDerivatives(
+    double spot, double strike, double maturity, double sigma, double r,
+    double q = 0.0) {
+  const double d2 = BsD1D2(spot, strike, maturity, sigma, r, q).d2;
+  const double er = std::exp(-r * maturity);
+  const double second =
+      er * norm_pdf(d2) / (strike * sigma * std::sqrt(maturity));
   return {-er * norm_cdf(d2), second, er * norm_cdf(-d2), second};
 }
 
@@ -149,15 +155,16 @@ struct StrikeDerivatives {
 //   T),
 // the forward price S e^((r-q)T) times e^(-sigma^2 T/2). (It is the median of
 // S_T under the risk-neutral measure: N(d2) = P(S_T > K).)
-[[nodiscard]] inline double ex21_min_straddle_strike(double S, double T,
-                                                     double sigma, double r,
-                                                     double q = 0.0) {
-  return S * std::exp((r - q - 0.5 * sigma * sigma) * T);
+[[nodiscard]] inline double Ex21MinStraddleStrike(double spot, double maturity,
+                                                  double sigma, double r,
+                                                  double q = 0.0) {
+  return spot * std::exp((r - q - 0.5 * sigma * sigma) * maturity);
 }
-[[nodiscard]] inline double ex21_straddle(double S, double K, double T,
-                                          double sigma, double r,
-                                          double q = 0.0) {
-  return bs_call(S, K, T, sigma, r, q) + bs_put(S, K, T, sigma, r, q);
+[[nodiscard]] inline double Ex21Straddle(double spot, double strike,
+                                         double maturity, double sigma,
+                                         double r, double q = 0.0) {
+  return BsCall(spot, strike, maturity, sigma, r, q) +
+         BsPut(spot, strike, maturity, sigma, r, q);
 }
 
 }  // namespace p4mfe::ch03::ex

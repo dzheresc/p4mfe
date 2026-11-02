@@ -59,6 +59,6 @@ TEST(Ch07Ex14, ForwardSolvesThePde) {
   // f = C - P (put-call parity), so the put solves the PDE too.
   const PdeMarket m;
   const double S = 45.0, t = 0.3;
-  const double put = ch03::bs_put(S, m.K, m.T - t, m.sigma, m.r, m.q);
+  const double put = ch03::BsPut(S, m.K, m.T - t, m.sigma, m.r, m.q);
   EXPECT_NEAR(ex13_call(S, t, m) - put, ex14_forward(S, t, m), 1e-12);
 }

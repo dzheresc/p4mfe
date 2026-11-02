@@ -39,7 +39,7 @@ struct SmileMarket {
 [[nodiscard]] inline double ex21_dsigma_dK(double K, double sigma_imp,
                                            double dC_dK,
                                            const SmileMarket& m = {}) {
-  const auto [d1, d2] = ch03::bs_d1_d2(m.S, K, m.T, sigma_imp, m.r, m.q);
+  const auto [d1, d2] = ch03::BsD1D2(m.S, K, m.T, sigma_imp, m.r, m.q);
   return (dC_dK + std::exp(-m.r * m.T) * norm_cdf(d2)) /
          (m.S * std::exp(-m.q * m.T) * std::sqrt(m.T) * norm_pdf(d1));
 }
@@ -56,7 +56,7 @@ struct SmileMarket {
   return (-0.1 + 0.3 * k) / K;
 }
 [[nodiscard]] inline double ex21_price(double K, const SmileMarket& m = {}) {
-  return ch03::bs_call(m.S, K, m.T, ex21_smile(K, m), m.r, m.q);
+  return ch03::BsCall(m.S, K, m.T, ex21_smile(K, m), m.r, m.q);
 }
 
 // sigma_imp'(K) from prices only: implied vol by Newton (chapter 3) and C'(K)
@@ -65,8 +65,8 @@ template <std::invocable<double> Price>
 [[nodiscard]] double ex21_slope_from_prices(Price&& C, double K,
                                             const SmileMarket& m = {},
                                             double h = 1e-4) {
-  const double sigma = ch03::implied_vol_newton(ch03::OptionType::kCall, C(K),
-                                                m.S, K, m.T, m.r, m.q, 1e-12)
+  const double sigma = ch03::ImpliedVolNewton(ch03::OptionType::kCall, C(K),
+                                              m.S, K, m.T, m.r, m.q, 1e-12)
                            .sigma;
   const double dK = h * K;
   const double dC = (C(K + dK) - C(K - dK)) / (2.0 * dK);

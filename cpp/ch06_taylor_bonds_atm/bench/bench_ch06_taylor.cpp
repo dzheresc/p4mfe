@@ -83,9 +83,8 @@ void BM_greeks_taylor(benchmark::State& state) {
   std::vector<ch03::Greeks> g;
   std::vector<double> V;
   for (const auto& o : chain) {
-    g.push_back(
-        ch03::bs_greeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q));
-    V.push_back(ch03::bs_price(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q));
+    g.push_back(ch03::BsGreeks(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q));
+    V.push_back(ch03::BsPrice(o.type, o.S, o.K, o.T, o.sigma, spec.r, spec.q));
   }
   {
     const auto& o = chain.front();

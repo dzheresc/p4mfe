@@ -27,8 +27,8 @@ def ex10_sides(x: Sequence[float], y: Sequence[float]) -> CauchySchwarzSides:
         raise ValueError("x and y must have the same length")
     A = math.fsum(a * a for a in x)
     B = math.fsum(a * b for a, b in zip(x, y))
-    C = math.fsum(b * b for b in y)
-    return CauchySchwarzSides(B * B, A * C)
+    call = math.fsum(b * b for b in y)
+    return CauchySchwarzSides(B * B, A * call)
 
 
 def ex10_quadratic(
@@ -42,5 +42,5 @@ def ex11_sides(
 ) -> CauchySchwarzSides:
     A = simpson_rule(lambda x: f(x) * f(x), a, b, n)
     B = simpson_rule(lambda x: f(x) * g(x), a, b, n)
-    C = simpson_rule(lambda x: g(x) * g(x), a, b, n)
-    return CauchySchwarzSides(B, math.sqrt(A) * math.sqrt(C))
+    call = simpson_rule(lambda x: g(x) * g(x), a, b, n)
+    return CauchySchwarzSides(B, math.sqrt(A) * math.sqrt(call))

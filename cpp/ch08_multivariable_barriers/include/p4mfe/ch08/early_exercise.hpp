@@ -104,7 +104,7 @@ enum class ExerciseStyle { European, American };
 // C - (S - K) >= K (1 - e^(-r tau)) > 0.
 [[nodiscard]] inline double call_exercise_loss(double S, double K, double tau,
                                                double sigma, double r) {
-  return ch03::bs_call(S, K, tau, sigma, r) - (S - K);
+  return ch03::BsCall(S, K, tau, sigma, r) - (S - K);
 }
 [[nodiscard]] inline double call_exercise_loss_bound(double K, double tau,
                                                      double r) noexcept {

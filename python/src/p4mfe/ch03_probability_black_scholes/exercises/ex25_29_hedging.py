@@ -62,20 +62,23 @@ class Ex27Result:
     unhedged_loss: float
 
 
-def ex27(dt: float = 1 / 252, S1: float = 98.0) -> Ex27Result:
-    n, S, K, T, sigma, r = 1000.0, 100.0, 100.0, 0.5, 0.3, 0.05
-    C0 = bs_call(S, K, T, sigma, r)
+def ex27(dt: float = 1 / 252, spot1: float = 98.0) -> Ex27Result:
+    n, spot, strike, maturity, sigma, r = 1000.0, 100.0, 100.0, 0.5, 0.3, 0.05
+    call0 = bs_call(spot, strike, maturity, sigma, r)
     pos = delta_hedge(
-        n, C0, bs_greeks(OptionType.CALL, S, K, T, sigma, r).delta, S
+        n,
+        call0,
+        bs_greeks(OptionType.CALL, spot, strike, maturity, sigma, r).delta,
+        spot,
     )
-    C1 = bs_call(S1, K, T - dt, sigma, r)
+    call1 = bs_call(spot1, strike, maturity - dt, sigma, r)
     return Ex27Result(
-        n * C0,
+        n * call0,
         pos.shares,
         pos.cash,
-        n * C1 + pos.shares * S1,
-        pos.value(C1, S1, r, dt),
-        n * (C0 - C1),
+        n * call1 + pos.shares * spot1,
+        pos.value(call1, spot1, r, dt),
+        n * (call0 - call1),
     )
 
 
@@ -90,7 +93,7 @@ class Ex28Result:
 
 
 def ex28() -> Ex28Result:
-    n, K, T, sigma, r, S0, S1, dt = (
+    n, strike, maturity, sigma, r, spot0, spot1, dt = (
         1000.0,
         25.0,
         0.5,
@@ -101,16 +104,18 @@ def ex28() -> Ex28Result:
         1 / 12,
     )
     shares0, cash0 = 400.0, 10000.0
-    P0 = bs_put(S0, K, T, sigma, r)
-    D0 = bs_greeks(OptionType.PUT, S0, K, T, sigma, r).delta
-    value0 = n * P0 + shares0 * S0 + cash0
-    port_delta0 = n * D0 + shares0
+    put0 = bs_put(spot0, strike, maturity, sigma, r)
+    delta0 = bs_greeks(OptionType.PUT, spot0, strike, maturity, sigma, r).delta
+    value0 = n * put0 + shares0 * spot0 + cash0
+    port_delta0 = n * delta0 + shares0
     shares1 = shares0 + delta_hedge_shares(port_delta0)
-    cash1 = cash0 - (shares1 - shares0) * S0
-    P1 = bs_put(S1, K, T - dt, sigma, r)
-    D1 = bs_greeks(OptionType.PUT, S1, K, T - dt, sigma, r).delta
-    value1 = n * P1 + shares1 * S1 + cash1 * math.exp(r * dt)
-    return Ex28Result(value0, port_delta0, shares1, cash1, value1, -n * D1)
+    cash1 = cash0 - (shares1 - shares0) * spot0
+    put1 = bs_put(spot1, strike, maturity - dt, sigma, r)
+    delta1 = bs_greeks(
+        OptionType.PUT, spot1, strike, maturity - dt, sigma, r
+    ).delta
+    value1 = n * put1 + shares1 * spot1 + cash1 * math.exp(r * dt)
+    return Ex28Result(value0, port_delta0, shares1, cash1, value1, -n * delta1)
 
 
 @dataclass(frozen=True)

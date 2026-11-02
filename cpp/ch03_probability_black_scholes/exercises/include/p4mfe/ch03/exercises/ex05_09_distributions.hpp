@@ -29,32 +29,32 @@ namespace p4mfe::ch03::ex {
 // (The four values 46.305, 42.336, 38.70720, 35.38944 have probabilities
 // 0.216, 0.432, 0.288, 0.064; ex05_distribution builds them.)
 struct Ex05Tree {
-  double S0 = 40.0;
+  double spot0 = 40.0;
   double u = 1.05;
   double d = 0.96;
   double p = 0.6;
   int steps = 3;
 };
 
-[[nodiscard]] inline DiscreteDistribution ex05_distribution(
+[[nodiscard]] inline DiscreteDistribution Ex05Distribution(
     const Ex05Tree& t = {}) {
   std::vector<double> v, pr;
   double binom = 1.0;  // C(steps, j)
   for (int j = 0; j <= t.steps; ++j) {
-    v.push_back(t.S0 * std::pow(t.u, j) * std::pow(t.d, t.steps - j));
+    v.push_back(t.spot0 * std::pow(t.u, j) * std::pow(t.d, t.steps - j));
     pr.push_back(binom * std::pow(t.p, j) * std::pow(1.0 - t.p, t.steps - j));
     binom = binom * (t.steps - j) / (j + 1);
   }
   return {std::move(v), std::move(pr)};
 }
-[[nodiscard]] inline double ex05_mean(const Ex05Tree& t = {}) {
-  return t.S0 * std::pow(t.p * t.u + (1.0 - t.p) * t.d, t.steps);
+[[nodiscard]] inline double Ex05Mean(const Ex05Tree& t = {}) {
+  return t.spot0 * std::pow(t.p * t.u + (1.0 - t.p) * t.d, t.steps);
 }
-[[nodiscard]] inline double ex05_variance(const Ex05Tree& t = {}) {
+[[nodiscard]] inline double Ex05Variance(const Ex05Tree& t = {}) {
   const double m2 =
-      t.S0 * t.S0 *
+      t.spot0 * t.spot0 *
       std::pow(t.p * t.u * t.u + (1.0 - t.p) * t.d * t.d, t.steps);
-  const double m = ex05_mean(t);
+  const double m = Ex05Mean(t);
   return m2 - m * m;
 }
 
@@ -65,10 +65,10 @@ struct Ex05Tree {
 //   E[X]   = (1/(b-a)) int_a^b x dx   = (b^2 - a^2)/(2(b-a)) = (a+b)/2,
 //   E[X^2] = (b^3 - a^3)/(3(b-a))     = (a^2 + ab + b^2)/3,
 //   var(X) = (a^2 + ab + b^2)/3 - (a+b)^2/4 = (b-a)^2/12.
-[[nodiscard]] constexpr double ex06_mean(double a, double b) noexcept {
+[[nodiscard]] constexpr double Ex06Mean(double a, double b) noexcept {
   return 0.5 * (a + b);
 }
-[[nodiscard]] constexpr double ex06_variance(double a, double b) noexcept {
+[[nodiscard]] constexpr double Ex06Variance(double a, double b) noexcept {
   return (b - a) * (b - a) / 12.0;
 }
 
@@ -90,16 +90,16 @@ struct Ex05Tree {
 // (iv)  P(X >= t) = 1 - F(t) = e^(-alpha t).
 // The checks use exponential_distribution() from probability.hpp, whose
 // moments are computed by numerical integration.
-[[nodiscard]] inline double ex07_cdf(double alpha, double x) {
+[[nodiscard]] inline double Ex07Cdf(double alpha, double x) {
   return x < 0.0 ? 0.0 : -std::expm1(-alpha * x);
 }
-[[nodiscard]] inline double ex07_tail(double alpha, double t) {
+[[nodiscard]] inline double Ex07Tail(double alpha, double t) {
   return t < 0.0 ? 1.0 : std::exp(-alpha * t);
 }
 // P(X >= t + s | X >= t), which equals P(X >= s).
-[[nodiscard]] inline double ex07_conditional_tail(double alpha, double t,
-                                                  double s) {
-  return ex07_tail(alpha, t + s) / ex07_tail(alpha, t);
+[[nodiscard]] inline double Ex07ConditionalTail(double alpha, double t,
+                                                double s) {
+  return Ex07Tail(alpha, t + s) / Ex07Tail(alpha, t);
 }
 
 // ------------------------------------------------------------ Exercise 8 ---
@@ -117,12 +117,12 @@ struct Ex05Tree {
 //        = mu (1 - 2 N(-mu/sigma)) + sigma sqrt(2/pi) e^(-mu^2/(2 sigma^2)).
 // For mu = 0 this is sigma sqrt(2/pi). Also
 //   E[X^2] = var(X) + E[X]^2 = sigma^2 + mu^2.
-[[nodiscard]] inline double ex08_mean_abs(double mu, double sigma) {
+[[nodiscard]] inline double Ex08MeanAbs(double mu, double sigma) {
   return mu * (1.0 - 2.0 * norm_cdf(-mu / sigma)) +
          2.0 * sigma * norm_pdf(mu / sigma);
 }
-[[nodiscard]] constexpr double ex08_second_moment(double mu,
-                                                  double sigma) noexcept {
+[[nodiscard]] constexpr double Ex08SecondMoment(double mu,
+                                                double sigma) noexcept {
   return sigma * sigma + mu * mu;
 }
 
@@ -137,7 +137,7 @@ struct Ex05Tree {
 //   var(X) = E[X(X-1)] + E[X] - E[X]^2 = lambda^2 + lambda - lambda^2 = lambda.
 // ex09_distribution truncates the series where the tail is below 1e-15, to
 // check both values by direct summation.
-[[nodiscard]] inline DiscreteDistribution ex09_distribution(double lambda) {
+[[nodiscard]] inline DiscreteDistribution Ex09Distribution(double lambda) {
   if (!(lambda > 0.0))
     throw std::invalid_argument("ex09: lambda must be positive");
   std::vector<double> v, pr;

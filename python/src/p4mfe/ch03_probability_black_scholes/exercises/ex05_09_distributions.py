@@ -24,7 +24,7 @@ from p4mfe.normal import norm_cdf, norm_pdf
 
 @dataclass(frozen=True)
 class Ex05Tree:
-    S0: float = 40.0
+    spot0: float = 40.0
     u: float = 1.05
     d: float = 0.96
     p: float = 0.6
@@ -33,7 +33,7 @@ class Ex05Tree:
 
 def ex05_distribution(t: Ex05Tree = Ex05Tree()) -> DiscreteDistribution:
     n = t.steps
-    values = [t.S0 * t.u**j * t.d ** (n - j) for j in range(n + 1)]
+    values = [t.spot0 * t.u**j * t.d ** (n - j) for j in range(n + 1)]
     probs = [
         math.comb(n, j) * t.p**j * (1 - t.p) ** (n - j) for j in range(n + 1)
     ]
@@ -41,11 +41,11 @@ def ex05_distribution(t: Ex05Tree = Ex05Tree()) -> DiscreteDistribution:
 
 
 def ex05_mean(t: Ex05Tree = Ex05Tree()) -> float:
-    return t.S0 * (t.p * t.u + (1 - t.p) * t.d) ** t.steps
+    return t.spot0 * (t.p * t.u + (1 - t.p) * t.d) ** t.steps
 
 
 def ex05_variance(t: Ex05Tree = Ex05Tree()) -> float:
-    m2 = t.S0**2 * (t.p * t.u**2 + (1 - t.p) * t.d**2) ** t.steps
+    m2 = t.spot0**2 * (t.p * t.u**2 + (1 - t.p) * t.d**2) ** t.steps
     return m2 - ex05_mean(t) ** 2
 
 

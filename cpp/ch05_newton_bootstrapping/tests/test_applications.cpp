@@ -43,7 +43,7 @@ TEST(Ch05ImpliedVol, RecoversSigmaAndAgreesWithChapter3) {
   for (OptionType type : {OptionType::kCall, OptionType::kPut}) {
     for (double K : {25.0, 30.0, 36.0}) {
       for (double sigma : {0.15, 0.3, 0.8}) {
-        const double price = ch03::bs_price(type, S, K, T, sigma, r, q);
+        const double price = ch03::BsPrice(type, S, K, T, sigma, r, q);
         const auto n = implied_vol_newton(type, price, S, K, T, r, q);
         const auto s = implied_vol_secant(type, price, S, K, T, r, q);
         const auto b = implied_vol_bisection(type, price, S, K, T, r, q);
@@ -51,7 +51,7 @@ TEST(Ch05ImpliedVol, RecoversSigmaAndAgreesWithChapter3) {
         EXPECT_NEAR(s.x, sigma, 1e-9) << K << ' ' << sigma;
         EXPECT_NEAR(b.x, sigma, 1e-8) << K << ' ' << sigma;
         EXPECT_NEAR(n.x,
-                    ch03::implied_vol_newton(type, price, S, K, T, r, q).sigma,
+                    ch03::ImpliedVolNewton(type, price, S, K, T, r, q).sigma,
                     1e-9);
       }
     }
@@ -61,7 +61,7 @@ TEST(Ch05ImpliedVol, RecoversSigmaAndAgreesWithChapter3) {
 TEST(Ch05ImpliedVol, NewtonFromInflectionPointIsMonotone) {
   // From sigma_0 the Newton iterates approach the root from one side.
   const double S = 40, K = 44, T = 0.75, r = 0.04, q = 0.0, sigma = 0.27;
-  const double price = ch03::bs_call(S, K, T, sigma, r, q);
+  const double price = ch03::BsCall(S, K, T, sigma, r, q);
   const auto res = implied_vol_newton(OptionType::kCall, price, S, K, T, r, q,
                                       {1e-14, 1e-14, 100});
   const double side = res.iterates.front() - sigma;

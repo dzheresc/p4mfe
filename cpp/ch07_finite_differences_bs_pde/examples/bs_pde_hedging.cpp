@@ -16,10 +16,10 @@ int main() {
       "PDE residual Theta + 1/2 s^2 S^2 Gamma + (r-q) S Delta - r V by finite "
       "differences, t = 0\n");
   const auto call = [&](double s, double t) {
-    return ch03::bs_call(s, K, T - t, sigma, r, q);
+    return ch03::BsCall(s, K, T - t, sigma, r, q);
   };
   const auto put = [&](double s, double t) {
-    return ch03::bs_put(s, K, T - t, sigma, r, q);
+    return ch03::BsPut(s, K, T - t, sigma, r, q);
   };
   const auto fwd = [&](double s, double t) {
     return forward_contract_value(s, t, K, T, r, q);
@@ -39,7 +39,7 @@ int main() {
   std::printf("  S^2 (not a solution) %10.2e\n",
               bs_pde_residual_fd(sq, S, 0, sigma, r, q));
 
-  const double C = ch03::bs_call(S, K, T, sigma, r, q);
+  const double C = ch03::BsCall(S, K, T, sigma, r, q);
   std::printf(
       "\nShort call (C = %.4f) Delta-hedged n times; P&L over 5000 paths\n", C);
   std::printf("%6s  %8s  %12s  %12s\n", "n", "mu", "mean", "std dev");

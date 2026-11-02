@@ -39,7 +39,7 @@ void BM_barriers(benchmark::State& state) {
   double worst = 0.0;
   for (const auto& o : chain) {
     const double S = o.S, K = o.K, T = o.T, v = o.sigma;
-    const double call = p4mfe::ch03::bs_call(S, K, T, v, spec.r, spec.q);
+    const double call = p4mfe::ch03::BsCall(S, K, T, v, spec.r, spec.q);
     worst = std::max(
         worst,
         std::abs(ch08::down_and_out_call(S, K, 0.8 * S, T, v, spec.r, spec.q) +
@@ -134,7 +134,7 @@ constexpr double S = 100.0, K = 105.0, T = 1.0, sigma = 0.25, r = 0.045,
 
 void BM_heat_fd(benchmark::State& state, OptionType type) {
   const auto nx = static_cast<std::size_t>(state.range(0));
-  const double exact = p4mfe::ch03::bs_price(type, S, K, T, sigma, r, q);
+  const double exact = p4mfe::ch03::BsPrice(type, S, K, T, sigma, r, q);
   const double err =
       std::abs(ch08::european_heat_fd(type, S, K, T, sigma, r, q, nx) - exact);
   if (!check(state, err < 0.05, "heat-equation FD price is off")) return;
@@ -149,7 +149,7 @@ void BM_binomial(benchmark::State& state, OptionType type,
                  ch08::ExerciseStyle style) {
   const auto n = static_cast<std::size_t>(state.range(0));
   const double v = ch08::binomial_price(type, S, K, T, sigma, r, q, n, style);
-  const double bs = p4mfe::ch03::bs_price(type, S, K, T, sigma, r, q);
+  const double bs = p4mfe::ch03::BsPrice(type, S, K, T, sigma, r, q);
   const bool ok = style == ch08::ExerciseStyle::European
                       ? std::abs(v - bs) < 0.05
                       : v >= bs - 1e-9;

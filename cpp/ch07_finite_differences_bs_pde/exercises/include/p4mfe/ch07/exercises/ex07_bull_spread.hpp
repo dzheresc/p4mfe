@@ -45,7 +45,7 @@ namespace p4mfe::ch07::ex {
   return (ex_call(m.K, m) - ex_call(m.K + x, m)) / x;
 }
 [[nodiscard]] inline double ex07_cash_or_nothing(const SpreadMarket& m = {}) {
-  const auto [d1, d2] = ch03::bs_d1_d2(m.S, m.K, m.T, m.sigma, m.r, m.q);
+  const auto [d1, d2] = ch03::BsD1D2(m.S, m.K, m.T, m.sigma, m.r, m.q);
   return std::exp(-m.r * m.T) * norm_cdf(d2);
 }
 

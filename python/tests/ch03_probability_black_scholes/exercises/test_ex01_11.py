@@ -142,9 +142,9 @@ def test_ex10():
         x, y = rng.standard_normal(n), rng.standard_normal(n)
         s = ex10_sides(x, y)
         assert s.lhs <= s.rhs * (1 + 1e-14)
-        B, C = float(x @ y), float(y @ y)
-        assert ex10_quadratic(x, y, -B / C) == pytest.approx(
-            (s.rhs - s.lhs) / C, abs=1e-9
+        b, c = float(x @ y), float(y @ y)
+        assert ex10_quadratic(x, y, -b / c) == pytest.approx(
+            (s.rhs - s.lhs) / c, abs=1e-9
         )
     s = ex10_sides([1, -2, 3], [-2.5, 5, -7.5])
     assert s.lhs == pytest.approx(s.rhs)

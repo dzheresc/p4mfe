@@ -36,7 +36,7 @@ TEST(Ch08Ex15, TimeValueLargestAtTheMoney) {
        {Ex15Market{}, Ex15Market{100.0, 2.0, 0.2, 0.03, 0.02},
         Ex15Market{50.0, 0.1, 0.5, 0.0, 0.0}}) {
     const double at_K = ex15_time_value(m.K, m);
-    EXPECT_NEAR(at_K, ch03::bs_call(m.K, m.K, m.T, m.sigma, m.r, m.q), 1e-14);
+    EXPECT_NEAR(at_K, ch03::BsCall(m.K, m.K, m.T, m.sigma, m.r, m.q), 1e-14);
     for (double S = 0.2 * m.K; S < 5.0 * m.K; S += 0.005 * m.K) {
       if (std::abs(S - m.K) < 1e-9) continue;
       EXPECT_LT(ex15_time_value(S, m), at_K) << S;
@@ -59,7 +59,7 @@ TEST(Ch08Ex17, BarrierToZero) {
   for (double B : {5.0, 20.0, 35.0})
     EXPECT_NEAR(
         ch08::down_and_out_call(S, K, B, T, sigma, 0.0),
-        ch03::bs_call(S, K, T, sigma, 0.0) - ex17_bracket(S, K, B, T, sigma),
+        ch03::BsCall(S, K, T, sigma, 0.0) - ex17_bracket(S, K, B, T, sigma),
         1e-12);
   // The bracket and N(d2)/B decrease to 0 as B -> 0.
   double prev_bracket = 1e300, prev_ratio = 1e300;
@@ -133,9 +133,9 @@ TEST(Ch08Ex21, ImpliedVolSlope) {
   for (double K : {70.0, 90.0, 100.0, 115.0, 140.0}) {
     // Exact C'(K) for prices from the smile: dC_BS/dK + vega * sigma'(K).
     const double s = ex21_smile(K, m);
-    const auto [d1, d2] = ch03::bs_d1_d2(m.S, K, m.T, s, m.r, m.q);
+    const auto [d1, d2] = ch03::BsD1D2(m.S, K, m.T, s, m.r, m.q);
     const double vega =
-        ch03::bs_greeks(OptionType::kCall, m.S, K, m.T, s, m.r, m.q).vega;
+        ch03::BsGreeks(OptionType::kCall, m.S, K, m.T, s, m.r, m.q).vega;
     const double dC =
         -std::exp(-m.r * m.T) * norm_cdf(d2) + vega * ex21_smile_slope(K, m);
     (void)d1;
@@ -148,7 +148,7 @@ TEST(Ch08Ex21, ImpliedVolSlope) {
   }
   // A flat smile gives zero slope.
   const auto flat = [&](double k) {
-    return ch03::bs_call(m.S, k, m.T, 0.25, m.r, m.q);
+    return ch03::BsCall(m.S, k, m.T, 0.25, m.r, m.q);
   };
   EXPECT_NEAR(ex21_slope_from_prices(flat, 100.0, m), 0.0, 1e-7);
 }

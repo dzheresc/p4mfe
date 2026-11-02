@@ -23,13 +23,13 @@ from p4mfe.ch03_probability_black_scholes.hedging import delta_gamma_hedge
 
 
 def test_ex22_23():
-    for T, g, v in zip(
+    for maturity, g, v in zip(
         EX22_MATURITIES,
         (0.130022, 0.052530, 0.025296),
         (4.069779, 9.945546, 19.723967),
     ):
-        assert ex22_atm_gamma(T) == pytest.approx(g, abs=1e-6)
-        assert ex23_atm_vega(T) == pytest.approx(v, abs=1e-6)
+        assert ex22_atm_gamma(maturity) == pytest.approx(g, abs=1e-6)
+        assert ex23_atm_vega(maturity) == pytest.approx(v, abs=1e-6)
     for tau in (0.1, 1.0, 10.0, 44.0, 60.0):
         h = 1e-5
         assert ex23_vega_maturity_slope(tau) == pytest.approx(
@@ -45,26 +45,26 @@ def test_ex22_23():
 
 
 def test_ex24():
-    K, T, r = 100.0, 1.2, 0.05
-    for S in (60.0, 100.0, 140.0):
+    strike, maturity, r = 100.0, 1.2, 0.05
+    for spot in (60.0, 100.0, 140.0):
         for sigma in (0.05, 0.3, 1.5):
             for q in (0.0, 0.03):
-                cb, pb = ex24_call_bounds(S, K, T, r, q), ex24_put_bounds(
-                    S, K, T, r, q
-                )
-                C, P = bs_call(S, K, T, sigma, r, q), bs_put(
-                    S, K, T, sigma, r, q
-                )
-                assert cb.lower <= C + 1e-12 and C <= cb.upper + 1e-12
-                assert pb.lower <= P + 1e-12 and P <= pb.upper + 1e-12
-                assert put_from_call(0.0, S, K, T, r, q) == pytest.approx(
-                    pb.lower, abs=1e-12
-                )
-                assert put_from_call(cb.upper, S, K, T, r, q) == pytest.approx(
-                    pb.upper, abs=1e-12
-                )
+                cb, pb = ex24_call_bounds(
+                    spot, strike, maturity, r, q
+                ), ex24_put_bounds(spot, strike, maturity, r, q)
+                call, put = bs_call(
+                    spot, strike, maturity, sigma, r, q
+                ), bs_put(spot, strike, maturity, sigma, r, q)
+                assert cb.lower <= call + 1e-12 and call <= cb.upper + 1e-12
+                assert pb.lower <= put + 1e-12 and put <= pb.upper + 1e-12
+                assert put_from_call(
+                    0.0, spot, strike, maturity, r, q
+                ) == pytest.approx(pb.lower, abs=1e-12)
+                assert put_from_call(
+                    cb.upper, spot, strike, maturity, r, q
+                ) == pytest.approx(pb.upper, abs=1e-12)
                 assert max(pb.lower, 0.0) == pytest.approx(
-                    put_bounds(S, K, T, r, q).lower, abs=1e-12
+                    put_bounds(spot, strike, maturity, r, q).lower, abs=1e-12
                 )
 
 

@@ -61,7 +61,7 @@ void BM_implied_vol(benchmark::State& state, IvSolver solve) {
       const auto res = solve(o.type, o.price, o.S, o.K, o.T, spec.r, spec.q);
       iterations += res.iterations;
       const double repriced =
-          p4mfe::ch03::bs_price(o.type, o.S, o.K, o.T, res.x, spec.r, spec.q);
+          p4mfe::ch03::BsPrice(o.type, o.S, o.K, o.T, res.x, spec.r, spec.q);
       if (std::abs(res.x - o.sigma) > 1e-5 &&
           std::abs(repriced - o.price) > 1e-3)
         ++failures;
