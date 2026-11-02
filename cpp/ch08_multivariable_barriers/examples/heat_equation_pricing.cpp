@@ -1,6 +1,6 @@
 // Section 8.8: Black-Scholes through the heat equation, in closed form (heat
 // kernel) and by explicit finite differences, including the alpha <= 1/2
-// stability limit.
+// stability limit, and by Crank-Nicolson, which has no such limit.
 
 #include <cmath>
 #include <cstdio>
@@ -45,4 +45,13 @@ int main() {
   }
   std::printf("%8s  %8s  %14.6g\n", "exact", "",
               ch03::BsPut(40, strike, maturity, sigma, r, q));
+
+  std::printf("\nCrank-Nicolson: the same put, nx = 200, far fewer steps\n");
+  std::printf("%8s  %8s  %14s\n", "alpha", "nt", "price");
+  for (std::size_t nt : {10, 25, 50, 200}) {
+    const double alpha = tau_final / static_cast<double>(nt) / (dx * dx);
+    std::printf("%8.2f  %8zu  %14.6g\n", alpha, nt,
+                EuropeanHeatCrankNicolson(OptionType::kPut, 40, strike,
+                                          maturity, sigma, r, q, 200, nt));
+  }
 }

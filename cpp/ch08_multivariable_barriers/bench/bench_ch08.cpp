@@ -3,8 +3,9 @@
 //   W2  Box-Muller transform, pairwise
 //   W4  double integrals (rectangle and polar) at growing grid sizes
 //   W5  box_muller_samples: output is n doubles, a memory test
-//   W6  heat-equation finite differences (time ~ nx^3) and binomial trees
-//       (time ~ n^2, memory ~ n), with accuracy against Black-Scholes
+//   W6  heat-equation finite differences, explicit (time ~ nx^3) and
+//       Crank-Nicolson (time ~ nx^2), and binomial trees (time ~ n^2,
+//       memory ~ n), with accuracy against Black-Scholes
 #include <benchmark/benchmark.h>
 
 #include <cmath>
@@ -139,6 +140,21 @@ void BmBoxMullerSamples(benchmark::State& state) {
 constexpr double kS = 100.0, kK = 105.0, kT = 1.0, kSigma = 0.25, kR = 0.045,
                  kQ = 0.015;
 
+void BmHeatCrankNicolson(benchmark::State& state, OptionType type) {
+  const auto nx = static_cast<std::size_t>(state.range(0));
+  const double exact = p4mfe::ch03::BsPrice(type, kS, kK, kT, kSigma, kR, kQ);
+  const double err = std::abs(
+      ch08::EuropeanHeatCrankNicolson(type, kS, kK, kT, kSigma, kR, kQ, nx) -
+      exact);
+  if (!Check(state, err < 0.05, "heat-equation Crank-Nicolson price is off"))
+    return;
+  for (auto _ : state)
+    benchmark::DoNotOptimize(
+        ch08::EuropeanHeatCrankNicolson(type, kS, kK, kT, kSigma, kR, kQ, nx));
+  state.counters["abs_error"] = err;
+  state.SetComplexityN(static_cast<std::int64_t>(nx));
+}
+
 void BmHeatFd(benchmark::State& state, OptionType type) {
   const auto nx = static_cast<std::size_t>(state.range(0));
   const double exact = p4mfe::ch03::BsPrice(type, kS, kK, kT, kSigma, kR, kQ);
@@ -215,6 +231,12 @@ const bool kRegistered = [] {
              {100}, {100, 200, 400, 800}, {400, 800, 1600, 3200}))
       h->Arg(n);
     h->Complexity(benchmark::oNCubed)->Unit(benchmark::kMillisecond);
+    auto* cn = benchmark::RegisterBenchmark(
+        "W6/ch08/european_heat_crank_nicolson/" + t, BmHeatCrankNicolson, type);
+    for (const auto n : p4mfe::bench::ByTier<std::vector<std::int64_t>>(
+             {100}, {100, 200, 400, 800}, {400, 800, 1600, 3200}))
+      cn->Arg(n);
+    cn->Complexity(benchmark::oNSquared)->Unit(benchmark::kMillisecond);
   }
   const std::pair<const char*, ch08::ExerciseStyle> styles[] = {
       {"european", ch08::ExerciseStyle::kEuropean},

@@ -141,6 +141,55 @@ TEST(Ch08Heat, ExplicitFiniteDifferences) {
   EXPECT_GT(std::abs(g.u[20]), 1e3);
 }
 
+TEST(Ch08Heat, CrankNicolsonAgreesWithExplicit) {
+  const double strike = 40, maturity = 0.5, sigma = 0.25, r = 0.05, q = 0.02;
+  for (OptionType type : {OptionType::kCall, OptionType::kPut})
+    for (double spot : {35.0, 40.0, 46.0}) {
+      const double cn =
+          EuropeanHeatCrankNicolson(type, spot, strike, maturity, sigma, r, q);
+      EXPECT_NEAR(cn, ch03::BsPrice(type, spot, strike, maturity, sigma, r, q),
+                  2e-3);
+      EXPECT_NEAR(cn, EuropeanHeatFd(type, spot, strike, maturity, sigma, r, q),
+                  2e-3);
+    }
+  // Converges as O(dx^2) as the grid is refined. At the money the kink sits
+  // on a grid node and the error is regular (a factor of 4 per halving of dx).
+  const double exact = ch03::BsCall(strike, strike, maturity, sigma, r, q);
+  const auto error = [&](std::size_t nx) {
+    return std::abs(EuropeanHeatCrankNicolson(OptionType::kCall, strike, strike,
+                                              maturity, sigma, r, q, nx) -
+                    exact);
+  };
+  EXPECT_GT(error(100) / error(800), 40.0);
+}
+
+TEST(Ch08Heat, CrankNicolsonGridMatchesExplicitGrid) {
+  // u0 = sin(pi x) on [0, 1] with zero boundaries: u = e^(-pi^2 tau) sin(pi x).
+  const double pi = std::numbers::pi, tau_final = 0.05;
+  const auto u0 = [&](double x) { return std::sin(pi * x); };
+  const auto zero = [](double) { return 0.0; };
+  const auto ex = SolveHeatExplicit(u0, zero, zero, 0, 1, tau_final, 50, 500);
+  const auto cn =
+      SolveHeatCrankNicolson(u0, zero, zero, 0, 1, tau_final, 50, 50);
+  ASSERT_EQ(cn.x, ex.x);
+  for (std::size_t i = 0; i < cn.x.size(); ++i) {
+    const double exact = std::exp(-pi * pi * tau_final) * u0(cn.x[i]);
+    EXPECT_NEAR(cn.u[i], exact, 2e-4);
+    EXPECT_NEAR(cn.u[i], ex.u[i], 2e-4);
+  }
+  // The grid on which the explicit scheme blows up (alpha > 1/2) stays bounded.
+  const auto g =
+      SolveHeatCrankNicolson([](double x) { return std::max(x, 0.0); }, zero,
+                             [](double) { return 1.0; }, -1, 1, 0.1, 40, 20);
+  EXPECT_GT(g.alpha, 0.5);
+  for (double u : g.u) {
+    EXPECT_GE(u, -1e-12);
+    EXPECT_LE(u, 1.0 + 1e-12);
+  }
+  EXPECT_THROW((void)SolveHeatCrankNicolson(u0, zero, zero, 0, 1, 0.1, 1, 10),
+               std::invalid_argument);
+}
+
 // ---------------------------------------------------------------- 8.9 -----
 TEST(Ch08Barrier, DownAndOutCall) {
   const double strike = 100, maturity = 1, sigma = 0.3, r = 0.05, q = 0.02;
@@ -175,6 +224,17 @@ TEST(Ch08Barrier, DownAndOutCall) {
           },
           spot, strike, maturity, sigma, r, q, barrier, spot_max, 600);
       EXPECT_NEAR(fd, out, 5e-3) << barrier << ' ' << spot;
+      const double cn = BsHeatCrankNicolson(
+          [&](double s) {
+            return s > barrier ? std::max(s - strike, 0.0) : 0.0;
+          },
+          [](double) { return 0.0; },
+          [&](double th) {
+            return spot_max * std::exp(-q * th) - strike * std::exp(-r * th);
+          },
+          spot, strike, maturity, sigma, r, q, barrier, spot_max, 600);
+      EXPECT_NEAR(cn, out, 5e-3) << barrier << ' ' << spot;
+      EXPECT_NEAR(cn, fd, 5e-3) << barrier << ' ' << spot;
     }
     EXPECT_EQ(DownAndOutCall(barrier, strike, barrier, maturity, sigma, r, q),
               0.0);
