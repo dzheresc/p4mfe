@@ -94,11 +94,45 @@ IntegrationResult refine(Approx&& approx, double tol, std::size_t n0, std::size_
 
 // 2.4.1: the book's implementation. Start with n0 intervals and double n until
 // two consecutive approximations differ by less than tol.
+//
+// The trapezoidal and Simpson grids with 2n intervals contain every point of
+// the grid with n, so each doubling only evaluates f at the n new midpoints
+// instead of recomputing all 2n + 1 (Simpson) points: about half the
+// evaluations in total. The values agree with integrate(f, a, b, n, rule) up
+// to rounding in the order of summation.
 template <std::invocable<double> F>
 [[nodiscard]] IntegrationResult integrate_to_tolerance(F&& f, double a, double b, double tol,
                                                        Rule rule = Rule::Simpson, std::size_t n0 = 4,
                                                        std::size_t max_n = std::size_t{1} << 24) {
-    return detail::refine([&](std::size_t n) { return integrate(f, a, b, n, rule); }, tol, n0, max_n);
+    if (rule == Rule::Midpoint)
+        return detail::refine([&](std::size_t n) { return midpoint_rule(f, a, b, n); }, tol, n0, max_n);
+    if (tol <= 0.0) throw std::invalid_argument("tolerance must be positive");
+    std::size_t n = std::max<std::size_t>(n0, 1);
+    double h = (b - a) / static_cast<double>(n);
+    const double ends = f(a) + f(b);
+    double nodes = 0.0;  // sum of f at the n - 1 interior grid points
+    for (std::size_t i = 1; i < n; ++i) nodes += f(a + static_cast<double>(i) * h);
+    // Sum of f at the n midpoints of the current grid.
+    const auto midpoint_sum = [&]() {
+        double sum = 0.0;
+        for (std::size_t i = 0; i < n; ++i) sum += f(a + (static_cast<double>(i) + 0.5) * h);
+        return sum;
+    };
+    double mids = midpoint_sum();
+    const auto value = [&]() {
+        return rule == Rule::Simpson ? h / 6.0 * (ends + 2.0 * nodes + 4.0 * mids) : h * (0.5 * ends + nodes);
+    };
+    double previous = value();
+    while (2 * n <= max_n) {
+        nodes += mids;  // the old midpoints are interior points of the new grid
+        n *= 2;
+        h *= 0.5;
+        mids = midpoint_sum();
+        const double current = value();
+        if (std::abs(current - previous) < tol) return {current, n};
+        previous = current;
+    }
+    throw std::runtime_error("integration did not reach the tolerance");
 }
 
 // Observed order of convergence from the errors with n and 2n intervals:
@@ -156,14 +190,25 @@ template <std::invocable<double> F>
 
 // The Gamma function, the book's example of an improper integral:
 //   Gamma(x) = integral_0^inf t^(x-1) e^(-t) dt,  x > 0,
-// with Gamma(n) = (n-1)! for positive integers. Accurate for x >= 1; for
-// 0 < x < 1 the integrand is singular at 0 and the midpoint rule converges
-// slowly.
+// with Gamma(n) = (n-1)! for positive integers.
+//
+// For x < 2 (x != 1) the integrand t^(x-1) is not smooth at 0, and the
+// midpoint rule converges slowly (Gamma(1.5) took ~10 ms) or not at all
+// (x < 1). There the substitution t = s^k, dt = k s^(k-1) ds, with
+// k = ceil(2 / x), gives
+//   Gamma(x) = integral_0^inf k s^(kx-1) e^(-s^k) ds,
+// whose integrand vanishes at 0 like s^(kx-1), kx - 1 >= 1, so the midpoint
+// rule converges at its usual rate.
 [[nodiscard]] inline double gamma_function(double x, double tol = 1e-9) {
     if (x <= 0.0) throw std::domain_error("gamma_function: x must be positive");
-    return improper_integral([x](double t) { return std::pow(t, x - 1.0) * std::exp(-t); }, 0.0, infinity,
-                             tol)
-        .value;
+    if (x >= 2.0 || x == 1.0) {
+        return improper_integral([x](double t) { return std::pow(t, x - 1.0) * std::exp(-t); }, 0.0, infinity,
+                                 tol)
+            .value;
+    }
+    const double k = std::ceil(2.0 / x);
+    const auto integrand = [x, k](double s) { return k * std::pow(s, k * x - 1.0) * std::exp(-std::pow(s, k)); };
+    return improper_integral(integrand, 0.0, infinity, tol).value;
 }
 
 // ---------------------------------------------------------------- 2.2 ------

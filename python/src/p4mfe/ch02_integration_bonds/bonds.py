@@ -149,32 +149,36 @@ class ZeroCurve:
     rates: np.ndarray  # continuously compounded r(0, t)
 
 
+_TIME_TOLERANCE = 1e-9
+
+
 def bootstrap_zero_rates(quotes: Iterable[BondQuote], freq: int, face: float = 100.0) -> ZeroCurve:
     """Zero rates from coupon bond prices, shortest maturity first:
 
     D(0, T) = (B - sum_{t_i < T} c_i D(0, t_i)) / c_T
     """
-    known: dict[float, float] = {}
-
-    def lookup(t: float) -> float | None:
-        for s, d in known.items():
-            if abs(s - t) < 1e-9:
-                return d
-        return None
-
+    # Quotes are sorted by maturity, so `times` grows in increasing order and
+    # each bond's coupon dates are matched with one forward scan instead of a
+    # linear search per date (O(N^2) overall instead of O(N^3)).
+    times: list[float] = []
+    discounts: list[float] = []
     for q in sorted(quotes, key=lambda q: q.maturity):
         cf = bond_cash_flows(q.maturity, q.coupon_rate, freq, face)
         pv = 0.0
-        for t, c in zip(cf.times[:-1], cf.amounts[:-1]):
-            d = lookup(t)
-            if d is None:
+        known = 0  # First earlier maturity not before the coupon date.
+        for t, c in zip(cf.times[:-1].tolist(), cf.amounts[:-1].tolist()):
+            while known < len(times) and times[known] < t - _TIME_TOLERANCE:
+                known += 1
+            if known == len(times) or abs(times[known] - t) >= _TIME_TOLERANCE:
                 raise ValueError("a coupon date has no earlier bond")
-            pv += c * d
-        if lookup(q.maturity) is not None:
+            pv += c * discounts[known]
+        if times and abs(times[-1] - q.maturity) < _TIME_TOLERANCE:
             raise ValueError("duplicate maturity")
-        known[q.maturity] = (q.price - pv) / cf.amounts[-1]
-    times = np.array(list(known))
-    return ZeroCurve(times, np.array([zero_rate_from_discount(d, t) for t, d in known.items()]))
+        times.append(q.maturity)
+        discounts.append((q.price - pv) / cf.amounts[-1])
+    return ZeroCurve(
+        np.array(times),
+        np.array([zero_rate_from_discount(d, t) for t, d in zip(times, discounts)]))
 
 
 # 2.10 ----------------------------------------------------------------------

@@ -75,6 +75,9 @@ def test_gamma_function():
     assert gamma_function(5) == pytest.approx(24.0, abs=1e-7)
     assert gamma_function(2.5) == pytest.approx(math.gamma(2.5), abs=1e-8)
     assert gamma_function(4.3) == pytest.approx(3.3 * gamma_function(3.3), abs=1e-7)
+    assert gamma_function(0.5) == pytest.approx(math.sqrt(math.pi), abs=1e-8)
+    assert gamma_function(1.5) == pytest.approx(0.5 * math.sqrt(math.pi), abs=1e-8)
+    assert gamma_function(0.3) == pytest.approx(math.gamma(0.3), abs=1e-7)
 
 
 def test_differentiate_under_integral_sign():
