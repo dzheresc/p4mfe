@@ -57,14 +57,18 @@ class Ex03Portfolio:
 def ex03_min_variance(
     target_mean: float = 0.15, d: Ex03Data = Ex03Data()
 ) -> Ex03Portfolio:
-    S = d.covariance()
-    w = min_variance_portfolio(d.mu, S, target_mean)
-    return Ex03Portfolio(w, portfolio_mean(w, d.mu), portfolio_std_dev(w, S))
+    covariance = d.covariance()
+    w = min_variance_portfolio(d.mu, covariance, target_mean)
+    return Ex03Portfolio(
+        w, portfolio_mean(w, d.mu), portfolio_std_dev(w, covariance)
+    )
 
 
 def ex03_max_return(
     target_std: float = 0.25, d: Ex03Data = Ex03Data()
 ) -> Ex03Portfolio:
-    S = d.covariance()
-    w = max_return_portfolio(d.mu, S, target_std)
-    return Ex03Portfolio(w, portfolio_mean(w, d.mu), portfolio_std_dev(w, S))
+    covariance = d.covariance()
+    w = max_return_portfolio(d.mu, covariance, target_std)
+    return Ex03Portfolio(
+        w, portfolio_mean(w, d.mu), portfolio_std_dev(w, covariance)
+    )

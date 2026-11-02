@@ -29,97 +29,103 @@ def portfolio_mean(w, mu) -> float:
     return float(np.dot(w, mu))
 
 
-def portfolio_variance(w, Sigma) -> float:
+def portfolio_variance(w, covariance) -> float:
     w = np.asarray(w, float)
-    return float(w @ np.asarray(Sigma, float) @ w)
+    return float(w @ np.asarray(covariance, float) @ w)
 
 
-def portfolio_std_dev(w, Sigma) -> float:
-    return math.sqrt(portfolio_variance(w, Sigma))
+def portfolio_std_dev(w, covariance) -> float:
+    return math.sqrt(portfolio_variance(w, covariance))
 
 
 @dataclass(frozen=True)
 class FrontierConstants:
-    A: float
-    B: float
-    C: float
-    D: float
+    a: float
+    b: float
+    c: float
+    d: float
 
 
-def frontier_constants(mu, Sigma) -> FrontierConstants:
+def frontier_constants(mu, covariance) -> FrontierConstants:
     mu = np.asarray(mu, float)
     ones = np.ones_like(mu)
-    Si1, Simu = solve_linear(Sigma, ones), solve_linear(Sigma, mu)
-    A, B, C = float(ones @ Si1), float(ones @ Simu), float(mu @ Simu)
-    D = A * C - B * B
-    if not D > 0:
+    cov_inv_ones, cov_inv_mu = solve_linear(covariance, ones), solve_linear(
+        covariance, mu
+    )
+    a, b, c = (
+        float(ones @ cov_inv_ones),
+        float(ones @ cov_inv_mu),
+        float(mu @ cov_inv_mu),
+    )
+    d = a * c - b * b
+    if not d > 0:
         raise ValueError("need non-constant expected returns")
-    return FrontierConstants(A, B, C, D)
+    return FrontierConstants(a, b, c, d)
 
 
 # 9.3 -----------------------------------------------------------------------
-def global_min_variance_portfolio(Sigma) -> np.ndarray:
-    w = solve_linear(Sigma, np.ones(len(Sigma)))
+def global_min_variance_portfolio(covariance) -> np.ndarray:
+    w = solve_linear(covariance, np.ones(len(covariance)))
     return w / w.sum()
 
 
-def min_variance_portfolio(mu, Sigma, target_mean: float) -> np.ndarray:
-    c = frontier_constants(mu, Sigma)
+def min_variance_portfolio(mu, covariance, target_mean: float) -> np.ndarray:
+    c = frontier_constants(mu, covariance)
     rhs = (
-        (c.C - c.B * target_mean)
-        + (c.A * target_mean - c.B) * np.asarray(mu, float)
-    ) / c.D
-    return solve_linear(Sigma, rhs)
+        (c.c - c.b * target_mean)
+        + (c.a * target_mean - c.b) * np.asarray(mu, float)
+    ) / c.d
+    return solve_linear(covariance, rhs)
 
 
-def frontier_variance(mu, Sigma, target_mean: float) -> float:
-    c = frontier_constants(mu, Sigma)
-    return (c.A * target_mean**2 - 2 * c.B * target_mean + c.C) / c.D
+def frontier_variance(mu, covariance, target_mean: float) -> float:
+    c = frontier_constants(mu, covariance)
+    return (c.a * target_mean**2 - 2 * c.b * target_mean + c.c) / c.d
 
 
 def min_variance_portfolio_with_cash(
-    mu, Sigma, r_f: float, target_mean: float
+    mu, covariance, r_f: float, target_mean: float
 ) -> np.ndarray:
     """Risky weights; the cash weight is 1 - sum(w)."""
     m = np.asarray(mu, float) - r_f
-    w = solve_linear(Sigma, m)
+    w = solve_linear(covariance, m)
     return w * (target_mean - r_f) / float(m @ w)
 
 
-def tangency_portfolio(mu, Sigma, r_f: float) -> np.ndarray:
-    w = solve_linear(Sigma, np.asarray(mu, float) - r_f)
+def tangency_portfolio(mu, covariance, r_f: float) -> np.ndarray:
+    w = solve_linear(covariance, np.asarray(mu, float) - r_f)
     if w.sum() == 0:
         raise ValueError("undefined (r_f equals the GMV mean)")
     return w / w.sum()
 
 
-def sharpe_ratio(w, mu, Sigma, r_f: float) -> float:
-    return (portfolio_mean(w, mu) - r_f) / portfolio_std_dev(w, Sigma)
+def sharpe_ratio(w, mu, covariance, r_f: float) -> float:
+    return (portfolio_mean(w, mu) - r_f) / portfolio_std_dev(w, covariance)
 
 
 # 9.4 -----------------------------------------------------------------------
-def max_return_for_std_dev(mu, Sigma, sigma_P: float) -> float:
-    c = frontier_constants(mu, Sigma)
-    disc = c.A * sigma_P**2 - 1
+def max_return_for_std_dev(mu, covariance, sigma_p: float) -> float:
+    c = frontier_constants(mu, covariance)
+    disc = c.a * sigma_p**2 - 1
     if disc < 0:
         raise ValueError("sigma_P below the minimum 1/sqrt(A)")
-    return (c.B + math.sqrt(c.D * disc)) / c.A
+    return (c.b + math.sqrt(c.d * disc)) / c.a
 
 
-def max_return_portfolio(mu, Sigma, sigma_P: float) -> np.ndarray:
+def max_return_portfolio(mu, covariance, sigma_p: float) -> np.ndarray:
     return min_variance_portfolio(
-        mu, Sigma, max_return_for_std_dev(mu, Sigma, sigma_P)
+        mu, covariance, max_return_for_std_dev(mu, covariance, sigma_p)
     )
 
 
-def max_return_with_cash(mu, Sigma, r_f: float, sigma_P: float) -> float:
+def max_return_with_cash(mu, covariance, r_f: float, sigma_p: float) -> float:
     m = np.asarray(mu, float) - r_f
-    return r_f + sigma_P * math.sqrt(float(m @ solve_linear(Sigma, m)))
+    return r_f + sigma_p * math.sqrt(float(m @ solve_linear(covariance, m)))
 
 
 def max_return_portfolio_with_cash(
-    mu, Sigma, r_f: float, sigma_P: float
+    mu, covariance, r_f: float, sigma_p: float
 ) -> np.ndarray:
     return min_variance_portfolio_with_cash(
-        mu, Sigma, r_f, max_return_with_cash(mu, Sigma, r_f, sigma_P)
+        mu, covariance, r_f, max_return_with_cash(mu, covariance, r_f, sigma_p)
     )

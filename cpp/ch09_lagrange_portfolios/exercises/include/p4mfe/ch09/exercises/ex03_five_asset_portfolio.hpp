@@ -69,8 +69,8 @@ struct Ex03Data {
               {0.4, -0.1, 1.0, 0.35, 0.25},
               {0.25, -0.2, 0.35, 1.0, -0.15},
               {-0.2, 0.15, 0.25, -0.15, 1.0}};
-  [[nodiscard]] Matrix covariance() const {
-    return covariance_matrix(sigma, corr);
+  [[nodiscard]] Matrix Covariance() const {
+    return CovarianceMatrix(sigma, corr);
   }
 };
 
@@ -81,19 +81,19 @@ struct Ex03Portfolio {
 };
 
 // (i) Minimum variance portfolio with expected return target_mean.
-[[nodiscard]] inline Ex03Portfolio ex03_min_variance(double target_mean = 0.15,
-                                                     const Ex03Data& d = {}) {
-  const Matrix S = d.covariance();
-  Vector w = min_variance_portfolio(d.mu, S, target_mean);
-  return {w, portfolio_mean(w, d.mu), portfolio_std_dev(w, S)};
+[[nodiscard]] inline Ex03Portfolio Ex03MinVariance(double target_mean = 0.15,
+                                                   const Ex03Data& d = {}) {
+  const Matrix covariance = d.Covariance();
+  Vector w = MinVariancePortfolio(d.mu, covariance, target_mean);
+  return {w, PortfolioMean(w, d.mu), PortfolioStdDev(w, covariance)};
 }
 
 // (ii) Maximum expected return portfolio with standard deviation target_std.
-[[nodiscard]] inline Ex03Portfolio ex03_max_return(double target_std = 0.25,
-                                                   const Ex03Data& d = {}) {
-  const Matrix S = d.covariance();
-  Vector w = max_return_portfolio(d.mu, S, target_std);
-  return {w, portfolio_mean(w, d.mu), portfolio_std_dev(w, S)};
+[[nodiscard]] inline Ex03Portfolio Ex03MaxReturn(double target_std = 0.25,
+                                                 const Ex03Data& d = {}) {
+  const Matrix covariance = d.Covariance();
+  Vector w = MaxReturnPortfolio(d.mu, covariance, target_std);
+  return {w, PortfolioMean(w, d.mu), PortfolioStdDev(w, covariance)};
 }
 
 }  // namespace p4mfe::ch09::ex

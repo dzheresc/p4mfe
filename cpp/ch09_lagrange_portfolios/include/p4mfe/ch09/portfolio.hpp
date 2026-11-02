@@ -38,111 +38,114 @@ namespace p4mfe::ch09 {
 using Vector = std::vector<double>;
 using ch05::Matrix;
 
-[[nodiscard]] inline double dot(const Vector& a, const Vector& b) {
+[[nodiscard]] inline double Dot(const Vector& a, const Vector& b) {
   if (a.size() != b.size()) throw std::invalid_argument("dot: size mismatch");
   double s = 0.0;
   for (std::size_t i = 0; i < a.size(); ++i) s += a[i] * b[i];
   return s;
 }
 
-[[nodiscard]] inline Vector multiply(const Matrix& A, const Vector& x) {
-  if (A.Cols() != x.size())
+[[nodiscard]] inline Vector Multiply(const Matrix& matrix, const Vector& x) {
+  if (matrix.Cols() != x.size())
     throw std::invalid_argument("multiply: size mismatch");
-  Vector y(A.Rows(), 0.0);
-  for (std::size_t i = 0; i < A.Rows(); ++i)
-    for (std::size_t j = 0; j < A.Cols(); ++j) y[i] += A(i, j) * x[j];
+  Vector y(matrix.Rows(), 0.0);
+  for (std::size_t i = 0; i < matrix.Rows(); ++i)
+    for (std::size_t j = 0; j < matrix.Cols(); ++j) y[i] += matrix(i, j) * x[j];
   return y;
 }
 
 // ---------------------------------------------------------------- 9.2 ------
 // Sigma_ij = rho_ij sigma_i sigma_j.
-[[nodiscard]] inline Matrix covariance_matrix(const Vector& sigma,
-                                              const Matrix& corr) {
+[[nodiscard]] inline Matrix CovarianceMatrix(const Vector& sigma,
+                                             const Matrix& corr) {
   const std::size_t n = sigma.size();
   if (corr.Rows() != n || corr.Cols() != n)
     throw std::invalid_argument("covariance_matrix: size mismatch");
-  Matrix S(n, n);
+  Matrix covariance(n, n);
   for (std::size_t i = 0; i < n; ++i)
     for (std::size_t j = 0; j < n; ++j)
-      S(i, j) = corr(i, j) * sigma[i] * sigma[j];
-  return S;
+      covariance(i, j) = corr(i, j) * sigma[i] * sigma[j];
+  return covariance;
 }
 
-[[nodiscard]] inline double portfolio_mean(const Vector& w, const Vector& mu) {
-  return dot(w, mu);
+[[nodiscard]] inline double PortfolioMean(const Vector& w, const Vector& mu) {
+  return Dot(w, mu);
 }
-[[nodiscard]] inline double portfolio_variance(const Vector& w,
-                                               const Matrix& Sigma) {
-  return dot(w, multiply(Sigma, w));
+[[nodiscard]] inline double PortfolioVariance(const Vector& w,
+                                              const Matrix& covariance) {
+  return Dot(w, Multiply(covariance, w));
 }
-[[nodiscard]] inline double portfolio_std_dev(const Vector& w,
-                                              const Matrix& Sigma) {
-  return std::sqrt(portfolio_variance(w, Sigma));
+[[nodiscard]] inline double PortfolioStdDev(const Vector& w,
+                                            const Matrix& covariance) {
+  return std::sqrt(PortfolioVariance(w, covariance));
 }
 
 // The scalars A, B, C, D of the frontier.
 struct FrontierConstants {
-  double A, B, C, D;
+  double a, b, c, d;
 };
-[[nodiscard]] inline FrontierConstants frontier_constants(const Vector& mu,
-                                                          const Matrix& Sigma) {
+[[nodiscard]] inline FrontierConstants ComputeFrontierConstants(
+    const Vector& mu, const Matrix& covariance) {
   const Vector ones(mu.size(), 1.0);
-  const Vector Si1 = ch05::SolveLinear(Sigma, ones);
-  const Vector Simu = ch05::SolveLinear(Sigma, mu);
-  const double A = dot(ones, Si1), B = dot(ones, Simu), C = dot(mu, Simu);
-  const double D = A * C - B * B;
-  if (!(D > 0.0))
+  const Vector cov_inv_ones = ch05::SolveLinear(covariance, ones);
+  const Vector cov_inv_mu = ch05::SolveLinear(covariance, mu);
+  const double a = Dot(ones, cov_inv_ones), b = Dot(ones, cov_inv_mu),
+               c = Dot(mu, cov_inv_mu);
+  const double d = a * c - b * b;
+  if (!(d > 0.0))
     throw std::invalid_argument(
         "frontier_constants: need non-constant expected returns");
-  return {A, B, C, D};
+  return {a, b, c, d};
 }
 
 // ---------------------------------------------------------------- 9.3 ------
-[[nodiscard]] inline Vector global_min_variance_portfolio(const Matrix& Sigma) {
-  Vector w = ch05::SolveLinear(Sigma, Vector(Sigma.Rows(), 1.0));
+[[nodiscard]] inline Vector GlobalMinVariancePortfolio(
+    const Matrix& covariance) {
+  Vector w = ch05::SolveLinear(covariance, Vector(covariance.Rows(), 1.0));
   double s = 0.0;
   for (double x : w) s += x;
   for (double& x : w) x /= s;
   return w;
 }
 
-[[nodiscard]] inline Vector min_variance_portfolio(const Vector& mu,
-                                                   const Matrix& Sigma,
-                                                   double target_mean) {
-  const auto [A, B, C, D] = frontier_constants(mu, Sigma);
+[[nodiscard]] inline Vector MinVariancePortfolio(const Vector& mu,
+                                                 const Matrix& covariance,
+                                                 double target_mean) {
+  const auto [A, B, C, D] = ComputeFrontierConstants(mu, covariance);
   Vector rhs(mu.size());
   for (std::size_t i = 0; i < mu.size(); ++i)
     rhs[i] = ((C - B * target_mean) + (A * target_mean - B) * mu[i]) / D;
-  return ch05::SolveLinear(Sigma, rhs);
+  return ch05::SolveLinear(covariance, rhs);
 }
 
 // sigma_P^2 on the frontier for mean mu_P.
-[[nodiscard]] inline double frontier_variance(const Vector& mu,
-                                              const Matrix& Sigma,
-                                              double target_mean) {
-  const auto [A, B, C, D] = frontier_constants(mu, Sigma);
+[[nodiscard]] inline double FrontierVariance(const Vector& mu,
+                                             const Matrix& covariance,
+                                             double target_mean) {
+  const auto [A, B, C, D] = ComputeFrontierConstants(mu, covariance);
   return (A * target_mean * target_mean - 2.0 * B * target_mean + C) / D;
 }
 
 // Risky weights of the minimum variance portfolio with mean mu_P when cash
 // (rate r_f) is available; cash weight is 1 - sum(w).
-[[nodiscard]] inline Vector min_variance_portfolio_with_cash(
-    const Vector& mu, const Matrix& Sigma, double r_f, double target_mean) {
+[[nodiscard]] inline Vector MinVariancePortfolioWithCash(
+    const Vector& mu, const Matrix& covariance, double r_f,
+    double target_mean) {
   Vector m(mu.size());
   for (std::size_t i = 0; i < mu.size(); ++i) m[i] = mu[i] - r_f;
-  Vector w = ch05::SolveLinear(Sigma, m);
-  const double k = (target_mean - r_f) / dot(m, w);
+  Vector w = ch05::SolveLinear(covariance, m);
+  const double k = (target_mean - r_f) / Dot(m, w);
   for (double& x : w) x *= k;
   return w;
 }
 
 // The tangency (maximum Sharpe ratio) portfolio: Sigma^-1 m / (1^T Sigma^-1 m).
-[[nodiscard]] inline Vector tangency_portfolio(const Vector& mu,
-                                               const Matrix& Sigma,
-                                               double r_f) {
+[[nodiscard]] inline Vector TangencyPortfolio(const Vector& mu,
+                                              const Matrix& covariance,
+                                              double r_f) {
   Vector m(mu.size());
   for (std::size_t i = 0; i < mu.size(); ++i) m[i] = mu[i] - r_f;
-  Vector w = ch05::SolveLinear(Sigma, m);
+  Vector w = ch05::SolveLinear(covariance, m);
   double s = 0.0;
   for (double x : w) s += x;
   if (s == 0.0)
@@ -152,47 +155,47 @@ struct FrontierConstants {
   return w;
 }
 
-[[nodiscard]] inline double sharpe_ratio(const Vector& w, const Vector& mu,
-                                         const Matrix& Sigma, double r_f) {
-  return (portfolio_mean(w, mu) - r_f) / portfolio_std_dev(w, Sigma);
+[[nodiscard]] inline double SharpeRatio(const Vector& w, const Vector& mu,
+                                        const Matrix& covariance, double r_f) {
+  return (PortfolioMean(w, mu) - r_f) / PortfolioStdDev(w, covariance);
 }
 
 // ---------------------------------------------------------------- 9.4 ------
 // Maximum mean among fully invested portfolios with standard deviation sigma_P.
-[[nodiscard]] inline double max_return_for_std_dev(const Vector& mu,
-                                                   const Matrix& Sigma,
-                                                   double sigma_P) {
-  const auto [A, B, C, D] = frontier_constants(mu, Sigma);
-  const double disc = A * sigma_P * sigma_P - 1.0;
+[[nodiscard]] inline double MaxReturnForStdDev(const Vector& mu,
+                                               const Matrix& covariance,
+                                               double sigma_p) {
+  const auto [A, B, C, D] = ComputeFrontierConstants(mu, covariance);
+  const double disc = A * sigma_p * sigma_p - 1.0;
   if (disc < 0.0)
     throw std::invalid_argument(
         "max_return_for_std_dev: sigma_P below the minimum 1/sqrt(A)");
   return (B + std::sqrt(D * disc)) / A;
 }
 
-[[nodiscard]] inline Vector max_return_portfolio(const Vector& mu,
-                                                 const Matrix& Sigma,
-                                                 double sigma_P) {
-  return min_variance_portfolio(mu, Sigma,
-                                max_return_for_std_dev(mu, Sigma, sigma_P));
+[[nodiscard]] inline Vector MaxReturnPortfolio(const Vector& mu,
+                                               const Matrix& covariance,
+                                               double sigma_p) {
+  return MinVariancePortfolio(mu, covariance,
+                              MaxReturnForStdDev(mu, covariance, sigma_p));
 }
 
 // With cash: the capital market line, mu_P = r_f + sigma_P sqrt(m^T Sigma^-1
 // m).
-[[nodiscard]] inline double max_return_with_cash(const Vector& mu,
-                                                 const Matrix& Sigma,
-                                                 double r_f, double sigma_P) {
+[[nodiscard]] inline double MaxReturnWithCash(const Vector& mu,
+                                              const Matrix& covariance,
+                                              double r_f, double sigma_p) {
   Vector m(mu.size());
   for (std::size_t i = 0; i < mu.size(); ++i) m[i] = mu[i] - r_f;
-  return r_f + sigma_P * std::sqrt(dot(m, ch05::SolveLinear(Sigma, m)));
+  return r_f + sigma_p * std::sqrt(Dot(m, ch05::SolveLinear(covariance, m)));
 }
 
-[[nodiscard]] inline Vector max_return_portfolio_with_cash(const Vector& mu,
-                                                           const Matrix& Sigma,
-                                                           double r_f,
-                                                           double sigma_P) {
-  return min_variance_portfolio_with_cash(
-      mu, Sigma, r_f, max_return_with_cash(mu, Sigma, r_f, sigma_P));
+[[nodiscard]] inline Vector MaxReturnPortfolioWithCash(const Vector& mu,
+                                                       const Matrix& covariance,
+                                                       double r_f,
+                                                       double sigma_p) {
+  return MinVariancePortfolioWithCash(
+      mu, covariance, r_f, MaxReturnWithCash(mu, covariance, r_f, sigma_p));
 }
 
 }  // namespace p4mfe::ch09

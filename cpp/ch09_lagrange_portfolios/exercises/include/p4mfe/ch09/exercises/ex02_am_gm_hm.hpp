@@ -47,7 +47,7 @@ namespace p4mfe::ch09::ex {
 // converges to x = (a, ..., a) with lambda = -1/a, and the second-order test
 // on the tangent space (H_L = -diag(1/x_i^2), negative definite) says maximum.
 
-[[nodiscard]] inline double arithmetic_mean(const std::vector<double>& x) {
+[[nodiscard]] inline double ArithmeticMean(const std::vector<double>& x) {
   if (x.empty()) throw std::invalid_argument("arithmetic_mean: empty input");
   double s = 0.0;
   for (double v : x) s += v;
@@ -55,7 +55,7 @@ namespace p4mfe::ch09::ex {
 }
 
 // Computed as exp(mean of ln x_i) so the product cannot overflow.
-[[nodiscard]] inline double geometric_mean(const std::vector<double>& x) {
+[[nodiscard]] inline double GeometricMean(const std::vector<double>& x) {
   if (x.empty()) throw std::invalid_argument("geometric_mean: empty input");
   double s = 0.0;
   for (double v : x) {
@@ -65,7 +65,7 @@ namespace p4mfe::ch09::ex {
   return std::exp(s / static_cast<double>(x.size()));
 }
 
-[[nodiscard]] inline double harmonic_mean(const std::vector<double>& x) {
+[[nodiscard]] inline double HarmonicMean(const std::vector<double>& x) {
   if (x.empty()) throw std::invalid_argument("harmonic_mean: empty input");
   double s = 0.0;
   for (double v : x) {
@@ -77,8 +77,8 @@ namespace p4mfe::ch09::ex {
 
 // The Lagrange problem of the proof: maximize sum ln x_i subject to
 // sum x_i = n a, solved by Newton's method from x0 (all x0_i > 0).
-[[nodiscard]] inline LagrangeResult ex02_lagrange_max(const Vector& x0,
-                                                      double a) {
+[[nodiscard]] inline LagrangeResult Ex02LagrangeMax(const Vector& x0,
+                                                    double a) {
   const double target = static_cast<double>(x0.size()) * a;
   const auto f = [](const Vector& x) {
     double s = 0.0;
@@ -90,11 +90,11 @@ namespace p4mfe::ch09::ex {
     for (double v : x) s += v;
     return Vector{s};
   };
-  return lagrange_stationary_point(f, g, x0);
+  return LagrangeStationaryPoint(f, g, x0);
 }
 
-[[nodiscard]] inline CriticalPointType ex02_classify(const LagrangeResult& r,
-                                                     double a) {
+[[nodiscard]] inline CriticalPointType Ex02Classify(const LagrangeResult& r,
+                                                    double a) {
   const double target = static_cast<double>(r.x.size()) * a;
   const auto f = [](const Vector& x) {
     double s = 0.0;
@@ -106,7 +106,7 @@ namespace p4mfe::ch09::ex {
     for (double v : x) s += v;
     return Vector{s};
   };
-  return classify_constrained(f, g, r.x, r.lambda);
+  return ClassifyConstrained(f, g, r.x, r.lambda);
 }
 
 }  // namespace p4mfe::ch09::ex

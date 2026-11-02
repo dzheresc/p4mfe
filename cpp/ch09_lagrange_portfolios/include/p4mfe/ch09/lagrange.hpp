@@ -33,14 +33,14 @@ using ch08::CriticalPointType;
 
 namespace detail {
 template <class G>
-auto component(G& g, std::size_t j) {
+auto Component(G& g, std::size_t j) {
   return [&g, j](const Vector& x) { return g(x)[j]; };
 }
 
 // Orthonormal basis of {v : A v = 0} for the m x n matrix A given as rows
 // (Gram-Schmidt: orthonormalize the rows, then the unit vectors against them).
-inline std::vector<Vector> null_space(const std::vector<Vector>& rows,
-                                      std::size_t n, double tol = 1e-10) {
+inline std::vector<Vector> NullSpace(const std::vector<Vector>& rows,
+                                     std::size_t n, double tol = 1e-10) {
   const auto dot = [](const Vector& a, const Vector& b) {
     double s = 0.0;
     for (std::size_t i = 0; i < a.size(); ++i) s += a[i] * b[i];
@@ -82,12 +82,12 @@ struct LagrangeResult {
 // Gradient of the Lagrangian in (x, lambda): (grad f + sum lambda_j grad g_j,
 // g).
 template <class F, ch05::VectorFunction G>
-[[nodiscard]] Vector lagrangian_gradient(F&& f, G&& g, const Vector& x,
-                                         const Vector& lambda) {
+[[nodiscard]] Vector LagrangianGradient(F&& f, G&& g, const Vector& x,
+                                        const Vector& lambda) {
   Vector out = ch01::Gradient(f, x);
   const Vector gx = g(x);
   for (std::size_t j = 0; j < gx.size(); ++j) {
-    const Vector gj = ch01::Gradient(detail::component(g, j), x);
+    const Vector gj = ch01::Gradient(detail::Component(g, j), x);
     for (std::size_t i = 0; i < x.size(); ++i) out[i] += lambda[j] * gj[i];
   }
   out.insert(out.end(), gx.begin(), gx.end());
@@ -96,16 +96,16 @@ template <class F, ch05::VectorFunction G>
 
 // H_L = H_f + sum_j lambda_j H_(g_j).
 template <class F, ch05::VectorFunction G>
-[[nodiscard]] ch01::Matrix lagrangian_hessian(F&& f, G&& g, const Vector& x,
-                                              const Vector& lambda) {
-  auto H = ch01::Hessian(f, x);
+[[nodiscard]] ch01::Matrix LagrangianHessian(F&& f, G&& g, const Vector& x,
+                                             const Vector& lambda) {
+  auto hessian = ch01::Hessian(f, x);
   for (std::size_t j = 0; j < lambda.size(); ++j) {
-    const auto Hj = ch01::Hessian(detail::component(g, j), x);
+    const auto hessian_j = ch01::Hessian(detail::Component(g, j), x);
     for (std::size_t r = 0; r < x.size(); ++r)
       for (std::size_t c = 0; c < x.size(); ++c)
-        H[r][c] += lambda[j] * Hj[r][c];
+        hessian[r][c] += lambda[j] * hessian_j[r][c];
   }
-  return H;
+  return hessian;
 }
 
 // Multipliers that best satisfy grad f + sum lambda_j grad g_j = 0 at x in
@@ -113,26 +113,27 @@ template <class F, ch05::VectorFunction G>
 // starting lambda (lambda = 0 makes the bordered Jacobian singular when f is
 // linear).
 template <class F, ch05::VectorFunction G>
-[[nodiscard]] Vector least_squares_multipliers(F&& f, G&& g, const Vector& x) {
+[[nodiscard]] Vector LeastSquaresMultipliers(F&& f, G&& g, const Vector& x) {
   const std::size_t m = g(x).size();
   const Vector gf = ch01::Gradient(f, x);
-  std::vector<Vector> Jg;
+  std::vector<Vector> grad_g;
   for (std::size_t j = 0; j < m; ++j)
-    Jg.push_back(ch01::Gradient(detail::component(g, j), x));
-  ch05::Matrix M(m, m);
+    grad_g.push_back(ch01::Gradient(detail::Component(g, j), x));
+  ch05::Matrix normal_matrix(m, m);
   Vector rhs(m, 0.0);
   for (std::size_t a = 0; a < m; ++a) {
-    for (std::size_t i = 0; i < x.size(); ++i) rhs[a] -= Jg[a][i] * gf[i];
+    for (std::size_t i = 0; i < x.size(); ++i) rhs[a] -= grad_g[a][i] * gf[i];
     for (std::size_t b = 0; b < m; ++b)
-      for (std::size_t i = 0; i < x.size(); ++i) M(a, b) += Jg[a][i] * Jg[b][i];
+      for (std::size_t i = 0; i < x.size(); ++i)
+        normal_matrix(a, b) += grad_g[a][i] * grad_g[b][i];
   }
-  return ch05::SolveLinear(M, rhs);
+  return ch05::SolveLinear(normal_matrix, rhs);
 }
 
 // Solves the Lagrange system from (x0, lambda0) by Newton's method; an empty
 // lambda0 starts from least_squares_multipliers(f, g, x0).
 template <class F, ch05::VectorFunction G>
-[[nodiscard]] LagrangeResult lagrange_stationary_point(
+[[nodiscard]] LagrangeResult LagrangeStationaryPoint(
     F&& f, G&& g, Vector x0, Vector lambda0 = {},
     const ch05::Tolerances& tol = {1e-9, 1e-8, 100}) {
   const std::size_t n = x0.size();
@@ -140,7 +141,7 @@ template <class F, ch05::VectorFunction G>
   if (m == 0 || m >= n)
     throw std::invalid_argument(
         "lagrange_stationary_point: need 0 < m < n constraints");
-  if (lambda0.empty()) lambda0 = least_squares_multipliers(f, g, x0);
+  if (lambda0.empty()) lambda0 = LeastSquaresMultipliers(f, g, x0);
   if (lambda0.size() != m)
     throw std::invalid_argument(
         "lagrange_stationary_point: lambda0 has the wrong size");
@@ -149,48 +150,51 @@ template <class F, ch05::VectorFunction G>
         Vector(z.begin(), z.begin() + static_cast<std::ptrdiff_t>(n)),
         Vector(z.begin() + static_cast<std::ptrdiff_t>(n), z.end())};
   };
-  const auto F_ = [&](const Vector& z) {
+  const auto lagrange_system = [&](const Vector& z) {
     const auto [x, l] = split(z);
-    return lagrangian_gradient(f, g, x, l);
+    return LagrangianGradient(f, g, x, l);
   };
-  const auto J = [&](const Vector& z) {
+  const auto system_jacobian = [&](const Vector& z) {
     const auto [x, l] = split(z);
-    const auto H = lagrangian_hessian(f, g, x, l);
-    ch05::Matrix M(n + m, n + m);
+    const auto hessian = LagrangianHessian(f, g, x, l);
+    ch05::Matrix jacobian(n + m, n + m);
     for (std::size_t r = 0; r < n; ++r)
-      for (std::size_t c = 0; c < n; ++c) M(r, c) = H[r][c];
+      for (std::size_t c = 0; c < n; ++c) jacobian(r, c) = hessian[r][c];
     for (std::size_t j = 0; j < m; ++j) {
-      const Vector gj = ch01::Gradient(detail::component(g, j), x);
-      for (std::size_t i = 0; i < n; ++i) M(n + j, i) = M(i, n + j) = gj[i];
+      const Vector gj = ch01::Gradient(detail::Component(g, j), x);
+      for (std::size_t i = 0; i < n; ++i)
+        jacobian(n + j, i) = jacobian(i, n + j) = gj[i];
     }
-    return M;
+    return jacobian;
   };
   Vector z = std::move(x0);
   z.insert(z.end(), lambda0.begin(), lambda0.end());
-  const auto res = ch05::NewtonNd(F_, J, std::move(z), tol);
+  const auto res =
+      ch05::NewtonNd(lagrange_system, system_jacobian, std::move(z), tol);
   auto [x, l] = split(res.x);
   return {std::move(x), std::move(l), res.iterations};
 }
 
 // Second-order test on the tangent space of the constraints at x.
 template <class F, ch05::VectorFunction G>
-[[nodiscard]] CriticalPointType classify_constrained(F&& f, G&& g,
-                                                     const Vector& x,
-                                                     const Vector& lambda,
-                                                     double tol = 1e-6) {
-  const auto H = lagrangian_hessian(f, g, x, lambda);
+[[nodiscard]] CriticalPointType ClassifyConstrained(F&& f, G&& g,
+                                                    const Vector& x,
+                                                    const Vector& lambda,
+                                                    double tol = 1e-6) {
+  const auto hessian = LagrangianHessian(f, g, x, lambda);
   std::vector<Vector> rows;
   for (std::size_t j = 0; j < lambda.size(); ++j)
-    rows.push_back(ch01::Gradient(detail::component(g, j), x));
-  const auto Z = detail::null_space(rows, x.size());
-  const std::size_t k = Z.size();
-  ch01::Matrix R(k, ch01::Vector(k, 0.0));
+    rows.push_back(ch01::Gradient(detail::Component(g, j), x));
+  const auto null_basis = detail::NullSpace(rows, x.size());
+  const std::size_t k = null_basis.size();
+  ch01::Matrix reduced_hessian(k, ch01::Vector(k, 0.0));
   for (std::size_t a = 0; a < k; ++a)
     for (std::size_t b = 0; b < k; ++b)
       for (std::size_t r = 0; r < x.size(); ++r)
         for (std::size_t c = 0; c < x.size(); ++c)
-          R[a][b] += Z[a][r] * H[r][c] * Z[b][c];
-  return ch08::ClassifyHessian(R, tol);
+          reduced_hessian[a][b] +=
+              null_basis[a][r] * hessian[r][c] * null_basis[b][c];
+  return ch08::ClassifyHessian(reduced_hessian, tol);
 }
 
 }  // namespace p4mfe::ch09

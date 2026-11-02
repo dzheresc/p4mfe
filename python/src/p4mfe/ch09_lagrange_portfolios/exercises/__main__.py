@@ -48,7 +48,7 @@ def main() -> None:
     d = Ex03Data()
     c = frontier_constants(d.mu, d.covariance())
     print(
-        f"  A = {c.A:.6f}  B = {c.B:.6f}  C = {c.C:.6f}  D = {c.D:.6f}  (min sigma 1/sqrt(A) = {1 / math.sqrt(c.A):.6f})"
+        f"  A = {c.a:.6f}  B = {c.b:.6f}  C = {c.c:.6f}  D = {c.d:.6f}  (min sigma 1/sqrt(A) = {1 / math.sqrt(c.a):.6f})"
     )
     p1 = ex03_min_variance()
     print(f"  (i)  min variance for mean 15%: sigma = {p1.std_dev:.6f}")

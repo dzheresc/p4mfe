@@ -12,18 +12,18 @@ TEST(Ch09Lagrange, LinearOnCircle) {
   const auto g = [](const Vector& v) {
     return Vector{v[0] * v[0] + v[1] * v[1] - 5};
   };
-  const auto mx = lagrange_stationary_point(f, g, {0.8, 1.5});
+  const auto mx = LagrangeStationaryPoint(f, g, {0.8, 1.5});
   EXPECT_NEAR(mx.x[0], 1.0, 1e-8);
   EXPECT_NEAR(mx.x[1], 2.0, 1e-8);
   EXPECT_NEAR(mx.lambda[0], -0.5, 1e-8);  // grad f + lambda grad g = 0
-  EXPECT_EQ(classify_constrained(f, g, mx.x, mx.lambda),
+  EXPECT_EQ(ClassifyConstrained(f, g, mx.x, mx.lambda),
             CriticalPointType::kMaximum);
-  const auto mn = lagrange_stationary_point(f, g, {-1.2, -1.8});
+  const auto mn = LagrangeStationaryPoint(f, g, {-1.2, -1.8});
   EXPECT_NEAR(f(mn.x), -5.0, 1e-8);
-  EXPECT_EQ(classify_constrained(f, g, mn.x, mn.lambda),
+  EXPECT_EQ(ClassifyConstrained(f, g, mn.x, mn.lambda),
             CriticalPointType::kMinimum);
   // The Lagrangian's gradient vanishes there.
-  for (double v : lagrangian_gradient(f, g, mx.x, mx.lambda))
+  for (double v : LagrangianGradient(f, g, mx.x, mx.lambda))
     EXPECT_NEAR(v, 0.0, 1e-8);
 }
 
@@ -37,12 +37,12 @@ TEST(Ch09Lagrange, TwoConstraints) {
   const auto g = [](const Vector& v) {
     return Vector{v[0] + v[1] + v[2] - 3, v[0] - v[1] - 1};
   };
-  const auto r = lagrange_stationary_point(f, g, {0, 0, 0});
+  const auto r = LagrangeStationaryPoint(f, g, {0, 0, 0});
   EXPECT_NEAR(r.x[0], 1.5, 1e-8);
   EXPECT_NEAR(r.x[1], 0.5, 1e-8);
   EXPECT_NEAR(r.x[2], 1.0, 1e-8);
   ASSERT_EQ(r.lambda.size(), 2u);
-  EXPECT_EQ(classify_constrained(f, g, r.x, r.lambda),
+  EXPECT_EQ(ClassifyConstrained(f, g, r.x, r.lambda),
             CriticalPointType::kMinimum);
 }
 
@@ -52,9 +52,9 @@ TEST(Ch09Lagrange, BoxOfMaximumVolume) {
   const auto g = [](const Vector& v) {
     return Vector{2 * (v[0] * v[1] + v[1] * v[2] + v[2] * v[0]) - 6};
   };
-  const auto r = lagrange_stationary_point(f, g, {0.8, 1.2, 1.1});
+  const auto r = LagrangeStationaryPoint(f, g, {0.8, 1.2, 1.1});
   for (double v : r.x) EXPECT_NEAR(v, 1.0, 1e-8);
-  EXPECT_EQ(classify_constrained(f, g, r.x, r.lambda),
+  EXPECT_EQ(ClassifyConstrained(f, g, r.x, r.lambda),
             CriticalPointType::kMaximum);
 }
 
@@ -64,13 +64,13 @@ TEST(Ch09Lagrange, SaddleAndErrors) {
     return v[0] * v[0] - v[1] * v[1] + v[2];
   };
   const auto g = [](const Vector& v) { return Vector{v[2]}; };
-  const auto r = lagrange_stationary_point(f, g, {0.3, -0.2, 0.1});
+  const auto r = LagrangeStationaryPoint(f, g, {0.3, -0.2, 0.1});
   EXPECT_NEAR(r.x[0], 0.0, 1e-8);
   EXPECT_NEAR(r.lambda[0], -1.0, 1e-8);
-  EXPECT_EQ(classify_constrained(f, g, r.x, r.lambda),
+  EXPECT_EQ(ClassifyConstrained(f, g, r.x, r.lambda),
             CriticalPointType::kSaddle);
   // As many constraints as unknowns is not a Lagrange problem.
-  EXPECT_THROW((void)lagrange_stationary_point(
+  EXPECT_THROW((void)LagrangeStationaryPoint(
                    f, [](const Vector& v) { return Vector{v[0], v[1], v[2]}; },
                    {0, 0, 0}),
                std::invalid_argument);
