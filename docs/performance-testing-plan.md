@@ -5,7 +5,7 @@ option, presets, counting allocator, size tiers, CI smoke job) and workloads
 W1 to W8 exist under `cpp/*/bench/`. The coverage check passes (all 367
 public header functions run under the smoke tier, no waivers), and
 `tools/bench/` holds the baseline runner, summary, comparison and coverage
-scripts plus the nightly `bench.yml` workflow. Recording the baselines is
+scripts plus the `bench.yml` workflow. Recording the baselines is
 next.
 
 ## Goals
@@ -113,7 +113,7 @@ Each workload has three size tiers, chosen at run time with
 
 - **smoke**: seconds in total; runs on every PR to prove the benchmarks build
   and run.
-- **standard**: the baseline and the nightly numbers; about 10 to 15 minutes
+- **standard**: the baseline and the `bench.yml` numbers; about 10 to 15 minutes
   for the whole suite on a 4-core CI runner.
 - **large**: memory stress, run by hand or on demand; capped at about 2 GB
   peak RSS so it fits a 16 GB GitHub runner.
@@ -403,9 +403,10 @@ performance change is merged before it exists.
   `-DP4MFE_BUILD_BENCHMARKS=ON`, build, run the **smoke** tier. Fails only if a
   benchmark fails to build, crashes, or its correctness check in setup fails.
   Adds well under a minute.
-- **Nightly and manual (`bench.yml`, `schedule` + `workflow_dispatch`)**: run
-  the **standard** tier, upload JSON as an artifact, compare with the
-  committed CI baseline and write the comparison to the job summary.
+- **Manual (`bench.yml`, `workflow_dispatch`)**: run the **standard** tier,
+  upload JSON as an artifact, compare with the committed CI baseline and
+  write the comparison to the job summary and the log. It ran nightly until
+  the optimization work finished; the schedule was then removed.
   - Gate (fail) on allocation count and peak bytes increasing beyond 5%, since
     they are deterministic.
   - Timings are reported, not gated; GitHub-hosted runners vary by 10 to 20%.

@@ -49,7 +49,7 @@ tools/bench/coverage.sh                         # needs gcovr; every public head
   `BENCHMARK_FILTER='binomial_price' tools/bench/run_baseline.sh <out-dir>`
   or `--benchmark_filter=...` on one `p4mfe_<chapter>_bench` executable.
 - Committed baselines: `bench/baselines/ci` (GitHub runner, used by the
-  nightly `bench` workflow) and `bench/baselines/<date>-<machine>` (local).
+  manually run `bench` workflow) and `bench/baselines/<date>-<machine>` (local).
   Compare only with the baseline from the same machine and compiler.
 - For a before/after on one machine, build `main` in a git worktree and this
   branch side by side, run both with the same filter, and paste

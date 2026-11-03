@@ -17,8 +17,6 @@ on:
       repetitions:
         description: "Timing repetitions per benchmark"
         default: "10"
-  schedule:
-    - cron: "17 3 * * *"  # nightly
 
 permissions:
   contents: read
@@ -58,7 +56,7 @@ jobs:
           python3 tools/bench/compare.py bench/baselines/ci run > compare.md
           status=$?
           set -e
-          cat compare.md >> "$GITHUB_STEP_SUMMARY"
+          tee -a "$GITHUB_STEP_SUMMARY" < compare.md
           exit $status
 
   coverage:
