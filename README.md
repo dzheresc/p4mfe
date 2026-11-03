@@ -93,7 +93,7 @@ tools/bench/compare.py <baseline-dir> <run-dir>                 # Markdown repor
 tools/bench/coverage.sh                                         # needs gcovr; every public function must run
 ```
 
-The `bench` workflow runs the same baseline nightly (and on demand) on a
+The `bench` workflow runs the same baseline on demand (Actions, "Run workflow") on a
 GitHub runner, compares it with `bench/baselines/ci` when that exists, and runs
 the coverage check.
 
